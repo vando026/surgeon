@@ -1,8 +1,25 @@
 package conviva.surgeon
 
 import org.apache.spark.sql.{SparkSession, DataFrame}
-import org.apache.spark.sql.functions.{col, udf, when, from_unixtime}
+import org.apache.spark.sql.functions.{col, udf, when, from_unixtime, lit}
 import conviva.surgeon.Sanitize._
+
+trait ParseTime {
+  def scale1 = lit(1)
+  def scale2 = lit(1/1000)
+}
+
+case class ParseTimeMs(df: DataFrame, field: String, name: String)  {
+  def ms(): DataFrame = {
+    df.withColumn(s"${name}Ms", col(field) * scale1)
+  }
+  def sec(): DataFrame = {
+    df.withColumn(s"${name}Sec", col(field) * scale2)
+  }
+  def timestamp(): DataFrame = {
+    df.withColumn(s"${name}", from_unixtime(col(field) * scale2))
+  }
+}
 
 /**
  * SQL and UDF Methods to create columns from the PbSS hourly, daily and monthly data. 
@@ -10,8 +27,10 @@ import conviva.surgeon.Sanitize._
  * concise. 
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
+ * @define timestamp in seconds, milliseconds, or timestamp
  * @example {{{
  * df.customerId.clientIdHex.hasEnded.justJoined
+ *   .intvStartTime.ms
  * }}}
  */
 object PbSS {
@@ -115,61 +134,48 @@ object PbSS {
           col("val.sessSummary.intvStartTimeSec") * unit)
     }
     /**
-      * Creates the lifeFirstRecvTime column in seconds or milliseconds.
-      * @param seconds If true, the column returns `lifeFirstRecvTimeSec` in
-      * seconds else it returns `lifeFirstRecvTimeMs` in milliseconds. 
+      * Parse the lifeFirstRecvTime column $timestamp.
       * @example {{{
-      * df.lifeFirstRecvTime(seconds = false)
+      * df.lifeFirstRecvTime.sec // seconds
+      * df.lifeFirstRecvTime.ms // milliseconds
+      * df.lifeFirstRecvTime.timestamp 
       * }}}
       */
-    def lifeFirstRecvTime(seconds: Boolean = true): DataFrame = {
-      val unit = if (seconds) 1000 else 1 // this reverses intvStartTimeMs logic
-      val name = if (seconds) "lifeFirstRecvTimeSec" else "lifeFirstRecvTimeMs"
-      df.withColumn(name,
-          from_unixtime(col("val.sessSummary.lifeFirstRecvTimeMs") / unit))
-    }
-    /**
-      * Creates the firstRecvTime column in seconds or milliseconds.
-      * @param seconds If true, the column returns `firstRecvTimeSec` in
-      * seconds else it returns `firstRecvTimeMs` in milliseconds. 
-      * @example {{{
-      * df.lifeFirstRecvTime(seconds = false)
-      * }}}
-      */
-    def firstRecvTime(seconds: Boolean = true): DataFrame = {
-      val unit = if (seconds) 1000 else 1 // this reverses intvStartTimeMs logic
-      val name = if (seconds) "firstRecvTimeSec" else "firstRecvTimeMs"
-      df.withColumn(name, from_unixtime(col("key.firstRecvTimeMs") / unit))
-    }
-    /**
-      * Creates the lastRecvTime column in seconds or milliseconds.
-      * @param seconds If true, the column returns `lastRecvTimeSec` in
-      * seconds else it returns `lastRecvTimeMs` in milliseconds. 
-      * @example {{{
-      * df.lifeFirstRecvTime(seconds = false)
-      * }}}
-      */
-    def lastRecvTime(seconds: Boolean = true): DataFrame = {
-      val unit = if (seconds) 1000 else 1 // this reverses intvStartTimeMs logic
-      val name = if (seconds) "lastRecvTimeSec" else "lastRecvTimeMs"
-      df.withColumn(name,
-        from_unixtime(col("val.sessSummary.lastRecvTimeMs") / unit))
-    }
-    /**
-      * Creates the sessionCreationTime column in seconds or milliseconds.
-      * @param seconds If true, the column returns `sessionCreationTimeSec` in
-      * seconds else it returns `sessionCreationTimeMs` in milliseconds. 
-      * @example {{{
-      * df.lifeFirstRecvTime(seconds = false)
-      * }}}
-      */
-    def sessionCreationTime(seconds: Boolean = true): DataFrame = {
-      val unit = if (seconds) 1000 else 1 // this reverses intvStartTimeMs logic
-      val name = if (seconds) "sessionCreationTimeSec" else "sessionCreationTimeMs"
-      df.withColumn(name,
-        from_unixtime(col("val.invariant.sessionCreationTimeMs") / unit))
-    }
+      def lifeFirstRecvTime = ParseTimeMs(df, 
+        "val.sessSummary.lifeFirstRecvTimeMs", "lifeFirstRecvTime")
 
+    /**
+      * Parse the firstRecvTime column $timestamp
+      * @example {{{
+      * df.lifeFirstRecvTime.ms
+      * df.lifeFirstRecvTime.sec
+      * df.lifeFirstRecvTime.timestamp
+      * }}}
+      */
+    def firstRecvTime = ParseTimeMs(df, "key.firstRecvTimeMs", 
+        "firstRecvTime")
+
+    /**
+      * Parse the lastRecvTime column $timestamp.
+      * @example {{{
+      * df.lifeFirstRecvTime.ms
+      * df.lifeFirstRecvTime.sec
+      * df.lifeFirstRecvTime.timestamp
+      * }}}
+      */
+    def lastRecvTime = ParseTimeMs(df, "val.sessSummary.lastRecvTimeMs", 
+      "lastRecvTime") 
+
+    /**
+      * Creates the sessionCreationTime column $timestamp.
+      * @example {{{
+      * df.lifeFirstRecvTime.ms
+      * df.lifeFirstRecvTime.sec
+      * df.lifeFirstRecvTime.timestamp
+      * }}}
+      */
+    def sessionCreationTime = ParseTimeMs(df, 
+      "val.invariant.sessionCreationTimeMs", "sessionCreationTime")
   }
 }
 
@@ -222,3 +228,5 @@ testSDF.groupBy("shouldProcess", "isJoinTimeMs", "joinState", "isLifePlayingTime
 )
 .sort("shouldProcess", "isJoinTimeMs", "joinState", "isLifePlayingTimeMs").toShow()
 */ 
+
+
