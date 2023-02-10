@@ -1,7 +1,7 @@
 scalaVersion := "2.12.13"
 version := "0.0.1"
-name := "ds"
-organization := "com.conviva"
+name := "surgeon"
+organization := "conviva"
 
 libraryDependencies ++= List(
   "org.apache.spark" %% "spark-sql" % "3.3.1",

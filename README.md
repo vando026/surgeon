@@ -3,6 +3,6 @@
 </p>
 
 <h1 align="center"> conviva-surgeon</h1>
-A scala library that provides tools for operating on data generated from Conviva
-heartbeats.i
+A scala library with tools to operate on data generated from Conviva
+Heartbeats.
 

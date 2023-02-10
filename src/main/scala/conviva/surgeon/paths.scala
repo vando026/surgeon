@@ -1,7 +1,7 @@
 // Project: define paths for pbss/prbl paths
 // Description: 
 // Date: 27-Jan-2023
-package com.conviva.databricks.ds
+package conviva.surgeon
 
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 

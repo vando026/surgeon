@@ -1,8 +1,8 @@
-package com.conviva.databricks.ds
+package conviva.surgeon
 
 import org.apache.spark.sql.{SparkSession, DataFrame}
 import org.apache.spark.sql.functions.{col, udf, when, from_unixtime}
-import com.conviva.databricks.ds.Conversion._
+import conviva.surgeon.Sanitize._
 
 /**
  * SQL and UDF Methods to create columns from the PbSS hourly, daily and monthly data. 
