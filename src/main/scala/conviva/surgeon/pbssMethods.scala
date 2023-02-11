@@ -5,20 +5,27 @@ import org.apache.spark.sql.functions.{col, udf, when, from_unixtime, lit}
 import conviva.surgeon.Sanitize._
 
 trait ParseTime {
-  def scale1 = lit(1)
-  def scale2 = lit(1/1000)
-}
-
-case class ParseTimeMs(df: DataFrame, field: String, name: String)  {
+  def name: String
+  def field: String
+  def df: DataFrame
+  val scale1 = lit(1000)
+  val scale2= lit(1)
+  def asis(): DataFrame = df.withColumn(s"${name}", col(field))
   def ms(): DataFrame = {
-    df.withColumn(s"${name}Ms", col(field) * scale1)
+    df.withColumn(s"${name}Ms", (col(field) * scale2).cast("Long"))
   }
   def sec(): DataFrame = {
-    df.withColumn(s"${name}Sec", col(field) * scale2)
+    df.withColumn(s"${name}Sec", (col(field)  / scale1).cast("Long"))
   }
   def timestamp(): DataFrame = {
-    df.withColumn(s"${name}", from_unixtime(col(field) * scale2))
+    df.withColumn(s"${name}stamp", from_unixtime(col(field) / scale1))
   }
+}
+
+case class ParseTimeMs(df: DataFrame, field: String, name: String) extends ParseTime
+case class ParseTimeSec(df: DataFrame, field: String, name: String) extends ParseTime {
+  override val scale1 = lit(1)
+  override val scale2 = lit(1000)
 }
 
 /**
@@ -27,78 +34,85 @@ case class ParseTimeMs(df: DataFrame, field: String, name: String)  {
  * concise. 
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
- * @define timestamp in seconds, milliseconds, or timestamp
  * @example {{{
  * df.customerId.clientIdHex.hasEnded.justJoined
  *   .intvStartTime.ms
  * }}}
  */
+
 object PbSS {
   /**
    * SQL and UDF Methods to create columns from the PbSS hourly, daily and monthly data. 
    * These methods can be chained to make the code for reading in columns more
    * concise. 
+   * @define timestamp in seconds, milliseconds, or timestamp
    * @example {{{
    * df.customerId.clientIdHex.hasEnded.justJoined
    * }}}
    */
   implicit class pbssMethods(df: DataFrame) {
-    /** Create the customerId column.
-     */ 
+
+    /** Get the customerId column as is. */ 
     def customerId(): DataFrame = {
       df.withColumn("customerId", col("key.sessId.customerId"))
     }
-    /** Create the clientId column in unsigned format.
-     */ 
+
+    /** Create the clientId column in unsigned format. */ 
     def clientIdUnsigned(): DataFrame = {
       df.withColumn("clientId", 
         toClientIdUnsigned(col("key.sessId.clientId.element")))
     }
-    /** Create the clientId column in hexadecimal format.
-     */ 
+
+    /** Create the clientId column in hexadecimal format. */ 
     def clientIdHex(): DataFrame = {
       df.withColumn("clientId", 
         toClientIdHex(col("key.sessId.clientId.element")))
     }
-    /** Create the SID5 column in hexadecimal format.
-     */ 
+
+    /** Get clientSessionId as is. */ 
+    def sessionId(): DataFrame = {
+      df.withColumn("sessionId", col("key.sessId.clientSessionId"))
+    }
+
+    /** Create the SID5 column in hexadecimal format. */ 
     def sid5Hex(): DataFrame = {
       df.withColumn("sid5", toSid5Hex(
         col("key.sessId.clientId.element"), 
         col("key.sessId.clientSessionId")))
     }
-    /** Create the SID5 column in unsigned format.
-     */ 
+
+    /** Create the SID5 column in unsigned format. */ 
     def sid5Unsigned(): DataFrame = {
       df.withColumn("sid5", toSid5Unsigned(
         col("key.sessId.clientId.element"), 
         col("key.sessId.clientSessionId")))
     }
-    /** Create the shouldProcess column.
-     */ 
+
+    /** Get the shouldProcess column. */ 
     def shouldProcess(): DataFrame = {
       df.where(col("val.sessSummary.shouldProces"))
     }
-    /** Create the hasEnded column.
-     */ 
+
+    /** Get the hasEnded column. */ 
     def hasEnded(): DataFrame = {
       df.withColumn("hasEnded", col("val.sessSummary.hasEnded"))
     }
-    /** Create the justEnded column.
-     */ 
+
+    /** Get the justEnded column. */ 
     def justEnded(): DataFrame = {
       df.withColumn("justEnded", col("val.sessSummary.justEnded"))
     }
-    /** Create the justEnded column.
-     */ 
+
+    /** Get the endedStatus column. */ 
     def endedStatus(): DataFrame = {
       df.withColumn("endedStatus",  col("val.sessSummary.endedStatus"))
     }
-    /** Create the joinState column.
-     */ 
+
+    /** Get the joinState column. */ 
     def joinState(): DataFrame = {
       df.withColumn("joinState", col("val.sessSummary.joinState"))
     }
+
     /** Create a column with valid joinTimes (in milliseconds) if the session is a valid join.
      *  The logic is:
      *  if (joinState > 0 | (joinState = -4 & joinTimeMs != 3) then joinTimeMs else null)
@@ -111,6 +125,7 @@ object PbSS {
           .and(col("val.sessSummary.joinTimeMs") =!= -3)),
         col("val.sessSummary.joinTimeMs")).otherwise(null))
     }
+
     /**
       * Create a column indicating if session is an AdSession or
       * ContentSession.
@@ -119,20 +134,19 @@ object PbSS {
       df.withColumn("sessionType", when(col("val.invariant.summarizedTags")
         .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession"))
     }
+
     /**
-      * Creates the intvStartTime column in seconds or milliseconds.
-      * @param seconds If true, the column returns `intvStartTimeSec` in
-      * seconds else it returns `intvStartTimeMs` in milliseconds. 
+      * Creates the intvStartTime column $timestamp.
       * @example {{{
-      * df.intvStartTime(seconds = false)
+      * df.intvStartTime.asis
+      * df.intvStartTime.ms
+      * df.intvStartTime.sec
+      * df.intvStartTime.timestamp
       * }}}
       */
-    def intvStartTime(seconds: Boolean = true): DataFrame = {
-      val unit = if (seconds) 1 else 1000
-      val name = if (seconds) "intvStartTimeSec" else "intvStartTimeMs"
-      df.withColumn(name, 
-          col("val.sessSummary.intvStartTimeSec") * unit)
-    }
+    def intvStartTime = ParseTimeSec(df, "val.sessSummary.intvStartTimeSec",
+      "intvStartTime")
+
     /**
       * Parse the lifeFirstRecvTime column $timestamp.
       * @example {{{
@@ -147,9 +161,9 @@ object PbSS {
     /**
       * Parse the firstRecvTime column $timestamp
       * @example {{{
-      * df.lifeFirstRecvTime.ms
-      * df.lifeFirstRecvTime.sec
-      * df.lifeFirstRecvTime.timestamp
+      * df.firstRecvTime.ms
+      * df.firstRecvTime.sec
+      * df.firstRecvTime.timestamp
       * }}}
       */
     def firstRecvTime = ParseTimeMs(df, "key.firstRecvTimeMs", 
@@ -158,9 +172,9 @@ object PbSS {
     /**
       * Parse the lastRecvTime column $timestamp.
       * @example {{{
-      * df.lifeFirstRecvTime.ms
-      * df.lifeFirstRecvTime.sec
-      * df.lifeFirstRecvTime.timestamp
+      * df.lastRecvTime.ms
+      * df.lastRecvTime.sec
+      * df.lastRecvTime.timestamp
       * }}}
       */
     def lastRecvTime = ParseTimeMs(df, "val.sessSummary.lastRecvTimeMs", 
@@ -169,9 +183,9 @@ object PbSS {
     /**
       * Creates the sessionCreationTime column $timestamp.
       * @example {{{
-      * df.lifeFirstRecvTime.ms
-      * df.lifeFirstRecvTime.sec
-      * df.lifeFirstRecvTime.timestamp
+      * df.sessionCreationTime.ms
+      * df.sessionCreationTime.sec
+      * df.sessionCreationTime.timestamp
       * }}}
       */
     def sessionCreationTime = ParseTimeMs(df, 
