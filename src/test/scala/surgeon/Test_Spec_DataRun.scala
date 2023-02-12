@@ -1,7 +1,7 @@
 package surgeon
 
 import org.apache.spark.sql.{SparkSession, DataFrame}
-import conviva.surgeon.PbSS.pbssMethods
+import conviva.surgeon.PbSS._
 import org.apache.spark.sql.functions.{col, when, from_unixtime, lit}
 
 class DataSuite extends munit.FunSuite {
@@ -19,18 +19,30 @@ class DataSuite extends munit.FunSuite {
     assertEquals(nrow, 10)
   }
 
-  // test("toSid5Hex")
-  // val sid1 = dat.sid5Hex().life
+  test("Extract: sessionId") {
+    val expect: Any = 89057425
+    val t1 = d8905.select(sessionId.asis)
+      .collect()
+    assertEquals(t1(0)(0), expect)
+  }
+
+  test("Extract: clientId") {
+    val expect: Any = "476230728:1293028608:-1508640558:-1180571212"
+    val t1 = d8905.select(clientIdUnsigned)
+      .collect()
+    assertEquals(t1(0)(0), expect)
+  }
+
 
   test("ParseTimeMs: lifeFirstRecv") {
     val expect: Any = 1675765693115L
     val expect2: Any = 1675765693115L / 1000
-    val t1 = d8905.lifeFirstRecvTime.asis
-      .select(col("lifeFirstRecvTime")).collect()
-    val t2 = d8905.lifeFirstRecvTime.ms
-      .select(col("lifeFirstRecvTimeMs")).collect()
-    val t3 = d8905.lifeFirstRecvTime.sec
-      .select(col("lifeFirstRecvTimeSec")).collect()
+    val t1 = d8905.select(lifeFirstRecvTime.asis)
+      .collect()
+    val t2 = d8905.select(lifeFirstRecvTime.ms)
+      .collect()
+    val t3 = d8905.select(lifeFirstRecvTime.sec)
+      .collect()
     assertEquals(t1(0)(0), expect)
     assertEquals(t2(0)(0), expect)
     assertEquals(t3(0)(0), expect2)
@@ -39,12 +51,12 @@ class DataSuite extends munit.FunSuite {
   test("ParseTimeSec: intvStartTimeSec") {
     val expect: Any = 1675764000
     val expect2: Any = 1675764000 * 1000
-    val t1 = d8905.intvStartTime.asis
-      .select(col("intvStartTime")).collect()
-    val t2 = d8905.intvStartTime.ms
-      .select(col("intvStartTimeMs")).collect()
-    val t3 = d8905.intvStartTime.sec
-      .select(col("intvStartTimeSec")).collect()
+    val t1 = d8905.select(intvStartTime.asis)
+      .collect()
+    val t2 = d8905.select(intvStartTime.ms)
+      .collect()
+    val t3 = d8905.select(intvStartTime.sec)
+      .collect()
     assertEquals(t1(0)(0), expect)
     assertEquals(t2(0)(0), expect2)
     assertEquals(t3(0)(0), expect)

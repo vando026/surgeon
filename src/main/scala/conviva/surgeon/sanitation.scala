@@ -9,19 +9,42 @@ import org.apache.spark.sql.functions.{udf}
 */
 object Sanitize {
 
+  implicit class Unsigned(x: Long) {
+      def toUnsigned() =  (BigInt(x >>> 1) << 1) + (x & 1)
+  }
+
+  val x: Array[Int] = Array(1000000L, 45000000L) 
+  val tt = Array(476230728, 1293028608, -1508640558, -1180571212)
+
+  trait SanitizeId extends ExtractCol {
+    private def toHexId(field: Any): String = {
+      field match {
+        case s: Array[Int] => s.map(_.toHexString).mkString(":")
+        case s: Int  => s.toHexString
+        case _ => "Error: Int or Array[Int] needed"
+      }
+    }
+    private def toUnsignedId(field: Any): String = {
+      field match {
+        case s: Array[Int] => s.map(_.toUnsigned).mkString(":")
+        case s: Int  => s.toUnsigned.toString
+        case _ => "Error: Int or Array[Int] needed"
+      }
+    }
+
+  }
+  
+  /**
+  case class SanitizeId1(field: String) extends SanitizeId {
+    def toClientIdHex = udf((clientId: Array[Int]) => toHexId(clientId))
+  }
+  def clientId() = SanitizeId1("val.sessId.clientId.element")
+
+  def toClientIdHex = udf((clientId: Array[Int], sessId: Int) => {
+      toHexId(clientId)
+  */
   /** Method to convert signed BigInt to Unsigned BigInt
   */
-  def toUnsigned(x: Int): BigInt = {
-    (BigInt(x >>> 1) << 1) + (x & 1)
-  }
-
-  def arrayToHex(array: Array[BigInt]): String = {
-    array.map(_.toInt.toHexString).mkString(":")
-  }
-
-  def arrayToUnsigned(array: Array[BigInt]): String = {
-    array.map(i => toUnsigned(i.toInt)).mkString(":")
-  }
 
   /** UDF to construct clientId in hexadecimal format. 
    *
