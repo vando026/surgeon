@@ -12,47 +12,34 @@ object Sanitize {
   implicit class Unsigned(x: Long) {
       def toUnsigned() =  (BigInt(x >>> 1) << 1) + (x & 1)
   }
-
-  val x: Array[Int] = Array(1000000L, 45000000L) 
-  val tt = Array(476230728, 1293028608, -1508640558, -1180571212)
-
-  trait SanitizeId extends ExtractCol {
-    private def toHexId(field: Any): String = {
-      field match {
-        case s: Array[Int] => s.map(_.toHexString).mkString(":")
-        case s: Int  => s.toHexString
-        case _ => "Error: Int or Array[Int] needed"
-      }
-    }
-    private def toUnsignedId(field: Any): String = {
-      field match {
-        case s: Array[Int] => s.map(_.toUnsigned).mkString(":")
-        case s: Int  => s.toUnsigned.toString
-        case _ => "Error: Int or Array[Int] needed"
-      }
-    }
-
+  def toUnsigned(x: Column) =  (BigInt(x >>> 1) << 1) + (x & 1)
+  def arrayToUnsigned(col: Column): Column = {
+    array_join(transform(col, toUnsigned(_)), ":")
   }
-  
-  /**
-  case class SanitizeId1(field: String) extends SanitizeId {
-    def toClientIdHex = udf((clientId: Array[Int]) => toHexId(clientId))
-  }
-  def clientId() = SanitizeId1("val.sessId.clientId.element")
 
-  def toClientIdHex = udf((clientId: Array[Int], sessId: Int) => {
-      toHexId(clientId)
-  */
+  def toHexString(col: Column): Column = lower(conv(col, 10, 16))
+  def arrayToHex(col: Column): Column = {
+    array_join(transform(col, toHexString(_)), ":")
+  }
+
+  case class ExtractID(field: String) extends ExtractCol {
+    def hex(): Column = arrayToHex(col(field)).alias("clientIdHex")
+  }
+
+  case class ExtractID2(field: String, field2: String) {
+    def hex(): Column = {
+      concat_ws(":", arrayToHex(col(field)), toHexString(col(field2)))
+        .alias("sid5Hex")
+    }
+  }
+
   /** Method to convert signed BigInt to Unsigned BigInt
   */
 
-  /** UDF to construct clientId in hexadecimal format. 
+  /**  to construct clientId in hexadecimal format. 
    *
    *  @param clientId $clientId
    */ 
-  def toClientIdHex = udf((clientId: Array[BigInt], sessId: Int) => {
-      arrayToHex(clientId)
-  })
 
   /** UDF to construct id in hexadecimal format. 
    *
@@ -69,22 +56,5 @@ object Sanitize {
   val toSid5Unsigned = udf((clientId: Array[BigInt], sessId: Int) => {
     arrayToUnsigned(clientId) + ":" + toUnsigned(sessId.toInt)
   }) 
-
-  /** UDF to construct SID5 (clientId:sessionId) in hexadecimal format. 
-   *  @param clientId $clientId
-   *  @param sessionId $sessionId 
-   */ 
-  def toSid5Hex = udf((clientId: Array[BigInt], sessId: Int) => {
-      arrayToHex(clientId) + ":" +  sessId.toInt.toHexString
-  })
-
-  /** UDF to construct SID5 (clientId:sessionId) as is. 
-   *  @param clientId $clientId
-   *  @param sessionId $sessionId 
-   */ 
-  def toSid5 = udf((clientId: Array[BigInt], sessId: Int) => {
-      clientId.mkString(":") + ":" +  sessId.toString
-  })
-
 
 }

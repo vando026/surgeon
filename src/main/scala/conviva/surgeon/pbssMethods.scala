@@ -74,26 +74,11 @@ object PbSS {
     /** Get clientSessionId as is. */ 
     def sessionId() = ExtractColAs("key.sessId.clientSessionId")
 
-    /** Create the clientId column in unsigned format. */ 
-    def clientIdUnsigned() = toClientIdUnsigned(
-        col("key.sessId.clientId.element"))
-      .alias("clientIdUnsigned")
+    /** Create the clientId column. */ 
+    def clientId = ExtractID("key.sessId.clientId.element")
 
-    /** Create the clientId column in hexadecimal format. */ 
-    def clientIdHex() = toClientIdHex(
-          col("key.sessId.clientId.element"))
-        .alias("clientIdHex")
-
-    /** Create the SID5 column in hexadecimal format. */ 
-    def sid5Hex() = toSid5Hex(
-        col("key.sessId.clientId.element"),
-        col("key.sessId.clientSessionId"))
-      .alias("sid5Hex")
-
-    /** Create the SID5 column in unsigned format. */ 
-    def sid5Unsigned = toSid5Unsigned(
-        col("key.sessId.clientId.element"), col("key.sessId.clientSessionId"))
-      .alias("sid5Unsigned")
+    /** Create the SID5 column. */ 
+    def sid5 = ExtractID2("key.sessId.clientId.element", "key.sessId.clientSessionId")
 
     /** Get the shouldProcess column. */ 
     def shouldProcess() = ExtractColAs("val.sessSummary.shouldProces")

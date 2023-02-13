@@ -1,8 +1,8 @@
 package surgeon
 
-import org.apache.spark.sql.{SparkSession, DataFrame}
-import conviva.surgeon.PbSS._
+import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions.{col, when, from_unixtime, lit}
+import conviva.surgeon.PbSS._
 
 class DataSuite extends munit.FunSuite {
 
