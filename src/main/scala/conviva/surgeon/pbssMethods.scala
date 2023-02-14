@@ -29,7 +29,7 @@ trait ExtractColTime extends ExtractCol {
 
 case class ExtractColAs(
     field: String
-  ) extends ExtractCol
+  ) extends ExtractCol 
 
 case class ExtractColMs(
     field: String, 
@@ -75,10 +75,11 @@ object PbSS {
     def sessionId() = ExtractColAs("key.sessId.clientSessionId")
 
     /** Create the clientId column. */ 
-    def clientId = ExtractID("key.sessId.clientId.element")
+    def clientId = ExtractID("key.sessId.clientId.element", "clientId")
 
     /** Create the SID5 column. */ 
-    def sid5 = ExtractID2("key.sessId.clientId.element", "key.sessId.clientSessionId")
+    def sid5 = ExtractID2("key.sessId.clientId.element", 
+      "key.sessId.clientSessionId", "sid5")
 
     /** Get the shouldProcess column. */ 
     def shouldProcess() = ExtractColAs("val.sessSummary.shouldProces")
