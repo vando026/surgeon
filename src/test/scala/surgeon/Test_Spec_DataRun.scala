@@ -40,9 +40,23 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t1(0)(0).toString, expect)
   }
 
-  test("clientId should eq hex ID str") {
-    val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4"
-    val t1 = d8905.select(clientId.hex)
+  test("sid5 should eq hex ID str") {
+    val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891"
+    val t1 = d8905.select(sid5.hex)
+      .collect()
+    assertEquals(t1(0)(0).toString, expect)
+  }
+
+  test("sid5 should eq unsigned ID str") {
+    val expect = "476230728:1293028608:2786326738:3114396084:89057425"
+    val t1 = d8905.select(sid5.unsigned)
+      .collect()
+    assertEquals(t1(0)(0).toString, expect)
+  }
+
+  test("sid5 should eq signed ID str") {
+    val expect = "476230728:1293028608:-1508640558:-1180571212:89057425"
+    val t1 = d8905.select(sid5.signed)
       .collect()
     assertEquals(t1(0)(0).toString, expect)
   }

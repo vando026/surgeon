@@ -1,99 +1,88 @@
 package conviva.surgeon
 
-import org.apache.spark.sql.{SparkSession, DataFrame, Column}
-import org.apache.spark.sql.functions.{col, udf, when, from_unixtime, lit}
 import conviva.surgeon.Sanitize._
-
-// val dat = spark.read.parquet("data/pbssHourly1.parquet")
-
-trait ExtractCol {
-  def field: String
-  def suffix(s: String) = s.split("\\.").last
-  def asis(): Column = col(field).alias(suffix(field))
-}
-
-trait ExtractColTime extends ExtractCol {
-  def name: String
-  val val1 = lit(1000)
-  val val2= lit(1)
-  def ms(): Column = {
-    (col(field) * val2).cast("Long").alias(s"${name}Ms")
-  }
-  def sec(): Column = {
-    (col(field)  / val1).cast("Long").alias(s"${name}Sec")
-  }
-  def stamp(): Column = {
-    from_unixtime(col(field) / val1).alias(s"${name}Stamp")
-  }
-}
-
-case class ExtractColAs(
-    field: String
-  ) extends ExtractCol 
-
-case class ExtractColMs(
-    field: String, 
-    name: String
-  ) extends ExtractColTime
-
-case class ExtractColSec(
-    field: String, 
-    name: String
-  ) extends ExtractColTime {
-    override val val1 = lit(1)
-    override val val2 = lit(1000)
-  }
   
 /**
- * SQL and UDF Methods to create columns from the PbSS hourly, daily and monthly data. 
- * These methods can be chained to make the code for reading in columns more
- * concise. 
+ * Perform operations on the PbSS hourly, daily and monthly data. The main
+ * operation is to select columns from the data. Objects are named after
+ * fields (e.g., customerId) and have custom methods (e.g. intvStartTime.ms,
+ * which converts intvStartTimeSec to milliseconds). The Objects return type
+ * Column, so you can invoke Column.methods on the result (e.g.,
+ * dat.select(shouldProcess.asis.alias("myNewName")).
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
+ * @define timestamp in seconds, milliseconds, or timestamp
+ * @define signed as a signed, unsigned, or hexadecimal string
  * @example {{{
- * df.customerId.clientIdHex.hasEnded.justJoined
- *   .intvStartTime.ms
+ * df.select(customerId.asis, clientId.hex, hasEnded.asis, justJoined.asis)
  * }}}
  */
 
 object PbSS {
-  /**
-   * SQL and UDF Methods to create columns from the PbSS hourly, daily and monthly data. 
-   * These methods can be chained to make the code for reading in columns more
-   * concise. 
-   * @define timestamp in seconds, milliseconds, or timestamp
-   * @example {{{
-   * df.customerId.clientIdHex.hasEnded.justJoined
-   * }}}
-   */
-  // implicit class pbssMethods(df: DataFrame) {
 
-    /** Get the customerId column as is. */ 
+    /** Extract the `customerId` column as is.
+     * @example{{{
+     * df.select(customerId.asis)
+     * }}}
+    */ 
     def customerId() = ExtractColAs("key.sessId.customerId")
 
-    /** Get clientSessionId as is. */ 
+    /** Extract the `clientSessionId` column as is.
+     * @example{{{
+     * df.select(sessionId.asis)
+     * }}}
+    */ 
     def sessionId() = ExtractColAs("key.sessId.clientSessionId")
 
-    /** Create the clientId column. */ 
+    /** Create the `clientId` column $signed. 
+     * @example{{{
+     * df.select(clientId.signed, clientId.unsigned, clientId.hex)
+     * }}}  
+    */ 
     def clientId = ExtractID("key.sessId.clientId.element", "clientId")
 
-    /** Create the SID5 column. */ 
+    /** Create the sid5 column which concatenates `clientId` and `clientSessionId`
+     *  $signed. 
+     * @example{{{
+     * df.select(sid5.signed, sid5.unsigned, sid5.hex)
+     * }}}  
+    */ 
     def sid5 = ExtractID2("key.sessId.clientId.element", 
       "key.sessId.clientSessionId", "sid5")
 
-    /** Get the shouldProcess column. */ 
+    /** Get the shouldProcess column as is.
+     * @example{{{
+     * df.select(shouldProcess.asis)
+     * }}}
+    */ 
     def shouldProcess() = ExtractColAs("val.sessSummary.shouldProces")
 
-    /** Get the hasEnded column. */ 
+    /** Get the `hasEnded` column as is. 
+     * @example{{{
+     * df.select(hadEnded.asis)
+     * }}}
+    */ 
     def hasEnded() = ExtractColAs("val.sessSummary.hasEnded")
 
-    /** Get the justEnded column. */ 
+    /** Get the justEnded column.
+     * @example{{{
+     * df.select(justEnded.asis)
+     * }}}
+    */ 
     def justEnded() = ExtractColAs("val.sessSummary.justEnded")
 
-    /** Get the endedStatus column. */ 
+    /** Get the endedStatus column.
+     * @example{{{
+     * df.select(endedStatus.asis)
+     * }}}
+    */ 
     def endedStatus() = ExtractColAs("val.sessSummary.endedStatus")
 
-    /** Get the joinState column. */ 
+    /** Get the joinState column.
+     * @example{{{
+     * df.select(joinState.asis)
+     * }}}
+    */ 
     def joinState() = ExtractColAs("val.sessSummary.joinState")
 
     /** Create a column with valid joinTimes (in milliseconds) if the session is a valid join.
@@ -134,9 +123,11 @@ object PbSS {
     /**
       * Parse the lifeFirstRecvTime column $timestamp.
       * @example {{{
-      * df.lifeFirstRecvTime.sec // seconds
-      * df.lifeFirstRecvTime.ms // milliseconds
-      * df.lifeFirstRecvTime.timestamp 
+      * df.select(
+      *   lifeFirstRecvTime.asis,
+      *   lifeFirstRecvTime.sec,
+      *   lifeFirstRecvTime.ms, 
+      *   lifeFirstRecvTime.stamp)
       * }}}
       */
       def lifeFirstRecvTime = ExtractColMs( 
@@ -145,9 +136,11 @@ object PbSS {
     /**
       * Parse the firstRecvTime column $timestamp
       * @example {{{
-      * df.firstRecvTime.ms
-      * df.firstRecvTime.sec
-      * df.firstRecvTime.timestamp
+      * df.select(
+      *   firstRecvTime.asis,
+      *   firstRecvTime.ms,
+      *   firstRecvTime.sec,
+      *   firstRecvTime.stamp)
       * }}}
       */
     def firstRecvTime = ExtractColMs(
@@ -156,9 +149,11 @@ object PbSS {
     /**
       * Parse the lastRecvTime column $timestamp.
       * @example {{{
-      * df.lastRecvTime.ms
-      * df.lastRecvTime.sec
-      * df.lastRecvTime.timestamp
+      * df.select(
+      *   lastRecvTime.asis,
+      *   lastRecvTime.ms,
+      *   lastRecvTime.sec,
+      *   lastRecvTime.stamp)
       * }}}
       */
     def lastRecvTime = ExtractColMs(
@@ -167,14 +162,15 @@ object PbSS {
     /**
       * Creates the sessionCreationTime column $timestamp.
       * @example {{{
-      * df.sessionCreationTime.ms
-      * df.sessionCreationTime.sec
-      * df.sessionCreationTime.timestamp
+      * df.select(
+      *   sessionCreationTime.asis,
+      *   sessionCreationTime.ms,
+      *   sessionCreationTime.sec,
+      *   sessionCreationTime.stamp)
       * }}}
       */
     def sessionCreationTime = ExtractColMs( 
       field = "val.invariant.sessionCreationTimeMs", name = "sessionCreationTime")
-  // }
 }
 
 // object readcsv {
