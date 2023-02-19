@@ -18,17 +18,15 @@ object Sanitize {
   trait ExtractCol {
     /** The input field */
     def field: String
-    /** Method to extract the last element from the field name */
-    def suffix(s: String) = s.split("\\.").last
-    /** Extract the column as is with suffix name */
-    def asis(): Column = col(field).alias(suffix(field))
+    /** Name with which to rename the field */
+    def newName: String = field.split("\\.").last
+    /** Extract the field as is with name */
+    def asis(): Column = col(field).alias(s"$newName")
   }
 
   /** A trait for extracting time-based columns from Session Summary and RawLog data.
   */
   trait ExtractColTime extends ExtractCol {
-    /** Assign new name to the field. */
-    def name: String
     /** Convert to Unix epoch time to a different timescale
      *  @param scale A multiplier such as 1000.0 that converts seconds to
      *  milliseconds, or 1.0/1000 that converts milliseconds to seconds 
@@ -36,27 +34,30 @@ object Sanitize {
      *  Typically `Ms` or `Sec`.
      */
     def convert(scale: Double, suffix: String): Column = {
-      (col(field) * lit(scale)).cast("Long").alias(s"${name}${suffix}")
+      (col(field) * lit(scale)).cast("Long").alias(s"${newName}${suffix}")
     }
     /** Convert to Unix epoch time to readable time stamp */
     def stamp_(scale: Double): Column = {
-      from_unixtime(col(field) * lit(scale)).alias(s"${name}Stamp")
+      from_unixtime(col(field) * lit(scale)).alias(s"${newName}Stamp")
     }
   }
   
-
   /** A class for extracting columns as is from Session Summary and RawLog data.
   */
   case class ExtractColAs(
-      field: String
+      field: String,
+      name: Option[String] = None
     ) extends ExtractCol 
+    // {
+    //   override def newName = name.getOrElse(newName)
+    // }
 
   /** A class for extracting time-based columns in milliseconds.
   */
   case class ExtractColMs(
-      field: String, 
-      name: String
+      field: String, name: String
     ) extends ExtractColTime {
+      override def newName = name
       def ms() = convert(1.0, "Ms")
       def sec() = convert(1.0/1000, "Sec")
       def stamp() = stamp_(1.0/1000)
@@ -65,9 +66,9 @@ object Sanitize {
   /** A class for extracting time-based columns in seconds.
   */
   case class ExtractColSec(
-      field: String, 
-      name: String
+      field: String, name: String
     ) extends ExtractColTime {
+      override def newName = name
       def ms() = convert(1000.0, "Ms")
       def sec() = convert(1.0, "Sec")
       def stamp() = stamp_(1.0)
@@ -75,33 +76,48 @@ object Sanitize {
 
   /** UDF to convert signed BigInt to Unsigned BigInt
   */
-  def toUnsigned_(x: Int): BigInt =  (BigInt(x >>> 1) << 1) + (x & 1)
-  def toUnsigned = udf[BigInt, Int](toUnsigned_)
+  def toUnsigned(x: Int): BigInt =  (BigInt(x >>> 1) << 1) + (x & 1)
+  def toUnsignedUDF = udf[BigInt, Int](toUnsigned)
   def arrayToUnsigned(col: Column): Column = {
-    array_join(transform(col, toUnsigned(_)), ":")
+    array_join(transform(col, toUnsignedUDF(_)), ":")
   }
 
   // def toHexString(col: Column): Column = lower(conv(col, 10, 16))
   def toHexString_(x: Int): String = x.toHexString
-  def toHexString = udf[String, Int](toHexString_)
+  def toHexStringUDF = udf[String, Int](toHexString_)
   def arrayToHex(col: Column): Column = {
-    array_join(transform(col, toHexString(_)), ":")
+    array_join(transform(col, toHexStringUDF(_)), ":")
   }
 
-  /** Class to extract and convert ID related fields 
-   * @param field The input field
-   * @param name The new name for input field
-   */
-  case class ExtractID(field: String, name: String) extends ExtractCol {
+  trait ExtractID extends ExtractCol {
+    def name: String
+    override def newName = name
     /** Method to convert to hexadecimal format */
-    def hex(): Column = arrayToHex(col(field))
+    def hex(): Column = toHexStringUDF(col(field))
       .alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def unsigned(): Column = arrayToUnsigned(col(field))
+    def unsigned(): Column = toUnsignedUDF(col(field))
       .alias(s"${name}Unsigned")
     /** Method to convert to signed format */
     def signed(): Column = concat_ws(":", col(field))
       .alias(s"${name}Signed")
+  }
+
+  case class ExtractIDCol(field: String, name: String) extends ExtractID
+  
+  /** Class to extract and convert ID related fields 
+   * @param field The input field
+   * @param name The new name for input field
+   */
+
+  case class ExtractIDArray(field: String, name: String) extends ExtractID {
+    // override def newName = name
+    /** Method to convert to hexadecimal format */
+   override def hex(): Column = arrayToHex(col(field))
+      .alias(s"${name}Hex")
+    /** Method to convert to unsigned format */
+    override def unsigned(): Column = arrayToUnsigned(col(field))
+      .alias(s"${name}Unsigned")
   }
 
   /** Class to extract and convert 2 ID related fields into 1
@@ -109,19 +125,20 @@ object Sanitize {
    * @param field2 The second input field
    * @param name The new name for input field
    */
-  case class ExtractID2(field: String, field2: String, name: String) {
+
+  case class ExtractSID(name: String, fields: ExtractID*) {
+    // override def newName = name
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
-      concat_ws(":", arrayToHex(col(field)), toHexString(col(field2)))
-        .alias(s"${name}Hex")
+      concat_ws(":", fields.map(_.hex):_*).alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
     def unsigned(): Column = {
-      concat_ws(":", arrayToUnsigned(col(field)), toUnsigned(col(field2)))
-        .alias(s"${name}Unsigned")
+      concat_ws(":", fields.map(_.unsigned):_*).alias(s"${name}Unsigned")
     }
     /** Method to convert to signed format */
-    def signed(): Column = concat_ws(":", col(field), col(field2))
-      .alias(s"${name}Signed")
+    def signed(): Column = {
+      concat_ws(":", fields.map(_.signed):_*).alias(s"${name}Signed")
+    }
   }
 }

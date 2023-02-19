@@ -27,7 +27,7 @@ class DataSuite extends munit.FunSuite {
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
-  test("Check test data nrow") {
+  test("Data nrow should be expected") {
     val nrow = dat.count.toInt
     assertEquals(nrow, 10)
   }
@@ -74,6 +74,26 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t1(0)(0).toString, expect)
   }
 
+  test("sid6 should eq signed ID str") {
+    val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
+    val t1 = d8905.select(sid6.signed)
+      .collect()
+    assertEquals(t1(0)(0).toString, expect)
+  }
+
+  test("sessionCreationId should eq expected") {
+    val expect = "2b6b36b7"
+    val t1 = d8905.select(sessionCreationId.hex).collect()
+    assertEquals(t1(0)(0), expect)
+  }
+
+  test("sid6 should eq hex ID str") {
+    val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
+    val t1 = d8905.select(sid6.hex)
+      .collect()
+    assertEquals(t1(0)(0).toString, expect)
+  }
+
   test("intvStartTimeSec should compute ms/sec") {
     val expect: Any = 1675764000L
     val expect2: Any = 1675764000L * 1000
@@ -88,12 +108,30 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t3(0)(0), expect)
   }
 
-  test("Select should include all field names") {
-    val expect = "customerId:clientSessionId:sid5Signed:intvStartTimeSec"
+  test("Select should include all ID field names") {
+    val expect = "customerId:clientId:sessionId:sid5Signed:sid5Unsigned"
     val tnames = d8905
       .select(
-        customerId.asis, sessionId.asis,
-        sid5.signed, intvStartTime.sec)
+        customerId.asis, clientId.asis, sessionId.asis,
+        sid5.signed, sid5.unsigned)
+      .columns.mkString(":")
+    assertEquals(tnames, expect)
+  }
+
+  test("Select should include intvStartTime fields") {
+    val expect = "intvStartTime:intvStartTimeMs:intvStartTimeSec:intvStartTimeStamp"
+    val tnames = d8905
+      .select(intvStartTime.asis, intvStartTime.ms,
+        intvStartTime.sec, intvStartTime.stamp)
+      .columns.mkString(":")
+    assertEquals(tnames, expect)
+  }
+
+  test("Select should include joinTime fields") {
+    val expect = "joinTime:joinTimeMs:joinTimeSec:joinTimeStamp"
+    val tnames = d8905
+      .select(joinTime.asis, joinTime.ms,
+        joinTime.sec, joinTime.stamp)
       .columns.mkString(":")
     assertEquals(tnames, expect)
   }
@@ -128,4 +166,9 @@ class DataSuite extends munit.FunSuite {
     testTimeIsMs(d8905, lifeBufferingTime, 2375L)
   }
 
+  test("sessionCreationTime should compute ms/sec") {
+    testTimeIsMs(d8905, sessionCreationTime, 1675765692087L)
+  }
+
 }
+

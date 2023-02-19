@@ -34,23 +34,56 @@ object PbSS {
      * df.select(sessionId.asis)
      * }}}
     */ 
-    def sessionId() = ExtractColAs("key.sessId.clientSessionId")
+    def sessionId() = ExtractIDCol(field = "key.sessId.clientSessionId",
+      name = "sessionId") 
 
     /** Create the `clientId` column $signed. 
      * @example{{{
-     * df.select(clientId.signed, clientId.unsigned, clientId.hex)
+     * df.select(
+     *  clientId.asis,
+     *  clientId.signed, 
+     *  clientId.unsigned, 
+     *  clientId.hex)
      * }}}  
     */ 
-    def clientId = ExtractID("key.sessId.clientId.element", "clientId")
+    def clientId = ExtractIDArray(field = "key.sessId.clientId.element", 
+      name = "clientId")
 
-    /** Create the sid5 column which concatenates `clientId` and `clientSessionId`
-     *  $signed. 
+    /** Create sessionCreationTime as an object with hex, signed, and unsigned
+     *  methods. Note that this is not the same as `sessionCreationTime` which
+     *  has ms, sec, and timestamp methods. 
+     *  @example{{{
+     *  df.select(
+     *    sessionCreationId.asis,
+     *    sessionCreationId.hex,
+     *    sessionCreationId.signed, 
+     *    sessionCreationId.unsigned
+     *  )
+     *  }}}
+     */
+    def sessionCreationId = ExtractIDCol(field = "val.invariant.sessionCreationTimeMs", 
+      name = "sessionCreationId")
+
+    /** Create an sid5 object which concatenates `clientId` and `clientSessionId` with $signed. 
      * @example{{{
-     * df.select(sid5.signed, sid5.unsigned, sid5.hex)
+     * df.select(
+     *  sid5.signed, 
+     *  sid5.unsigned, 
+     *  sid5.hex)
      * }}}  
     */ 
-    def sid5 = ExtractID2("key.sessId.clientId.element", 
-      "key.sessId.clientSessionId", "sid5")
+    def sid5 = ExtractSID(name = "sid5", clientId, sessionId)
+
+    /** Create an sid6 object which concatenates `clientId`, `clientSessionId`, 
+     *  `sessionCreationTime` with $signed. 
+     * @example{{{
+     * df.select(
+     *  sid6.signed, 
+     *  sid6.unsigned, 
+     *  sid6.hex)
+     * }}}  
+    */ 
+    def sid6 = ExtractSID(name = "sid6", clientId, sessionId, sessionCreationId)
 
     /** Extract the shouldProcess field as is.
      * @example{{{
@@ -110,7 +143,8 @@ object PbSS {
      *  )
      *  }}}
      */
-    def joinTime() = ExtractColMs("val.sessSummary.joinTimeMs", "joinTime")
+    def joinTime() = ExtractColMs(field = "val.sessSummary.joinTimeMs", 
+      name = "joinTime")
 
     /** Create `lifePlayingTime` object with methods. 
      * @example{{{
@@ -122,8 +156,8 @@ object PbSS {
      * )
      * }}}
     */
-    def lifePlayingTime() = ExtractColMs("val.sessSummary.lifePlayingTimeMs",
-      "lifePlayingTime")
+    def lifePlayingTime() = ExtractColMs(field = "val.sessSummary.lifePlayingTimeMs",
+      name = "lifePlayingTime")
 
     /** Create a field that flags if `joinTimeMs` is greater than zero,
      *  otherwise gets values less than or equal zero. 

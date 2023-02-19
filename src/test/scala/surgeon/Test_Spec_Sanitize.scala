@@ -9,7 +9,7 @@ class Test_Spec_Sanitize extends FunSuite {
   }
 
   test("Unsigned to BigInt") {
-    val t1 = toUnsigned_(-1)
+    val t1 = toUnsigned(-1)
     val t2 = BigInt(4294967295L)
     assertEquals(t1, t2) 
     // val t1 = BigInt(9223372036854775817)
