@@ -13,7 +13,7 @@ import org.apache.spark.sql.{Column}
  * dat.select(shouldProcess.asis.alias("myNewName")).
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
- * @define timestamp in seconds, milliseconds, or timestamp
+ * @define timestamp to seconds, milliseconds, timestamp or asis methods
  * @define signed as a signed, unsigned, or hexadecimal string
  * @example {{{
  * df.select(customerId.asis, clientId.hex, hasEnded.asis, justJoined.asis)
@@ -197,7 +197,7 @@ object PbSS {
       field = "val.sessSummary.lastRecvTimeMs", name = "lastRecvTime") 
 
     /**
-      * Creates the sessionCreationTime column $timestamp.
+      * Creates the sessionCreationTime object with $timestamp.
       * @example {{{
       * df.select(
       *   sessionCreationTime.asis,
@@ -208,6 +208,33 @@ object PbSS {
       */
     def sessionCreationTime = ExtractColMs( 
       field = "val.invariant.sessionCreationTimeMs", name = "sessionCreationTime")
+
+    /**
+      * Creates the sessionTime object with $timestamp.
+      * @example {{{
+      * df.select(
+      *   sessionTime.asis,
+      *   sessionTime.ms,
+      *   sessionTime.sec,
+      *   sessionTime.stamp)
+      * }}}
+      */
+    def sessionTime = ExtractColMs(field = "val.sessSummary.sessionTimeMs",
+      name = "sessionTime")
+
+    /**
+      * Creates the lifeBufferingTime object with $timestamp.
+      * @example {{{
+      * df.select(
+      *   lifeBufferingTime.asis,
+      *   lifeBufferingTime.ms,
+      *   lifeBufferingTime.sec,
+      *   lifeBufferingTime.stamp)
+      * }}}
+      */
+    def lifeBufferingTime() = ExtractColMs(field = "val.sessSummary.lifeBufferingTimeMs", 
+      name = "lifeBufferingTime")
+
 }
 
 // object readcsv {

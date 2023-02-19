@@ -27,7 +27,7 @@ object Sanitize {
   /** A trait for extracting time-based columns from Session Summary and RawLog data.
   */
   trait ExtractColTime extends ExtractCol {
-    /** Assign new name to the field */
+    /** Assign new name to the field. */
     def name: String
     /** Convert to Unix epoch time to a different timescale
      *  @param scale A multiplier such as 1000.0 that converts seconds to

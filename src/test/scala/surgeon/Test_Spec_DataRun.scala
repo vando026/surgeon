@@ -3,8 +3,21 @@ package surgeon
 import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions.{col, when, from_unixtime, lit}
 import conviva.surgeon.PbSS._
+import conviva.surgeon.Sanitize._
 
 class DataSuite extends munit.FunSuite {
+
+  /** Helper function to test time fields. */ 
+  def testTimeIsMs(dat: DataFrame, field: ExtractColMs, 
+    expectMs: Long): Unit = {
+    val expectSec: Long = (expectMs * (1.0/1000)).toLong
+    val t1 = dat.select(field.asis).collect()
+    val t2 = dat.select(field.ms).collect()
+    val t3 = dat.select(field.sec).collect()
+    assertEquals(t1(0)(0), expectMs)
+    assertEquals(t2(0)(0), expectMs)
+    assertEquals(t3(0)(0), expectSec)
+  }
 
   val spark = SparkSession.builder
     .master("local[1]")
@@ -61,20 +74,6 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t1(0)(0).toString, expect)
   }
 
-  test("lifeFirstRecv should compute sec/ms") {
-    val expect: Any = 1675765693115L 
-    val expect2: Any = 1675765693115L * 1/1000
-    val t1 = d8905.select(lifeFirstRecvTime.asis)
-      .collect()
-    val t2 = d8905.select(lifeFirstRecvTime.ms)
-      .collect()
-    val t3 = d8905.select(lifeFirstRecvTime.sec)
-      .collect()
-    assertEquals(t1(0)(0), expect)
-    assertEquals(t2(0)(0), expect)
-    assertEquals(t3(0)(0), expect2)
-  }
-
   test("intvStartTimeSec should compute ms/sec") {
     val expect: Any = 1675764000L
     val expect2: Any = 1675764000L * 1000
@@ -103,6 +102,30 @@ class DataSuite extends munit.FunSuite {
     val t1 = d8905.select(isAd).distinct
       .collect()(0)(0).toString
     assertEquals(t1, "contentSession")
+  }
+
+  test("lifeFirstRecvTime should compute sec/ms") {
+    testTimeIsMs(d8905, lifeFirstRecvTime, 1675765693115L)
+  }
+
+  test("lifePlayingTime should compute ms/sec") {
+    testTimeIsMs(d8905, lifePlayingTime, 1742812L)
+  }
+
+  test("joinTime should compute ms/sec") {
+    testTimeIsMs(d8905, joinTime, 4978L)
+  }
+
+  test("lastRecvTime should compute ms/sec") {
+    testTimeIsMs(d8905, lastRecvTime, 1675767600000L)
+  }
+
+  test("sessionTime should compute ms/sec") {
+    testTimeIsMs(d8905, sessionTime, 1906885L)
+  }
+
+  test("lifeBufferingTime should compute ms/sec") {
+    testTimeIsMs(d8905, lifeBufferingTime, 2375L)
   }
 
 }
