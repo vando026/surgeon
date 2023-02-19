@@ -27,22 +27,20 @@ object Sanitize {
   /** A trait for extracting time-based columns from Session Summary and RawLog data.
   */
   trait ExtractColTime extends ExtractCol {
-    /** The name to rename the field */
+    /** Assign new name to the field */
     def name: String
-    val val1 = lit(1000)
-    /** A value to convert ms to sec */
-    val val2= lit(1)
-    /** Convert to Epoch timestamp from seconds to milliseconds */
-    def ms(): Column = {
-      (col(field) * val2).cast("Long").alias(s"${name}Ms")
+    /** Convert to Unix epoch time to a different timescale
+     *  @param scale A multiplier such as 1000.0 that converts seconds to
+     *  milliseconds, or 1.0/1000 that converts milliseconds to seconds 
+     *  @param suffix A suffix added to `name` to identify time scale of field.
+     *  Typically `Ms` or `Sec`.
+     */
+    def convert(scale: Double, suffix: String): Column = {
+      (col(field) * lit(scale)).cast("Long").alias(s"${name}${suffix}")
     }
-    /** Convert to Epoch timestamp from milliseconds to seconds */
-    def sec(): Column = {
-      (col(field)  / val1).cast("Long").alias(s"${name}Sec")
-    }
-    /** Convert to Epoch timestamp to human readable time stamp */
-    def stamp(): Column = {
-      from_unixtime(col(field) / val1).alias(s"${name}Stamp")
+    /** Convert to Unix epoch time to readable time stamp */
+    def stamp_(scale: Double): Column = {
+      from_unixtime(col(field) * lit(scale)).alias(s"${name}Stamp")
     }
   }
   
@@ -58,7 +56,11 @@ object Sanitize {
   case class ExtractColMs(
       field: String, 
       name: String
-    ) extends ExtractColTime
+    ) extends ExtractColTime {
+      def ms() = convert(1.0, "Ms")
+      def sec() = convert(1.0/1000, "Sec")
+      def stamp() = stamp_(1.0/1000)
+    }
 
   /** A class for extracting time-based columns in seconds.
   */
@@ -66,8 +68,9 @@ object Sanitize {
       field: String, 
       name: String
     ) extends ExtractColTime {
-      override val val1 = lit(1)
-      override val val2 = lit(1000)
+      def ms() = convert(1000.0, "Ms")
+      def sec() = convert(1.0, "Sec")
+      def stamp() = stamp_(1.0)
     }
 
   /** UDF to convert signed BigInt to Unsigned BigInt
@@ -95,10 +98,10 @@ object Sanitize {
       .alias(s"${name}Hex")
     /** Method to convert to unsigned format */
     def unsigned(): Column = arrayToUnsigned(col(field))
-      .alias(s"${name}AsUnsigned")
+      .alias(s"${name}Unsigned")
     /** Method to convert to signed format */
     def signed(): Column = concat_ws(":", col(field))
-      .alias(s"${name}AsSigned")
+      .alias(s"${name}Signed")
   }
 
   /** Class to extract and convert 2 ID related fields into 1
@@ -110,15 +113,15 @@ object Sanitize {
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
       concat_ws(":", arrayToHex(col(field)), toHexString(col(field2)))
-        .alias(s"${name}AsHex")
+        .alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
     def unsigned(): Column = {
       concat_ws(":", arrayToUnsigned(col(field)), toUnsigned(col(field2)))
-        .alias(s"${name}AsUnsigned")
+        .alias(s"${name}Unsigned")
     }
     /** Method to convert to signed format */
     def signed(): Column = concat_ws(":", col(field), col(field2))
-      .alias(s"${name}AsSigned")
+      .alias(s"${name}Signed")
   }
 }

@@ -62,8 +62,8 @@ class DataSuite extends munit.FunSuite {
   }
 
   test("lifeFirstRecv should compute sec/ms") {
-    val expect: Any = 1675765693115L
-    val expect2: Any = 1675765693115L / 1000
+    val expect: Any = 1675765693115L 
+    val expect2: Any = 1675765693115L * 1/1000
     val t1 = d8905.select(lifeFirstRecvTime.asis)
       .collect()
     val t2 = d8905.select(lifeFirstRecvTime.ms)
@@ -76,8 +76,8 @@ class DataSuite extends munit.FunSuite {
   }
 
   test("intvStartTimeSec should compute ms/sec") {
-    val expect: Any = 1675764000
-    val expect2: Any = 1675764000 * 1000
+    val expect: Any = 1675764000L
+    val expect2: Any = 1675764000L * 1000
     val t1 = d8905.select(intvStartTime.asis)
       .collect()
     val t2 = d8905.select(intvStartTime.ms)
@@ -89,5 +89,20 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t3(0)(0), expect)
   }
 
+  test("Select should include all field names") {
+    val expect = "customerId:clientSessionId:sid5Signed:intvStartTimeSec"
+    val tnames = d8905
+      .select(
+        customerId.asis, sessionId.asis,
+        sid5.signed, intvStartTime.sec)
+      .columns.mkString(":")
+    assertEquals(tnames, expect)
+  }
+
+  test("Should equal contentSession") {
+    val t1 = d8905.select(isAd).distinct
+      .collect()(0)(0).toString
+    assertEquals(t1, "contentSession")
+  }
 
 }

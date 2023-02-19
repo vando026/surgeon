@@ -1,6 +1,8 @@
 package conviva.surgeon
 
 import conviva.surgeon.Sanitize._
+import org.apache.spark.sql.functions.{col, when}
+import org.apache.spark.sql.{Column}
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -50,35 +52,35 @@ object PbSS {
     def sid5 = ExtractID2("key.sessId.clientId.element", 
       "key.sessId.clientSessionId", "sid5")
 
-    /** Get the shouldProcess column as is.
+    /** Extract the shouldProcess field as is.
      * @example{{{
      * df.select(shouldProcess.asis)
      * }}}
     */ 
     def shouldProcess() = ExtractColAs("val.sessSummary.shouldProces")
 
-    /** Get the `hasEnded` column as is. 
+    /** Extract the `hasEnded` field as is. 
      * @example{{{
      * df.select(hadEnded.asis)
      * }}}
     */ 
     def hasEnded() = ExtractColAs("val.sessSummary.hasEnded")
 
-    /** Get the justEnded column.
+    /** Extract the justEnded field as is.
      * @example{{{
      * df.select(justEnded.asis)
      * }}}
     */ 
     def justEnded() = ExtractColAs("val.sessSummary.justEnded")
 
-    /** Get the endedStatus column.
+    /** Extract the endedStatus field as is.
      * @example{{{
      * df.select(endedStatus.asis)
      * }}}
     */ 
     def endedStatus() = ExtractColAs("val.sessSummary.endedStatus")
 
-    /** Get the joinState column.
+    /** Extract the joinState field as is.
      * @example{{{
      * df.select(joinState.asis)
      * }}}
@@ -98,14 +100,49 @@ object PbSS {
     }
     */
 
-    /**
-      * Create a column indicating if session is an AdSession or
-      * ContentSession.
-    def isAd(): DataFrame = {
-      df.withColumn("sessionType", when(col("val.invariant.summarizedTags")
-        .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession"))
-    }
+    /** Create `joinTime` object with methods.
+     *  @example{{{
+     *  df.select(
+     *    joinTime.asis, 
+     *    joinTime.ms, 
+     *    joinTime.sec,
+     *    joinTime.stamp
+     *  )
+     *  }}}
+     */
+    def joinTime() = ExtractColMs("val.sessSummary.joinTimeMs", "joinTime")
+
+    /** Create `lifePlayingTime` object with methods. 
+     * @example{{{
+     * df.select(
+     *   lifePlayingTime.asis,
+     *   lifePlayingTime.ms, 
+     *   lifePlayingTime.sec, 
+     *   lifePlayingTime.stamp
+     * )
+     * }}}
     */
+    def lifePlayingTime() = ExtractColMs("val.sessSummary.lifePlayingTimeMs",
+      "lifePlayingTime")
+
+    /** Create a field that flags if `joinTimeMs` is greater than zero,
+     *  otherwise gets values less than or equal zero. 
+     *  @example{{{
+     *  df.select(isJoinTime)
+     *  }}}
+     */
+    def isJoinTime(): Column = {
+      when(joinTime.asis > 0, 1).otherwise(joinTime.asis).alias("isJoinTime")
+    }
+
+    /** Create a column indicating if session is an AdSession or
+      * ContentSession.
+    */
+     def isAd(): Column =  {
+       when(col("val.invariant.summarizedTags")
+         .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
+         .alias("sessionType")
+     }
 
     /**
       * Creates the intvStartTime column $timestamp.
