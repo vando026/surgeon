@@ -1,7 +1,7 @@
 package surgeon
 
 import org.apache.spark.sql.{SparkSession, DataFrame, Column}
-import org.apache.spark.sql.functions.{col, when, from_unixtime, lit}
+import org.apache.spark.sql.functions.{round, col, when, from_unixtime, lit, count}
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
 
@@ -112,7 +112,7 @@ class DataSuite extends munit.FunSuite {
     val expect = "customerId:clientId:sessionId:sid5Signed:sid5Unsigned"
     val tnames = d8905
       .select(
-        customerId.asis, clientId.asis, sessionId.asis,
+        customerId, clientId.asis, sessionId.asis,
         sid5.signed, sid5.unsigned)
       .columns.mkString(":")
     assertEquals(tnames, expect)
@@ -168,6 +168,20 @@ class DataSuite extends munit.FunSuite {
 
   test("sessionCreationTime should compute ms/sec") {
     testTimeIsMs(d8905, sessionCreationTime, 1675765692087L)
+  }
+
+  test("isConsistent should eq expected values") {
+    val t1 = d8905.select(isConsistent).collect()
+    assertEquals(t1(0)(0), 1)
+  }
+
+  test("isConsistent should eq expected table") {
+    val totSessCnt = dat.count
+    val d1 = dat.groupBy(shouldProcess, isJoinTime, joinState, isLifePlayingTime)
+      .agg(count("*").as("sessCnt"))
+    //   .withColumn("sessPct", round(lit(100.0) * col("sessCnt")/lit(totSessCnt),4))
+    //   .withColumn("isConsistent", isConsistent)
+      .sort(shouldProcess)
   }
 
 }

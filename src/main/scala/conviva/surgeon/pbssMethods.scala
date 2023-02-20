@@ -27,7 +27,7 @@ object PbSS {
      * df.select(customerId.asis)
      * }}}
     */ 
-    def customerId() = ExtractColAs("key.sessId.customerId")
+    def customerId(): Column = col("key.sessId.customerId")
 
     /** Extract the `clientSessionId` column as is.
      * @example{{{
@@ -85,40 +85,40 @@ object PbSS {
     */ 
     def sid6 = ExtractSID(name = "sid6", clientId, sessionId, sessionCreationId)
 
-    /** Extract the shouldProcess field as is.
+    /** Extract the `shouldProcess` field as is.
      * @example{{{
-     * df.select(shouldProcess.asis)
+     * df.select(shouldProcess)
      * }}}
     */ 
-    def shouldProcess() = ExtractColAs("val.sessSummary.shouldProces")
+    def shouldProcess(): Column = col("val.sessSummary.shouldProcess")
 
     /** Extract the `hasEnded` field as is. 
      * @example{{{
-     * df.select(hadEnded.asis)
+     * df.select(hadEnded)
      * }}}
     */ 
-    def hasEnded() = ExtractColAs("val.sessSummary.hasEnded")
+    def hasEnded(): Column = col("val.sessSummary.hasEnded")
 
-    /** Extract the justEnded field as is.
+    /** Extract the `justEnded` field as is.
      * @example{{{
-     * df.select(justEnded.asis)
+     * df.select(justEnded)
      * }}}
     */ 
-    def justEnded() = ExtractColAs("val.sessSummary.justEnded")
+    def justEnded(): Column = col("val.sessSummary.justEnded")
 
-    /** Extract the endedStatus field as is.
+    /** Extract the `endedStatus` field as is.
      * @example{{{
-     * df.select(endedStatus.asis)
+     * df.select(endedStatus)
      * }}}
     */ 
-    def endedStatus() = ExtractColAs("val.sessSummary.endedStatus")
+    def endedStatus(): Column = col("val.sessSummary.endedStatus")
 
-    /** Extract the joinState field as is.
+    /** Extract the `joinState` field as is.
      * @example{{{
-     * df.select(joinState.asis)
+     * df.select(joinState)
      * }}}
     */ 
-    def joinState() = ExtractColAs("val.sessSummary.joinState")
+    def joinState(): Column = col("val.sessSummary.joinState")
 
     /** Create a column with valid joinTimes (in milliseconds) if the session is a valid join.
      *  The logic is:
@@ -169,8 +169,43 @@ object PbSS {
       when(joinTime.asis > 0, 1).otherwise(joinTime.asis).alias("isJoinTime")
     }
 
-    /** Create a column indicating if session is an AdSession or
-      * ContentSession.
+    /** Create a field that flags if `lifePlayingTimeMs` is greater than zero,
+     *  otherwise gets values less than or equal zero. 
+     *  @example{{{
+     *  df.select(isLifePlayingTime)
+     *  }}}
+     */
+    def isLifePlayingTime(): Column = {
+      when(lifePlayingTime.asis > 0, 1).otherwise(lifePlayingTime.asis)
+        .alias("isLifePlayingTime")
+    }
+
+    /** Create a field that flags if the session joined. 
+     *  @example{{{
+     *  df.select(isLifePlayingTime)
+     *  }}}
+     */
+    def isJoined(): Column = {
+      when(joinTime.asis === -1, 0).otherwise(1).alias("isJoined")
+    }
+
+    /** Create a field to flag consistency between joinTimeMs, joinState and lifePlayingTimeMs.
+     * Consistent combinations are:
+     * |isJoinTimeMs|joinState|isLifePlayingTimeMs| Comment |
+     * |---         |---      |---                |---      |
+     * |-1          |-1       |0                  | didn't join, zero life playing time |
+     * |1           |1        |1                  | joined, known join time, positive life playing time |
+     * |-3          |0        |1                  | joined, unknown join time, positive life playing time |
+     * Any other combination is inconsistent.
+    */
+    def isConsistent(): Column = {
+      when(isJoinTime === -1 && joinState  === -1 && isLifePlayingTime  === 0, 1) 
+        .when(isJoinTime === 1 && joinState  === 1 && isLifePlayingTime  === 1, 1)
+        .when(isJoinTime === -3 && joinState === 0 &&  isLifePlayingTime  === 1, 1) 
+      .otherwise(0).alias("isConsistent")
+    }
+
+    /** Create a column indicating if session is an AdSession or ContentSession.
     */
      def isAd(): Column =  {
        when(col("val.invariant.summarizedTags")
@@ -178,8 +213,7 @@ object PbSS {
          .alias("sessionType")
      }
 
-    /**
-      * Creates the intvStartTime column $timestamp.
+    /** Creates the intvStartTime column $timestamp.
       * @example {{{
       * df.select(
       *   intvStartTime.asis, 
