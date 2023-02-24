@@ -234,14 +234,6 @@ object PbSS {
          .alias("c3AdTechnology")
      }
 
-    private case class AdContentMetadata(field: String, name: String) extends ExtractCol {
-      def adRequested(): Column = col(field).getItem("adRequested").alias("adRequested")
-      def preRollStatus(): Column = col(field).getItem("preRollStatus").alias("preRollStatus")
-      def hasSSAI(): Column = col(field).getItem("hasSSAI").alias("hasSSAI")
-      def hasCSAI(): Column = col(field).getItem("hasCSAI").alias("hasCSAI")
-      def preRollStartTime = ExtractColMs(field = s"$field.preRollStartTimeMs",
-        name = "preRollStartTime")
-    }
     /** Get field for AdContentMetadata. */
      def adContentMetadata = AdContentMetadata(
        field = "val.sessSummary.AdContentMetadata",
@@ -257,6 +249,7 @@ object PbSS {
     /** Get field for ad client session Id (c3.csid). */ 
     def c3CsId(): Column = {
       col("val.invariant.summarizedTags").getItem("c3.csid")
+        .alias("c3CsId")
     }
 
     /** Creates the intvStartTime column $timestamp.

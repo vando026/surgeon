@@ -17,10 +17,11 @@ object Paths  {
   private val dyear = 2023
 
   private def fmt(x: Any, offset: Int = 0): String = {
-    def ft(sval: Int): String = f"${sval}%02d"
+    def ft(s: Int) = f"${s}%02d"
     x match {
       case h: List[Any] => h.map(i => ft(i.toString.toInt + offset)).mkString(",")
       case h: Int => ft(h + offset)
+      case h if (h == "*" || h == "{*}") => "*"
       case h: String => ft(h.toInt + offset)
     }
   }
@@ -39,6 +40,7 @@ object Paths  {
     def hourly  = root + "pbss-hourly/pbss/hourly/st=0"
     def monthly = root + "pbss-monthly/pbss/monthly"
     def rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
+    def geoUtilCustomer = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   }
 
   case class Stitch(_month: Any, _day: Any, _hour: Any, _cid: Any = "*", _year: Int = dyear)  {

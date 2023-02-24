@@ -11,9 +11,6 @@ import org.apache.spark.sql.{Column}
 */
 object Sanitize {
 
-  class hex(val c: Column) {
-    def dome = c * 10
-  }
   /** A trait to extract a field, name it, and give it a default method called
    *  `asis`. 
   */
@@ -138,6 +135,15 @@ object Sanitize {
     def signed(): Column = {
       concat_ws(":", fields.map(_.signed):_*).alias(s"${name}Signed")
     }
+  }
+
+  case class AdContentMetadata(field: String, name: String) extends ExtractCol {
+    def adRequested(): Column = col(field).getItem("adRequested").alias("adRequested")
+    def preRollStatus(): Column = col(field).getItem("preRollStatus").alias("preRollStatus")
+    def hasSSAI(): Column = col(field).getItem("hasSSAI").alias("hasSSAI")
+    def hasCSAI(): Column = col(field).getItem("hasCSAI").alias("hasCSAI")
+    def preRollStartTime = ExtractColMs(field = s"$field.preRollStartTimeMs",
+      name = "preRollStartTime")
   }
 
 }

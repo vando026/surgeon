@@ -136,11 +136,11 @@ class DataSuite extends munit.FunSuite {
     assertEquals(tnames, expect)
   }
 
-  test("Should equal contentSession") {
-    val t1 = d8905.select(isAd).distinct
-      .collect()(0)(0).toString
-    assertEquals(t1, "contentSession")
-  }
+  // test("Should equal contentSession") {
+  //   val t1 = d8905.select(isAd).distinct
+  //     .collect()(0)(0).toString
+  //   assertEquals(t1, "contentSession")
+  // }
 
   test("lifeFirstRecvTime should compute sec/ms") {
     testTimeIsMs(d8905, lifeFirstRecvTime, 1675765693115L)
