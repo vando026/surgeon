@@ -1,7 +1,7 @@
-package surgeon
+package conviva.surgeon
 
 import org.apache.spark.sql.{SparkSession, DataFrame, Column}
-import org.apache.spark.sql.functions.{round, col, when, from_unixtime, lit, count}
+import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
 
@@ -171,17 +171,19 @@ class DataSuite extends munit.FunSuite {
   }
 
   test("isConsistent should eq expected values") {
-    val t1 = d8905.select(isConsistent).collect()
+    val t1 = d8905.select(isConsistent()).collect()
     assertEquals(t1(0)(0), 1)
   }
 
   test("isConsistent should eq expected table") {
-    val totSessCnt = dat.count
-    val d1 = dat.groupBy(shouldProcess, isJoinTime, joinState, isLifePlayingTime)
+    val d1 = dat.select(isJoinTime, isLifePlayingTime, shouldProcess, joinState)
+      .groupBy(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
       .agg(count("*").as("sessCnt"))
-    //   .withColumn("sessPct", round(lit(100.0) * col("sessCnt")/lit(totSessCnt),4))
-    //   .withColumn("isConsistent", isConsistent)
-      .sort(shouldProcess)
+      .withColumn("isConsistent", isConsistent("isJoinTime", "joinState", "isLifePlayingTime"))
+      .sort(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
+    val t1 = d1.select(col("sessCnt"))
+      .where(col("shouldProcess") === false).collect()
+    assertEquals(t1(0)(0), 4)
   }
 
 }

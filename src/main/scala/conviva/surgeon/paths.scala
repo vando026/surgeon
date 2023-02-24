@@ -12,17 +12,16 @@ package conviva.surgeon
 */
 
 
-object Paths {
+object Paths  {
    
   private val dyear = 2023
 
-  private def ft(sval: Int): String = f"${sval}%02d"
-
-  private def parseHour(hour: Any): String = {
-    hour match {
-      case h: List[Any] => h.map(i => ft(i.toString.toInt)).mkString(",")
-      case h: Int => ft(h)
-      case h: String => ft(h.toInt)
+  private def fmt(x: Any, offset: Int = 0): String = {
+    def ft(sval: Int): String = f"${sval}%02d"
+    x match {
+      case h: List[Any] => h.map(i => ft(i.toString.toInt + offset)).mkString(",")
+      case h: Int => ft(h + offset)
+      case h: String => ft(h.toInt + offset)
     }
   }
 
@@ -34,7 +33,7 @@ object Paths {
     } 
   }
 
-  private object roots {
+  object Root {
     def root    = "/mnt/conviva-prod-archive-"
     def daily   = root + "pbss-daily/pbss/daily"
     def hourly  = root + "pbss-hourly/pbss/hourly/st=0"
@@ -42,15 +41,14 @@ object Paths {
     def rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
   }
 
-  case class Generator(_month: Int, _day: Int, _hour: Any, _cid: Any = "*", _year: Int = dyear)  {
+  case class Stitch(_month: Any, _day: Any, _hour: Any, _cid: Any = "*", _year: Int = dyear)  {
     def fyear = s"y=${_year}"
-    def month = f"m=${ft(_month)}"
-    def day = f"d=${ft(_day)}"
-    def hour = s"{${parseHour(_hour)}}"
+    def month = f"m=${fmt(_month)}"
+    def day = f"d=${fmt(_day)}"
     def cid = s"cust={${parseCid(_cid)}}"
-    def dtm = f"dt=c${_year}_${ft(_month)}_01_08_00_to_${_year}_${ft(_month + 1)}_01_08_00"
-    def dtd = f"dt=d${_year}_${ft(_month)}_${ft(_day)}_08_00_to_${_year}_${ft(_month)}_${ft(_day + 1)}_08_00"
-    def dth = f"dt=${_year}_${ft(_month)}_${ft(_day)}_${hour}"
+    def dtm = f"dt=c${_year}_{${fmt(_month)}}_01_08_00_to_${_year}_{${fmt(_month, 1)}}_01_08_00"
+    def dtd = f"dt=d${_year}_${fmt(_month)}_{${fmt(_day)}}_08_00_to_${_year}_${fmt(_month)}_{${fmt(_day, 1)}}_08_00"
+    def dth = f"dt=${_year}_${fmt(_month)}_${fmt(_day)}_{${fmt(_hour)}}"
   }
   
   /** Returns a string of the file path to the monthly PbSS parquet data.
@@ -66,9 +64,9 @@ object Paths {
    *  monthly(month = 5, cid = "1960180360, 1960180361")
    *  }}}
    */ 
-  def monthly(month: Int, cid: Any = "*", year: Int = dyear): String = {
-    val m = Generator(month, 0, 0, cid, year)
-    List(roots.monthly, m.fyear, m.month, m.dtm, m.cid).mkString("/")
+  def pbssMonthly(month: Any, cid: Any = "*", year: Int = dyear): String = {
+    val m = Stitch(month, 0, 0, cid, year)
+    List(Root.monthly, m.fyear, m.month, m.dtm, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the daily PbSS parquet data.
@@ -83,9 +81,9 @@ object Paths {
    *  daily(month = 12, day = 13, cid = 1960180360, year = 2022) 
    *  }}}
    */ 
-  def daily(month: Int, day: Int, cid: Any = "*", year: Int = dyear): String = {
-    val m = Generator(month, day, 0, cid, year)
-    List(roots.daily, m.fyear, m.month, m.dtd, m.cid).mkString("/")
+  def pbssDaily(month: Any, day: Any, cid: Any = "*", year: Int = dyear): String = {
+    val m = Stitch(month, day, 0, cid, year)
+    List(Root.daily, m.fyear, m.month, m.dtd, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.
@@ -100,9 +98,9 @@ object Paths {
    *  hourly(month = 10, day = 2, hour = List.range(12, 18))
    *  }}}
    */ 
-  def hourly(month: Int, day: Int, hour: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Generator(month, day, hour, cid, year)
-    List(roots.hourly, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+  def pbssHourly(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
+    val m = Stitch(month, day, hour, cid, year)
+    List(Root.hourly, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
@@ -118,8 +116,8 @@ object Paths {
    *  rawlog(month = 10, day = 2, hour = List.range(12, 18))
    *  }}}
    */ 
-  def rawlog(month: Int, day: Int, hour: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Generator(month, day, hour, cid, year)
-    List(roots.rawlog, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+  def pbRawLog(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
+    val m = Stitch(month, day, hour, cid, year)
+    List(Root.rawlog, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
   }
 }

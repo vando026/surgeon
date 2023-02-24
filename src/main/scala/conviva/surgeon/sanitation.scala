@@ -11,6 +11,9 @@ import org.apache.spark.sql.{Column}
 */
 object Sanitize {
 
+  class hex(val c: Column) {
+    def dome = c * 10
+  }
   /** A trait to extract a field, name it, and give it a default method called
    *  `asis`. 
   */
@@ -136,4 +139,5 @@ object Sanitize {
       concat_ws(":", fields.map(_.signed):_*).alias(s"${name}Signed")
     }
   }
+
 }

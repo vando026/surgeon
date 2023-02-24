@@ -198,20 +198,66 @@ object PbSS {
      * |-3          |0        |1                  | joined, unknown join time, positive life playing time |
      * Any other combination is inconsistent.
     */
-    def isConsistent(): Column = {
-      when(isJoinTime === -1 && joinState  === -1 && isLifePlayingTime  === 0, 1) 
-        .when(isJoinTime === 1 && joinState  === 1 && isLifePlayingTime  === 1, 1)
-        .when(isJoinTime === -3 && joinState === 0 &&  isLifePlayingTime  === 1, 1) 
+    def isConsistent(
+      joinTime: String = "val.sessSummary.joinTimeMs",
+      joinState: String = "val.sessSummary.joinState", 
+      lifePlayingTime: String = "val.sessSummary.lifePlayingTimeMs"): 
+    Column = {
+      val isJoinTime = when(col(joinTime) > 0, 1).otherwise(col(joinTime))
+      val isLifePlayingTime = when(col(lifePlayingTime) > 0, 1)
+        .otherwise(col(lifePlayingTime))
+      when(isJoinTime === -1 && col(joinState)  === -1 && isLifePlayingTime  === 0, 1) 
+        .when(isJoinTime === 1 && col(joinState)  === 1 && isLifePlayingTime  === 1, 1)
+        .when(isJoinTime === -3 && col(joinState) === 0 &&  isLifePlayingTime  === 1, 1) 
       .otherwise(0).alias("isConsistent")
     }
 
-    /** Create a column indicating if session is an AdSession or ContentSession.
+    /** Create a column flagging if session is an AdSession or ContentSession.
     */
-     def isAd(): Column =  {
+     def c3IsAd(): Column =  {
        when(col("val.invariant.summarizedTags")
          .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
-         .alias("sessionType")
+         .alias("c3IsAd")
      }
+
+    /** Get field for the m3 Device Name. */
+     def m3DeviceName(): Column =  {
+       col("val.invariant.summarizedTags")
+         .getItem("m3.dv.n") 
+         .alias("m3DeviceName")
+     }
+
+    /** Get field for ad technology, client or server side. */
+     def c3AdTechnology(): Column =  {
+       col("val.invariant.summarizedTags")
+         .getItem("c3.ad.technology") 
+         .alias("c3AdTechnology")
+     }
+
+    private case class AdContentMetadata(field: String, name: String) extends ExtractCol {
+      def adRequested(): Column = col(field).getItem("adRequested").alias("adRequested")
+      def preRollStatus(): Column = col(field).getItem("preRollStatus").alias("preRollStatus")
+      def hasSSAI(): Column = col(field).getItem("hasSSAI").alias("hasSSAI")
+      def hasCSAI(): Column = col(field).getItem("hasCSAI").alias("hasCSAI")
+      def preRollStartTime = ExtractColMs(field = s"$field.preRollStartTimeMs",
+        name = "preRollStartTime")
+    }
+    /** Get field for AdContentMetadata. */
+     def adContentMetadata = AdContentMetadata(
+       field = "val.sessSummary.AdContentMetadata",
+       name = "adContentMetadata")
+
+    /** Get field for c3 Viewer Id. */
+    def c3ViewerId(): Column = {
+      col("val.invariant.summarizedTags")
+        .getItem("c3.viewer.id")
+        .alias("c3ViewerId")
+    }
+
+    /** Get field for ad client session Id (c3.csid). */ 
+    def c3CsId(): Column = {
+      col("val.invariant.summarizedTags").getItem("c3.csid")
+    }
 
     /** Creates the intvStartTime column $timestamp.
       * @example {{{
