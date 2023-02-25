@@ -5,7 +5,8 @@ organization := "conviva"
 
 libraryDependencies ++= List(
   "org.apache.spark" %% "spark-sql" % "3.3.1",
-  "org.scalameta" %% "munit" % "0.7.29" % Test
+  "org.scalameta" %% "munit" % "0.7.29" % Test,
+  "com.databricks" %% "dbutils-api" % "0.0.6"
 )
 
 // resolvers ++= Seq(

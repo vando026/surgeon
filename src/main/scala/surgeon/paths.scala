@@ -34,13 +34,16 @@ object Paths  {
     } 
   }
 
-  object Root {
-    def root    = "/mnt/conviva-prod-archive-"
-    def daily   = root + "pbss-daily/pbss/daily"
-    def hourly  = root + "pbss-hourly/pbss/hourly/st=0"
-    def monthly = root + "pbss-monthly/pbss/monthly"
-    def rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
-    def geoUtilCustomer = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
+  object ProdArchive {
+    val root    = "/mnt/conviva-prod-archive-"
+    val daily   = root + "pbss-daily/pbss/daily"
+    val hourly  = root + "pbss-hourly/pbss/hourly/st=0"
+    val monthly = root + "pbss-monthly/pbss/monthly"
+    val rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
+  }
+
+  object GeoUtils {
+    val root = "dbfs:/FileStore/Geo_Utils"
   }
 
   case class Stitch(_month: Any, _day: Any, _hour: Any, _cid: Any = "*", _year: Int = dyear)  {
@@ -68,7 +71,7 @@ object Paths  {
    */ 
   def pbssMonthly(month: Any, cid: Any = "*", year: Int = dyear): String = {
     val m = Stitch(month, 0, 0, cid, year)
-    List(Root.monthly, m.fyear, m.month, m.dtm, m.cid).mkString("/")
+    List(ProdArchive.monthly, m.fyear, m.month, m.dtm, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the daily PbSS parquet data.
@@ -85,7 +88,7 @@ object Paths  {
    */ 
   def pbssDaily(month: Any, day: Any, cid: Any = "*", year: Int = dyear): String = {
     val m = Stitch(month, day, 0, cid, year)
-    List(Root.daily, m.fyear, m.month, m.dtd, m.cid).mkString("/")
+    List(ProdArchive.daily, m.fyear, m.month, m.dtd, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.
@@ -102,7 +105,7 @@ object Paths  {
    */ 
   def pbssHourly(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
     val m = Stitch(month, day, hour, cid, year)
-    List(Root.hourly, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+    List(ProdArchive.hourly, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
   }
 
   /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
@@ -120,6 +123,6 @@ object Paths  {
    */ 
   def pbRawLog(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
     val m = Stitch(month, day, hour, cid, year)
-    List(Root.rawlog, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+    List(ProdArchive.rawlog, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
   }
 }
