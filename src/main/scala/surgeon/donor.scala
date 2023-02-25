@@ -3,7 +3,6 @@ package conviva.surgeon
 import conviva.surgeon.Paths.GeoUtils
 import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
-import com.databricks.dbutils_v1.DBUtilsHolder.dbutils
 
 object Donor {
 
@@ -23,7 +22,5 @@ object Donor {
           regexp_replace(col("customerName"), "c3.", ""))
       else dat
   }
-
-  def listy() = dbutils.fs.ls("/FileStore")
 
 }

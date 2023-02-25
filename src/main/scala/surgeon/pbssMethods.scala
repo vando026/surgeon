@@ -34,7 +34,7 @@ object PbSS {
      * df.select(sessionId.asis)
      * }}}
     */ 
-    def sessionId() = ExtractIDCol(field = "key.sessId.clientSessionId",
+    def sessionId() = IdCol(field = col("key.sessId.clientSessionId"),
       name = "sessionId") 
 
     /** Create the `clientId` column $signed. 
@@ -46,7 +46,7 @@ object PbSS {
      *  clientId.hex)
      * }}}  
     */ 
-    def clientId = ExtractIDArray(field = "key.sessId.clientId.element", 
+    def clientId = IdArray(field = col("key.sessId.clientId.element"), 
       name = "clientId")
 
     /** Create sessionCreationTime as an object with hex, signed, and unsigned
@@ -61,7 +61,7 @@ object PbSS {
      *  )
      *  }}}
      */
-    def sessionCreationId = ExtractIDCol(field = "val.invariant.sessionCreationTimeMs", 
+    def sessionCreationId = IdCol(field = col("val.invariant.sessionCreationTimeMs"), 
       name = "sessionCreationId")
 
     /** Create an sid5 object which concatenates `clientId` and `clientSessionId` with $signed. 
@@ -72,7 +72,7 @@ object PbSS {
      *  sid5.hex)
      * }}}  
     */ 
-    def sid5 = ExtractSID(name = "sid5", clientId, sessionId)
+    def sid5 = SID(name = "sid5", clientId, sessionId)
 
     /** Create an sid6 object which concatenates `clientId`, `clientSessionId`, 
      *  `sessionCreationTime` with $signed. 
@@ -83,7 +83,7 @@ object PbSS {
      *  sid6.hex)
      * }}}  
     */ 
-    def sid6 = ExtractSID(name = "sid6", clientId, sessionId, sessionCreationId)
+    def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
     /** Extract the `shouldProcess` field as is.
      * @example{{{
@@ -143,7 +143,7 @@ object PbSS {
      *  )
      *  }}}
      */
-    def joinTime() = ExtractColMs(field = "val.sessSummary.joinTimeMs", 
+    def joinTime() = TimeMsCol(field = col("val.sessSummary.joinTimeMs"), 
       name = "joinTime")
 
     /** Create `lifePlayingTime` object with methods. 
@@ -156,7 +156,7 @@ object PbSS {
      * )
      * }}}
     */
-    def lifePlayingTime() = ExtractColMs(field = "val.sessSummary.lifePlayingTimeMs",
+    def lifePlayingTime() = TimeMsCol(field = col("val.sessSummary.lifePlayingTimeMs"),
       name = "lifePlayingTime")
 
     /** Create a field that flags if `joinTimeMs` is greater than zero,
@@ -199,22 +199,21 @@ object PbSS {
      * Any other combination is inconsistent.
     */
     def isConsistent(
-      joinTime: String = "val.sessSummary.joinTimeMs",
-      joinState: String = "val.sessSummary.joinState", 
-      lifePlayingTime: String = "val.sessSummary.lifePlayingTimeMs"): 
+      joinTime: Column = col("val.sessSummary.joinTimeMs"),
+      joinState: Column = col("val.sessSummary.joinState"), 
+      lifePlayingTime: Column = col("val.sessSummary.lifePlayingTimeMs")): 
     Column = {
-      val isJoinTime = when(col(joinTime) > 0, 1).otherwise(col(joinTime))
-      val isLifePlayingTime = when(col(lifePlayingTime) > 0, 1)
-        .otherwise(col(lifePlayingTime))
-      when(isJoinTime === -1 && col(joinState)  === -1 && isLifePlayingTime  === 0, 1) 
-        .when(isJoinTime === 1 && col(joinState)  === 1 && isLifePlayingTime  === 1, 1)
-        .when(isJoinTime === -3 && col(joinState) === 0 &&  isLifePlayingTime  === 1, 1) 
+      val isJoinTime = when(joinTime > 0, 1).otherwise(joinTime)
+      val isLifePlayingTime = when(lifePlayingTime > 0, 1)
+        .otherwise(lifePlayingTime)
+      when(isJoinTime === -1 && joinState  === -1 && isLifePlayingTime  === 0, 1) 
+        .when(isJoinTime === 1 && joinState   === 1 && isLifePlayingTime  === 1, 1)
+        .when(isJoinTime === -3 && joinState  === 0 &&  isLifePlayingTime  === 1, 1) 
       .otherwise(0).alias("isConsistent")
     }
 
-    /** Create a column flagging if session is an AdSession or ContentSession.
-    */
-     def c3IsAd(): Column =  {
+    /** Create a column flagging if session is an AdSession or ContentSession. */
+     def c3IsAd(): Column = {
        when(col("val.invariant.summarizedTags")
          .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
          .alias("c3IsAd")
@@ -236,7 +235,7 @@ object PbSS {
 
     /** Get field for AdContentMetadata. */
      def adContentMetadata = AdContentMetadata(
-       field = "val.sessSummary.AdContentMetadata",
+       field = col("val.sessSummary.AdContentMetadata"),
        name = "adContentMetadata")
 
     /** Get field for c3 Viewer Id. */
@@ -261,8 +260,8 @@ object PbSS {
       *   intvStartTime.stamp)
       * }}}
       */
-    def intvStartTime = ExtractColSec(
-      field = "val.sessSummary.intvStartTimeSec", name = "intvStartTime")
+    def intvStartTime = TimeSecCol(
+      field = col("val.sessSummary.intvStartTimeSec"), name = "intvStartTime")
 
     /**
       * Parse the lifeFirstRecvTime column $timestamp.
@@ -274,8 +273,8 @@ object PbSS {
       *   lifeFirstRecvTime.stamp)
       * }}}
       */
-      def lifeFirstRecvTime = ExtractColMs( 
-        field = "val.sessSummary.lifeFirstRecvTimeMs", name = "lifeFirstRecvTime")
+      def lifeFirstRecvTime = TimeMsCol( 
+        field = col("val.sessSummary.lifeFirstRecvTimeMs"), name = "lifeFirstRecvTime")
 
     /**
       * Parse the firstRecvTime column $timestamp
@@ -287,8 +286,8 @@ object PbSS {
       *   firstRecvTime.stamp)
       * }}}
       */
-    def firstRecvTime = ExtractColMs(
-      field = "key.firstRecvTimeMs", name = "firstRecvTime")
+    def firstRecvTime = TimeMsCol(
+      field = col("key.firstRecvTimeMs"), name = "firstRecvTime")
 
     /**
       * Parse the lastRecvTime column $timestamp.
@@ -300,8 +299,8 @@ object PbSS {
       *   lastRecvTime.stamp)
       * }}}
       */
-    def lastRecvTime = ExtractColMs(
-      field = "val.sessSummary.lastRecvTimeMs", name = "lastRecvTime") 
+    def lastRecvTime = TimeMsCol(
+      field = col("val.sessSummary.lastRecvTimeMs"), name = "lastRecvTime") 
 
     /**
       * Creates the sessionCreationTime object with $timestamp.
@@ -313,8 +312,8 @@ object PbSS {
       *   sessionCreationTime.stamp)
       * }}}
       */
-    def sessionCreationTime = ExtractColMs( 
-      field = "val.invariant.sessionCreationTimeMs", name = "sessionCreationTime")
+    def sessionCreationTime = TimeMsCol( 
+      field = col("val.invariant.sessionCreationTimeMs"), name = "sessionCreationTime")
 
     /**
       * Creates the sessionTime object with $timestamp.
@@ -326,7 +325,7 @@ object PbSS {
       *   sessionTime.stamp)
       * }}}
       */
-    def sessionTime = ExtractColMs(field = "val.sessSummary.sessionTimeMs",
+    def sessionTime = TimeMsCol(field = col("val.sessSummary.sessionTimeMs"),
       name = "sessionTime")
 
     /**
@@ -339,7 +338,7 @@ object PbSS {
       *   lifeBufferingTime.stamp)
       * }}}
       */
-    def lifeBufferingTime() = ExtractColMs(field = "val.sessSummary.lifeBufferingTimeMs", 
+    def lifeBufferingTime() = TimeMsCol(field = col("val.sessSummary.lifeBufferingTimeMs"), 
       name = "lifeBufferingTime")
 
 }
@@ -355,43 +354,4 @@ object PbSS {
 //     spark.stop()
 //   }
 // }
-
-// readcsv.main("~/Workspace/tmp/mm68.csv")
-// val tt =  spark.read.parquet("/Users/avandormael/Workspace/tmp/data")
-
-/** consistency between joinTimeMs, joinState and lifePlayingTimeMs
-consistent combinations are:
-|isJoinTimeMs|joinState|isLifePlayingTimeMs|
-|-1          |-1       |0                  | didn't join, zero life playing time
-|1           |1        |1                  | joined, known join time, positive life playing time
-|-3          |0        |1                  | joined, unknown join time, positive life playing time
-Any other combination is inconsistent.
-
-Fox-DCG
-+-------------+------------+---------+-------------------+-------+-------+------------+
-|shouldProcess|isJoinTimeMs|joinState|isLifePlayingTimeMs|sessCnt|sessPct|isConsistent|
-+-------------+------------+---------+-------------------+-------+-------+------------+
-|false        |-3          |0        |0                  |25     |0.0022 |0           |
-|false        |-1          |-1       |0                  |637051 |56.7207|1           |
-|false        |-1          |0        |0                  |387    |0.0345 |0           |
-|true         |-3          |0        |1                  |73963  |6.5854 |1           |
-|true         |-3          |1        |1                  |44     |0.0039 |0           |
-|true         |-1          |-1       |0                  |147219 |13.1078|1           |
-|true         |-1          |0        |0                  |1      |1.0E-4 |0           |
-|true         |-1          |0        |1                  |223    |0.0199 |0           |
-|true         |0           |0        |1                  |257    |0.0229 |0           |
-|true         |1           |1        |1                  |263967 |23.5027|1           |
-+-------------+------------+---------+-------------------+-------+-------+------------+
-testSDF.groupBy("shouldProcess", "isJoinTimeMs", "joinState", "isLifePlayingTimeMs").agg(count("*").as("sessCnt"))
-.withColumn("sessPct", round(lit(100.0)*$"sessCnt"/lit(totSessCnt),4))
-.withColumn(
-  "isConsistent", 
-  when($"isJoinTimeMs" === -1 && $"joinState" === -1 && $"isLifePlayingTimeMs" === 0, 1) 
-  .when($"isJoinTimeMs" === 1 && $"joinState" === 1 && $"isLifePlayingTimeMs" === 1, 1)
-  .when($"isJoinTimeMs" === -3 && $"joinState" === 0 && $"isLifePlayingTimeMs" === 1, 1) 
-  .otherwise(0)
-)
-.sort("shouldProcess", "isJoinTimeMs", "joinState", "isLifePlayingTimeMs").toShow()
-*/ 
-
 

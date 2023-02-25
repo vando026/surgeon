@@ -13,7 +13,7 @@ libraryDependencies ++= List(
 //   "convivamaven" at "https://usconviva.jfrog.io/artifactory/eng-mvn-release-local"
 // )
 
-unmanagedBase := baseDirectory.value / "jars"
+// unmanagedBase := baseDirectory.value / "jars"
 
 publishArtifact := false
 testFrameworks += TestFramework("munit.TestFramework")

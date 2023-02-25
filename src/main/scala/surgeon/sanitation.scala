@@ -14,17 +14,17 @@ object Sanitize {
   /** A trait to extract a field, name it, and give it a default method called
    *  `asis`. 
   */
-  trait ExtractCol {
+  trait AsCol {
     /** The input field. */
-    def field: String
+    def field: Column
     /** Name for new field. */
     def name: String
     /** Extract the field as is with  the last name. */
-    def asis(): Column = col(field).alias(s"$name")
+    def asis(): Column = field.alias(s"$name")
   }
 
   /** A trait for extracting time-based columns such as `firstRecvTimeMs`. */
-  trait ExtractColTime extends ExtractCol {
+  trait TimeCol extends AsCol {
     /** Convert to Unix epoch time to a different timescale.
      *  @param scale A multiplier such as 1000.0 that converts seconds to
      *  milliseconds, or 1.0/1000 that converts milliseconds to seconds. 
@@ -32,14 +32,14 @@ object Sanitize {
      *  Typically `Ms` or `Sec`.
      */
     def convert(scale: Double, suffix: String): Column = {
-      (col(field) * lit(scale)).cast("Long").alias(s"${name}${suffix}")
+      (field * lit(scale)).cast("Long").alias(s"${name}${suffix}")
     }
     /** Convert Unix epoch time to readable time stamp.
      *  @param scale A multiplier such as 1000.0 that converts seconds to
      *  milliseconds, or 1.0/1000 that converts milliseconds to seconds.
      */
     def stamp_(scale: Double): Column = {
-      from_unixtime(col(field) * lit(scale)).alias(s"${name}Stamp")
+      from_unixtime(field * lit(scale)).alias(s"${name}Stamp")
     }
   }
   
@@ -47,9 +47,9 @@ object Sanitize {
    * @param field The input field.
    * @param name The new name for the field. 
   */
-  case class ExtractColMs(
-      field: String, name: String
-    ) extends ExtractColTime {
+  case class TimeMsCol(
+      field: Column, name: String
+    ) extends TimeCol {
       /** Method to return field in milliseconds. */
       def ms() = convert(1.0, "Ms")
       /** Method to return field in seconds. */
@@ -62,9 +62,9 @@ object Sanitize {
    * @param field The input field.
    * @param name The new name for the field. 
   */
-  case class ExtractColSec(
-      field: String, name: String
-    ) extends ExtractColTime {
+  case class TimeSecCol(
+      field: Column, name: String
+    ) extends TimeCol {
       def ms() = convert(1000.0, "Ms")
       def sec() = convert(1.0, "Sec")
       def stamp() = stamp_(1.0)
@@ -89,15 +89,15 @@ object Sanitize {
   }
 
   /** Trait to extract and create ID fields. */
-  trait ExtractID extends ExtractCol {
+  trait IdColTrait extends AsCol {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = toHexStringUDF(col(field))
+    def hex(): Column = toHexStringUDF(field)
       .alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def unsigned(): Column = toUnsignedUDF(col(field))
+    def unsigned(): Column = toUnsignedUDF(field)
       .alias(s"${name}Unsigned")
     /** Method to convert to signed format */
-    def signed(): Column = concat_ws(":", col(field))
+    def signed(): Column = concat_ws(":", field)
       .alias(s"${name}Signed")
   }
 
@@ -106,23 +106,23 @@ object Sanitize {
    * @param name The new name for input field
    */
 
-  case class ExtractIDCol(field: String, name: String) extends ExtractID
+  case class IdCol(field: Column, name: String) extends IdColTrait
   
   /** Class to extract and convert IDs from arrays, such as `cliendId`. 
    * @param field The input field
    * @param name The new name for input field
    */
-  case class ExtractIDArray(field: String, name: String) extends ExtractID {
+  case class IdArray(field: Column, name: String) extends IdColTrait {
     /** Method to convert to hexadecimal format */
-   override def hex(): Column = arrayToHex(col(field))
+   override def hex(): Column = arrayToHex(field)
       .alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    override def unsigned(): Column = arrayToUnsigned(col(field))
+    override def unsigned(): Column = arrayToUnsigned(field)
       .alias(s"${name}Unsigned")
   }
 
   /** Class for creating sid5 and sid6 fields. */
-  case class ExtractSID(name: String, fields: ExtractID*) {
+  case class SID(name: String, fields: IdColTrait*) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
       concat_ws(":", fields.map(_.hex):_*).alias(s"${name}Hex")
@@ -137,12 +137,12 @@ object Sanitize {
     }
   }
 
-  case class AdContentMetadata(field: String, name: String) extends ExtractCol {
-    def adRequested(): Column = col(field).getItem("adRequested").alias("adRequested")
-    def preRollStatus(): Column = col(field).getItem("preRollStatus").alias("preRollStatus")
-    def hasSSAI(): Column = col(field).getItem("hasSSAI").alias("hasSSAI")
-    def hasCSAI(): Column = col(field).getItem("hasCSAI").alias("hasCSAI")
-    def preRollStartTime = ExtractColMs(field = s"$field.preRollStartTimeMs",
+  case class AdContentMetadata(field: Column, name: String) extends AsCol {
+    def adRequested(): Column = field.getItem("adRequested").alias("adRequested")
+    def preRollStatus(): Column = field.getItem("preRollStatus").alias("preRollStatus")
+    def hasSSAI(): Column = field.getItem("hasSSAI").alias("hasSSAI")
+    def hasCSAI(): Column = field.getItem("hasCSAI").alias("hasCSAI")
+    def preRollStartTime = TimeMsCol(field = field.getItem("preRollStartTimeMs"),
       name = "preRollStartTime")
   }
 

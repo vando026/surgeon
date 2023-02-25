@@ -8,7 +8,7 @@ import conviva.surgeon.Sanitize._
 class DataSuite extends munit.FunSuite {
 
   /** Helper function to test time fields. */ 
-  def testTimeIsMs(dat: DataFrame, field: ExtractColMs, 
+  def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
     expectMs: Long): Unit = {
     val expectSec: Long = (expectMs * (1.0/1000)).toLong
     val t1 = dat.select(field.asis).collect()
@@ -179,7 +179,7 @@ class DataSuite extends munit.FunSuite {
     val d1 = dat.select(isJoinTime, isLifePlayingTime, shouldProcess, joinState)
       .groupBy(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
       .agg(count("*").as("sessCnt"))
-      .withColumn("isConsistent", isConsistent("isJoinTime", "joinState", "isLifePlayingTime"))
+      .withColumn("isConsistent", isConsistent(col("isJoinTime"), col("joinState"), col("isLifePlayingTime")))
       .sort(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
     val t1 = d1.select(col("sessCnt"))
       .where(col("shouldProcess") === false).collect()
