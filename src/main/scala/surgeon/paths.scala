@@ -14,115 +14,107 @@ package conviva.surgeon
 
 object Paths  {
    
-  private val dyear = 2023
+  /** Common root paths used to read in parquet files on the `conviva-prod-archive`
+   *  GCS bucket on Databricks. 
+   */
+  object PrArchPaths {
+    /** The root path on `conviva-prod-archive`. */
+    val root    = "/mnt/conviva-prod-archive-"
+    /** Path to the daily session summary parquet files. */
+    val daily   = root + "pbss-daily/pbss/daily"
+    /** Path to the hourly session summary parquet files. */
+    val hourly  = root + "pbss-hourly/pbss/hourly/st=0"
+    /** Path to the monthly session summary parquet files. */
+    val monthly = root + "pbss-monthly/pbss/monthly"
+    /** Path to the parquet heartbeat (raw log) files. */
+    val rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
+  }
+
+  /** Path to the `Geo_Utils` folder on Databricks. */
+  object GeoUtils {
+    /** The root path. */
+    val root = "dbfs:/FileStore/Geo_Utils"
+  }
 
   private def fmt(x: Any, offset: Int = 0): String = {
     def ft(s: Int) = f"${s}%02d"
     x match {
-      case h: List[Any] => h.map(i => ft(i.toString.toInt + offset)).mkString(",")
+      case h: List[Int] => "{" + h.map(i => 
+          ft(i.toString.toInt + offset)).mkString(",") + "}"
       case h: Int => ft(h + offset)
-      case h if (h == "*" || h == "{*}") => "*"
-      case h: String => ft(h.toInt + offset)
+      case _ => throw new Exception("Only Int or List[Int] allowed")
     }
   }
 
-  private def parseCid(cid: Any): String = {
-    cid match {
-      case s: List[Any] => s.mkString(",")
-      case s: Int => s.toString
-      case s: String => s
-    } 
-  }
-
-  object ProdArchive {
-    val root    = "/mnt/conviva-prod-archive-"
-    val daily   = root + "pbss-daily/pbss/daily"
-    val hourly  = root + "pbss-hourly/pbss/hourly/st=0"
-    val monthly = root + "pbss-monthly/pbss/monthly"
-    val rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
-  }
-
-  object GeoUtils {
-    val root = "dbfs:/FileStore/Geo_Utils"
-  }
-
-  case class Stitch(_month: Any, _day: Any, _hour: Any, _cid: Any = "*", _year: Int = dyear)  {
-    def fyear = s"y=${_year}"
-    def month = f"m=${fmt(_month)}"
-    def day = f"d=${fmt(_day)}"
-    def cid = s"cust={${parseCid(_cid)}}"
-    def dtm = f"dt=c${_year}_{${fmt(_month)}}_01_08_00_to_${_year}_{${fmt(_month, 1)}}_01_08_00"
-    def dtd = f"dt=d${_year}_${fmt(_month)}_{${fmt(_day)}}_08_00_to_${_year}_${fmt(_month)}_{${fmt(_day, 1)}}_08_00"
-    def dth = f"dt=${_year}_${fmt(_month)}_${fmt(_day)}_{${fmt(_hour)}}"
-  }
-  
-  /** Returns a string of the file path to the monthly PbSS parquet data.
+  /** Returns a string of the file path to the monthly PbSS parquet data. Only
+   *  one month per path is permitted.
    *
-   *  @param month $month
-   *  @param cid $cid 
    *  @param year $year
+   *  @param month $month
    *  @return 
    *  @example {{{
-   *  monthly(month = 1, cid = 198020000)
-   *  monthly(month = 1, year = 2022) 
-   *  monthly(month = 5, cid = List(1960180360, 1960180361))
-   *  monthly(month = 5, cid = "1960180360, 1960180361")
+   *  monthly(year = 2023, month = 1)
    *  }}}
    */ 
-  def pbssMonthly(month: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Stitch(month, 0, 0, cid, year)
-    List(ProdArchive.monthly, m.fyear, m.month, m.dtm, m.cid).mkString("/")
+
+  def pbssMonthly(year: Int, month: Int): String = {
+    List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+      f"dt=c${year}_${fmt(month)}_01_08_00_to_${year}_${fmt(month, 1)}_01_08_00")
+    .mkString("/")
   }
 
   /** Returns a string of the file path to the daily PbSS parquet data.
    *
    *  @param month $month
    *  @param day $day
-   *  @param cid $cid  
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  daily(month = 10, day = 2, cid = "1960180360")}
-   *  daily(month = 12, day = 13, cid = 1960180360, year = 2022) 
+   *  daily(month = 10, day = 2)
+   *  daily(month = 12, day = 13, year = 2022) 
    *  }}}
    */ 
-  def pbssDaily(month: Any, day: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Stitch(month, day, 0, cid, year)
-    List(ProdArchive.daily, m.fyear, m.month, m.dtd, m.cid).mkString("/")
+  def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
+    List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+      f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${year}_${fmt(month)}_${fmt(day, 1)}_08_00")
+    .mkString("/")
   }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.
    *
    *  @param month $month
-   *  @param cid A $cid  
    *  @param hour $hour
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  hourly(month = 10, day = 2, hour = 12, cid = "1960180360")
-   *  hourly(month = 10, day = 2, hour = List.range(12, 18))
+   *  hourly(month = 10, day = 2, hour = 12)
+   *  hourly(month = 10, day = 2, hour = List.range(12, 18), year = 2022)
+   *  hourly(month = 10, day = 2, hour = "03")
    *  }}}
    */ 
-  def pbssHourly(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Stitch(month, day, hour, cid, year)
-    List(ProdArchive.hourly, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+  def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
+    List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
+    .mkString("/")
   }
 
   /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
    *
    *  @param month $month
    *  @param day $day
-   *  @param cid $cid.  
    *  @param hour $hour
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  rawlog(month = 10, day = 2, hour = 12, cid = "1960180360")
-   *  rawlog(month = 10, day = 2, hour = List.range(12, 18))
+   *  pbRawlog(month = 10, day = 2, hour = 12, year = 2022)
+   *  pbRawlog(month = 10, day = 2, hour = List.range(12, 18))
+   *  pbRawlog(month = 10, day = 2, hour = "02")
    *  }}}
    */ 
-  def pbRawLog(month: Any, day: Any, hour: Any, cid: Any = "*", year: Int = dyear): String = {
-    val m = Stitch(month, day, hour, cid, year)
-    List(ProdArchive.rawlog, m.fyear, m.month, m.day, m.dth, m.cid).mkString("/")
+  def pbRawLog(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
+    List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
+    .mkString("/")
   }
 }
+

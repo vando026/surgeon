@@ -1,7 +1,7 @@
 package conviva.surgeon
 
 import conviva.surgeon.Sanitize._
-import org.apache.spark.sql.functions.{col, when}
+import org.apache.spark.sql.functions.{lower, col, when}
 import org.apache.spark.sql.{Column}
   
 /**
@@ -37,7 +37,7 @@ object PbSS {
     def sessionId() = IdCol(field = col("key.sessId.clientSessionId"),
       name = "sessionId") 
 
-    /** Create the `clientId` column $signed. 
+    /** Create the `clientId` column as is or $signed. 
      * @example{{{
      * df.select(
      *  clientId.asis,
@@ -64,7 +64,7 @@ object PbSS {
     def sessionCreationId = IdCol(field = col("val.invariant.sessionCreationTimeMs"), 
       name = "sessionCreationId")
 
-    /** Create an sid5 object which concatenates `clientId` and `clientSessionId` with $signed. 
+    /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
      * @example{{{
      * df.select(
      *  sid5.signed, 
@@ -75,7 +75,7 @@ object PbSS {
     def sid5 = SID(name = "sid5", clientId, sessionId)
 
     /** Create an sid6 object which concatenates `clientId`, `clientSessionId`, 
-     *  `sessionCreationTime` with $signed. 
+     *  `sessionCreationTime` $signed. 
      * @example{{{
      * df.select(
      *  sid6.signed, 
@@ -213,26 +213,57 @@ object PbSS {
     }
 
     /** Create a column flagging if session is an AdSession or ContentSession. */
-     def c3IsAd(): Column = {
-       when(col("val.invariant.summarizedTags")
-         .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
-         .alias("c3IsAd")
+    def c3IsAd(): Column = {
+      when(col("val.invariant.summarizedTags")
+        .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
+        .alias("c3IsAd")
      }
 
     /** Get field for the m3 Device Name. */
-     def m3DeviceName(): Column =  {
-       col("val.invariant.summarizedTags")
-         .getItem("m3.dv.n") 
-         .alias("m3DeviceName")
-     }
+    def m3DeviceName() = invTag("m3.dv.n", "m3DeviceName")
 
-    /** Get field for ad technology, client or server side. */
-     def c3AdTechnology(): Column =  {
-       col("val.invariant.summarizedTags")
-         .getItem("c3.ad.technology") 
-         .alias("c3AdTechnology")
-     }
+     /** Get field for m3 Device OS. */
+    def m3DvOs() = invTag("m3.dv.os", "m3DvOs")
 
+    /** Get the field for the m3 Device name with f. */
+    def m3DvOsf() = invTag("m3.dv.osf", "m3DvOsf")
+
+    /** Get the field for the m3 Device name with version. */
+    def m3DvOsv() = invTag("m3.dv.osv", "m3DvOsv")
+
+
+    /** Extract `Ad Technology` field with methods. */
+    case class AdTech(field: Column, name: String) extends AsCol {
+      def recode(): Column = {
+        when(lower(field).rlike("server|ssai|sever"), "server")
+          .when(lower(field).rlike("client|csai"), "client")
+          .otherwise("unknown")
+        .alias(s"${name}RC")
+      }
+    }
+    /** Create a c3 `Ad Technology` object with an `asis` and `recode` method. The
+     *  `recode` method standardizes the field values into server, client, or
+     *  unknown.
+     *  @example{{{
+     *  df.select(
+     *    c3AdTechnology.asis, 
+     *    c3AdTechnology.recode
+     *  )
+     *  }}}
+     */
+    def c3AdTechnology = AdTech(
+      field = col("val.invariant.summarizedTags").getItem("c3.ad.technology"),
+      name = "c3AdTechnology")
+
+    /** Extract fields from `AdContentMetadata` with methods. */
+    case class AdContentMetadata(field: Column, name: String) extends AsCol {
+      def adRequested(): Column = field.getItem("adRequested").alias("adRequested")
+      def preRollStatus(): Column = field.getItem("preRollStatus").alias("preRollStatus")
+      def hasSSAI(): Column = field.getItem("hasSSAI").alias("hasSSAI")
+      def hasCSAI(): Column = field.getItem("hasCSAI").alias("hasCSAI")
+      def preRollStartTime = TimeMsCol(field = field.getItem("preRollStartTimeMs"),
+        name = "preRollStartTime")
+    }
     /** Get field for AdContentMetadata. */
      def adContentMetadata = AdContentMetadata(
        field = col("val.sessSummary.AdContentMetadata"),
@@ -245,11 +276,32 @@ object PbSS {
         .alias("c3ViewerId")
     }
 
-    /** Get field for ad client session Id (c3.csid). */ 
-    def c3CsId(): Column = {
-      col("val.invariant.summarizedTags").getItem("c3.csid")
-        .alias("c3CsId")
-    }
+    /** Creates a client session Id (c3.csid) object asis or $signed. 
+     * @example{{{
+     * df.select(
+     *   c3CsId.asis,
+     *   c3CsId.signed, 
+     *   c3CsId.hex, 
+     *   c3CsId.unsigned
+     * )
+     * }}}
+     */ 
+    def c3CsId = IdCol(
+      field = col("val.invariant.summarizedTags").getItem("c3.csid"),
+      name = "c3CsId")
+
+    /** Creates an Ad SID5 object which concatenates `clientId` and `c3CsId`
+     *  $signed. 
+     *  @example{{{
+     *  df.select(
+     *    sid5Ad.hex, 
+     *    sid5Ad.signed, 
+     *    sid5Ad.unsigned
+     *  )
+     *  }}}
+     */
+
+    def sid5Ad = SID(name = "sid5Ad", clientId, c3CsId)
 
     /** Creates the intvStartTime column $timestamp.
       * @example {{{

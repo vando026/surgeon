@@ -137,13 +137,9 @@ object Sanitize {
     }
   }
 
-  case class AdContentMetadata(field: Column, name: String) extends AsCol {
-    def adRequested(): Column = field.getItem("adRequested").alias("adRequested")
-    def preRollStatus(): Column = field.getItem("preRollStatus").alias("preRollStatus")
-    def hasSSAI(): Column = field.getItem("hasSSAI").alias("hasSSAI")
-    def hasCSAI(): Column = field.getItem("hasCSAI").alias("hasCSAI")
-    def preRollStartTime = TimeMsCol(field = field.getItem("preRollStartTimeMs"),
-      name = "preRollStartTime")
+  def invTag(field: String, name: String): Column = {
+    col("val.invariant.summarizedTags")
+      .getItem(field)
+      .alias(name)
   }
-
 }

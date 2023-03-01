@@ -19,11 +19,11 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t3(0)(0), expectSec)
   }
 
-  val spark = SparkSession.builder
+  val testSpark = SparkSession.builder
     .master("local[1]")
     .appName("Conviva-Surgeon").getOrCreate()
 
-  val dat = spark.read.parquet("./data/pbssHourly1.parquet")
+  val dat = testSpark.read.parquet("./data/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
@@ -92,6 +92,13 @@ class DataSuite extends munit.FunSuite {
     val t1 = d8905.select(sid6.hex)
       .collect()
     assertEquals(t1(0)(0).toString, expect)
+  }
+
+  test("ad session id should eq chosen session") {
+    val expect: Any = 89057425
+    val t1 = d8905.select(sessionId.asis)
+      .collect()
+    assertEquals(t1(0)(0), expect)
   }
 
   test("intvStartTimeSec should compute ms/sec") {
