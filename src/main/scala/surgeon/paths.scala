@@ -42,24 +42,23 @@ object Paths  {
       case h: List[Int] => "{" + h.map(i => 
           ft(i.toString.toInt + offset)).mkString(",") + "}"
       case h: Int => ft(h + offset)
-      case _ => throw new Exception("Only Int or List[Int] allowed")
+      // case _ => throw new Exception("Only Int or List[Int] allowed")
     }
   }
-
-  /** Returns a string of the file path to the monthly PbSS parquet data. Only
-   *  one month per path is permitted.
-   *
+  /** Returns a string of the file path to the monthly PbSS parquet data. *
    *  @param year $year
    *  @param month $month
    *  @return 
    *  @example {{{
-   *  monthly(year = 2023, month = 1)
+   *  pbssMonthly(year = 2023, month = 1)
    *  }}}
    */ 
 
   def pbssMonthly(year: Int, month: Int): String = {
+    val nyear = if (month == 12) year + 1 else year 
+    val nmonth = if (month == 12) 1 else month + 1
     List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-      f"dt=c${year}_${fmt(month)}_01_08_00_to_${year}_${fmt(month, 1)}_01_08_00")
+      f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
     .mkString("/")
   }
 
@@ -70,8 +69,8 @@ object Paths  {
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  daily(month = 10, day = 2)
-   *  daily(month = 12, day = 13, year = 2022) 
+   *  pbssDaily(month = 10, day = 2)
+   *  pbssDaily(month = 12, day = 13, year = 2022) 
    *  }}}
    */ 
   def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
@@ -87,9 +86,9 @@ object Paths  {
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  hourly(month = 10, day = 2, hour = 12)
-   *  hourly(month = 10, day = 2, hour = List.range(12, 18), year = 2022)
-   *  hourly(month = 10, day = 2, hour = "03")
+   *  pbssHourly(month = 10, day = 2, hour = 12)
+   *  pbssHourly(month = 10, day = 2, hour = List.range(12, 18), year = 2022)
+   *  pbssHourly(month = 10, day = 2, hour = "03")
    *  }}}
    */ 
   def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
