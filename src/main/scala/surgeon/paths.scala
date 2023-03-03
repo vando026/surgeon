@@ -36,15 +36,26 @@ object Paths  {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
-  private def fmt(x: Any, offset: Int = 0): String = {
-    def ft(s: Int) = f"${s}%02d"
-    x match {
-      case h: List[Int] => "{" + h.map(i => 
-          ft(i.toString.toInt + offset)).mkString(",") + "}"
-      case h: Int => ft(h + offset)
-      // case _ => throw new Exception("Only Int or List[Int] allowed")
+  trait Path {
+    def fmt(s: Int) = f"${s}%02d"
+    def toString_(x: List[Int]) = x.map(fmt(_)).mkString(",")
+  }
+  case class PbSSMonthly(year: Int, month: Int) extends Path {
+    def path(): String = {
+      val nyear: Int = if (month == 12) year + 1 else year 
+      val nmonth: Int = if (month == 12) 1 else month + 1
+      List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+        f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
+        .mkString("/")
     }
   }
+
+  object PbSSMonthly {
+    def apply(year: Int, month: Int): PbSSMonthly = {
+      stitch(year, month)
+    }
+  }
+
   /** Returns a string of the file path to the monthly PbSS parquet data. *
    *  @param year $year
    *  @param month $month
@@ -54,13 +65,13 @@ object Paths  {
    *  }}}
    */ 
 
-  def pbssMonthly(year: Int, month: Int): String = {
-    val nyear = if (month == 12) year + 1 else year 
-    val nmonth = if (month == 12) 1 else month + 1
-    List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-      f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-    .mkString("/")
-  }
+  // def pbssMonthly(year: Int, month: Int): String = {
+  //   val nyear = if (month == 12) year + 1 else year 
+  //   val nmonth = if (month == 12) 1 else month + 1
+  //   List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+  //     f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
+  //   .mkString("/")
+  // }
 
   /** Returns a string of the file path to the daily PbSS parquet data.
    *
@@ -73,11 +84,12 @@ object Paths  {
    *  pbssDaily(month = 12, day = 13, year = 2022) 
    *  }}}
    */ 
-  def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
-    List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
-      f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${year}_${fmt(month)}_${fmt(day, 1)}_08_00")
-    .mkString("/")
-  }
+
+  // def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
+  //   List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+  //     f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${year}_${fmt(month)}_${fmt(day, 1)}_08_00")
+  //   .mkString("/")
+  // }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.
    *
@@ -91,11 +103,12 @@ object Paths  {
    *  pbssHourly(month = 10, day = 2, hour = "03")
    *  }}}
    */ 
-  def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-    List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-      f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-    .mkString("/")
-  }
+
+  // def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
+  //   List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
+  //   .mkString("/")
+  // }
 
   /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
    *
@@ -110,10 +123,12 @@ object Paths  {
    *  pbRawlog(month = 10, day = 2, hour = "02")
    *  }}}
    */ 
-  def pbRawLog(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-    List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-      f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-    .mkString("/")
-  }
+
+  // def pbRawLog(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
+  //   List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
+  //   .mkString("/")
+  // }
+
 }
 
