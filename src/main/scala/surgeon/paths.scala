@@ -36,11 +36,22 @@ object Paths  {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
-  trait Path {
+  trait ProdPath {
+    def year: Int
     def fmt(s: Int) = f"${s}%02d"
     def toString_(x: List[Int]) = x.map(fmt(_)).mkString(",")
   }
-  case class PbSSMonthly(year: Int, month: Int) extends Path {
+
+  trait SinglePath extends ProdPath {
+    def doSingle() = "Single"
+  }
+
+  trait Customer extends ProdPath {
+    def custName() = "Cust name"
+  }
+
+  trait MonthPath extends ProdPath {
+    def month: List[Int]
     def path(): String = {
       val nyear: Int = if (month == 12) year + 1 else year 
       val nmonth: Int = if (month == 12) 1 else month + 1
@@ -50,11 +61,47 @@ object Paths  {
     }
   }
 
-  object PbSSMonthly {
-    def apply(year: Int, month: Int): PbSSMonthly = {
-      stitch(year, month)
+  trait DailyPath extends ProdPath {
+    def month: Int 
+    def day: List[Int]
+    def path(): String = {
+      List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+        f"dt=d${year}_${fmt(month)}_${toString_(day)}_08_00_to_${year}_${fmt(month)}_${toString_(day)}_08_00")
+        .mkString("/")
+      }
+  }
+
+  trait MonthMulti extends Month with ProdPath {
+    override def monthy: List[Int]
+  }
+
+  case class MonthlySingle(year: Int, month: Int) extends MonthPath with Customer
+  case class MonthlyMultiple(year: Int, month: List[Int]) extends MonthPath 
+  case class DailySingle(month: Int, day: List[Int], year: Int) extends DailySinglePath with Customer
+  case class DailyMultiple(month: Int, day: List[Int], year: Int) extends DailyPath
+  case class HourlySingle(month: Int, day: Int, hour: Int, year: Int) extends SinglePath
+  case class HourlyMultiple(month: Int, day: Int, hour: List[Int], year: Int) extends MultiPath
+
+  case class pbssMonthly(year: Int = 2023, month: List[Int]) extends Month
+  object pbssMonthly {
+    def apply(year: Int, month: Int): MonthlyMultiple  = {
+      MonthlySingle(year, List(month))
     }
   }
+
+  case class pbssDaily(month: Int, day: List[Int], year: Int) {
+    def apply(month: Int, day: Int, year: Int): DailySingle = {
+      DailySingle(month, List(day), year)
+    }
+  }
+
+    // def apply(month: Int, day: Int, hour: Int, year: Int): HourlySingle = {
+    //   HourlySingle(month, day, hour, year)
+    // }
+    // def apply(month: Int, day: Int, hour: List[Int], year: Int): HourlyMultiple = {
+    //   HourlyMultiple(month, day, hour, year)
+    // }
+  // }
 
   /** Returns a string of the file path to the monthly PbSS parquet data. *
    *  @param year $year
