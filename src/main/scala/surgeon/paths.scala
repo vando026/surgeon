@@ -40,70 +40,10 @@ object Paths  {
     def year: Int
     def fmt(s: Int) = f"${s}%02d"
     def toString_(x: List[Int]) = x.map(fmt(_)).mkString(",")
+    def custName(args: String) = args
   }
 
-  trait SinglePath extends ProdPath {
-    def doSingle() = "Single"
-  }
-
-  trait Customer extends ProdPath {
-    def custName() = "Cust name"
-  }
-
-  trait MonthPath extends ProdPath {
-    def month: List[Int]
-    def path(): String = {
-      val nyear: Int = if (month == 12) year + 1 else year 
-      val nmonth: Int = if (month == 12) 1 else month + 1
-      List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-        f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-        .mkString("/")
-    }
-  }
-
-  trait DailyPath extends ProdPath {
-    def month: Int 
-    def day: List[Int]
-    def path(): String = {
-      List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
-        f"dt=d${year}_${fmt(month)}_${toString_(day)}_08_00_to_${year}_${fmt(month)}_${toString_(day)}_08_00")
-        .mkString("/")
-      }
-  }
-
-  trait MonthMulti extends Month with ProdPath {
-    override def monthy: List[Int]
-  }
-
-  case class MonthlySingle(year: Int, month: Int) extends MonthPath with Customer
-  case class MonthlyMultiple(year: Int, month: List[Int]) extends MonthPath 
-  case class DailySingle(month: Int, day: List[Int], year: Int) extends DailySinglePath with Customer
-  case class DailyMultiple(month: Int, day: List[Int], year: Int) extends DailyPath
-  case class HourlySingle(month: Int, day: Int, hour: Int, year: Int) extends SinglePath
-  case class HourlyMultiple(month: Int, day: Int, hour: List[Int], year: Int) extends MultiPath
-
-  case class pbssMonthly(year: Int = 2023, month: List[Int]) extends Month
-  object pbssMonthly {
-    def apply(year: Int, month: Int): MonthlyMultiple  = {
-      MonthlySingle(year, List(month))
-    }
-  }
-
-  case class pbssDaily(month: Int, day: List[Int], year: Int) {
-    def apply(month: Int, day: Int, year: Int): DailySingle = {
-      DailySingle(month, List(day), year)
-    }
-  }
-
-    // def apply(month: Int, day: Int, hour: Int, year: Int): HourlySingle = {
-    //   HourlySingle(month, day, hour, year)
-    // }
-    // def apply(month: Int, day: Int, hour: List[Int], year: Int): HourlyMultiple = {
-    //   HourlyMultiple(month, day, hour, year)
-    // }
-  // }
-
-  /** Returns a string of the file path to the monthly PbSS parquet data. *
+  /** Construct a path to monthly PbSS parquet data on Databricks.
    *  @param year $year
    *  @param month $month
    *  @return 
@@ -111,14 +51,13 @@ object Paths  {
    *  pbssMonthly(year = 2023, month = 1)
    *  }}}
    */ 
-
-  // def pbssMonthly(year: Int, month: Int): String = {
-  //   val nyear = if (month == 12) year + 1 else year 
-  //   val nmonth = if (month == 12) 1 else month + 1
-  //   List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-  //     f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-  //   .mkString("/")
-  // }
+  case class pbssMonthly(year: Int = 2023, month: Int) extends ProdPath {
+    val nyear = if (month == 12) year + 1 else year 
+    val nmonth = if (month == 12) 1 else month + 1
+    def asis() = List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+      f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
+    .mkString("/")
+  }
 
   /** Returns a string of the file path to the daily PbSS parquet data.
    *
@@ -131,12 +70,15 @@ object Paths  {
    *  pbssDaily(month = 12, day = 13, year = 2022) 
    *  }}}
    */ 
-
-  // def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
-  //     f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${year}_${fmt(month)}_${fmt(day, 1)}_08_00")
-  //   .mkString("/")
-  // }
+  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends ProdPath {
+    val nyear = if (month == 12 & day == 31) year + 1 else year
+    val nmonth = if (month == 12 & day == 31) 1 else month
+    val nday = if (month == 12 & day == 31) 1 else day + 1
+    def asis() = List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+      f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
+    .mkString("/")
+    def cust(arg: String) = List(asis(), custName(arg)).mkString("--")
+  }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.
    *
@@ -151,11 +93,11 @@ object Paths  {
    *  }}}
    */ 
 
-  // def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-  //   .mkString("/")
-  // }
+  case class PbSSHourly(month: Int, day: Int, hour: List[Int], year: Int = 2023) extends ProdPath {
+    def asis() = List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hour)}")
+      .mkString("/")
+  }
 
   /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
    *
@@ -170,12 +112,11 @@ object Paths  {
    *  pbRawlog(month = 10, day = 2, hour = "02")
    *  }}}
    */ 
-
-  // def pbRawLog(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-  //   .mkString("/")
-  // }
+  case class PbRawLog(month: Int, day: Int, hour: List[Int], year: Int = 2023) extends ProdPath {
+    def asis() = List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hour)}")
+      .mkString("/")
+  }
 
 }
 
