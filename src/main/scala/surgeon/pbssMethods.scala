@@ -231,6 +231,13 @@ object PbSS {
     /** Get the field for the m3 Device name with version. */
     def m3DvOsv() = invTag("m3.dv.osv", "m3DvOsv")
 
+    /** Get the field for is Live or Video on Demands. */
+    def c3VideoIsLive() = invTag("c3.video.isLive", "c3VideoIsLive")
+
+    def liveOrVod(): Column = {
+      col("val.sessSummary.d3SessSummary.liveOrVod")
+        .alias("liveOrVod")
+    }
 
     /** Extract `Ad Technology` field with methods. */
     case class AdTech(field: Column, name: String) extends AsCol {

@@ -14,17 +14,23 @@ object Donor {
   /** Read customer data from GeoUtils. 
    *  @param prefix Remove the `c3.` prefix from customer name.
   */
-  def geoUtilCustomer(prefix: Boolean = true): DataFrame = {
-    val dat = sparkDonor.read
-      .option("delimiter", "|")
-      .option("inferSchema", "true")
-      .csv(GeoUtils.root + "/cust_dat.txt")
-      .toDF("customerId", "customerName")
-      if (!prefix)
-        dat.withColumn("customerName", 
-          regexp_replace(col("customerName"), "c3.", ""))
-      else dat
+  case class GeoUtilCustomer(prefix: Boolean = true,
+      path: String = s"${GeoUtils.root}/cust_dat.txt") {
+    def data(): DataFrame = {
+      val dat = sparkDonor.read
+        .option("delimiter", "|")
+        .option("inferSchema", "true")
+        .csv(path)
+        .toDF("customerId", "customerName")
+        if (!prefix)
+          dat.withColumn("customerName", 
+            regexp_replace(col("customerName"), "c3.", ""))
+        else dat
+    }
   }
+  
+  // create instance of GeoUtilCustomer
+  val geoUtilCustomer = GeoUtilCustomer().data
 
   /** Get the customer IDs associated with a file path on Databricks Prod Archive folder. 
    *  @param path The path to the GCS files on Databricks.
@@ -52,7 +58,7 @@ object Donor {
    */
   def customerNameToId(name: List[String]): Array[String] = {
     val names = name.map(_.replace("c3.", ""))
-    val out = geoUtilCustomer(prefix = false)
+    val out = geoUtilCustomer
       .select(col("customerId"))
       .where(col("customerName").isin(names:_*))
       .collect()
