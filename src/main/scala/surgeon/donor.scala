@@ -14,17 +14,23 @@ object Donor {
   /** Read customer data from GeoUtils. 
    *  @param prefix Remove the `c3.` prefix from customer name.
   */
-  def geoUtilCustomer(prefix: Boolean = true): DataFrame = {
-    val dat = sparkDonor.read
-      .option("delimiter", "|")
-      .option("inferSchema", "true")
-      .csv(GeoUtils.root + "/cust_dat.txt")
-      .toDF("customerId", "customerName")
-      if (!prefix)
-        dat.withColumn("customerName", 
-          regexp_replace(col("customerName"), "c3.", ""))
-      else dat
+  case class GeoUtilCustomer(prefix: Boolean = true,
+      path: String = s"${GeoUtils.root}/cust_dat.txt") {
+    def data(): DataFrame = {
+      val dat = sparkDonor.read
+        .option("delimiter", "|")
+        .option("inferSchema", "true")
+        .csv(path)
+        .toDF("customerId", "customerName")
+        if (!prefix)
+          dat.withColumn("customerName", 
+            regexp_replace(col("customerName"), "c3.", ""))
+        else dat
+    }
   }
+  
+  // create instance of GeoUtilCustomer
+  val geoUtilCustomer = GeoUtilCustomer().data
 
   /** Get the customer IDs associated with a file path on Databricks Prod Archive folder. 
    *  @param path The path to the GCS files on Databricks.
@@ -52,7 +58,7 @@ object Donor {
    */
   def customerNameToId(name: List[String]): Array[String] = {
     val names = name.map(_.replace("c3.", ""))
-    val out = geoUtilCustomer(prefix = false)
+    val out = geoUtilCustomer
       .select(col("customerId"))
       .where(col("customerName").isin(names:_*))
       .collect()
@@ -63,8 +69,9 @@ object Donor {
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  case class Customer(path: String) {
-    private def stitch(path: String, cnames: String) = 
+  trait Customer {
+    def path: String
+    def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"
 
     /** Method to get data by customer names.
@@ -72,7 +79,7 @@ object Donor {
      * Customer(pbssMonthly(2)).names(List("MLB", "CBSCom"))
      *  }}}
     */
-    def names(name: List[String]) = {
+    def custNames(name: List[String]) = {
       stitch(path, customerNameToId(name).mkString(","))
     }
     /** Method to get data by customer name.
@@ -80,7 +87,7 @@ object Donor {
      * Customer(pbssMonthly(2)).name("MLB")
      * }}}
     */
-    def name(name: String) = {
+    def custName(name: String) = {
       stitch(path, customerNameToId(List(name)).mkString(","))
     }
     /** Method to get all customers.
@@ -88,13 +95,13 @@ object Donor {
      * Customer(pbssMonthly(2)).all
      * }}}
      *  */
-    def all() = path 
+    def custAll() = path 
     /** Method to get data by customer ID.
      *  @example{{{
      * Customer(pbssMonthly(2)).id(1960180360)
      *  }}}
     */
-    def id(id: Int) = {
+    def custID(id: Int) = {
       stitch(path, id.toString)
     }
     /** Method to get data by customer IDs.
@@ -102,7 +109,7 @@ object Donor {
      * Customer(pbssMonthly(2)).ids(List(1960180360, 1960180492))
      *  }}}
     */
-    def ids(id: List[Int]) = {
+    def custIDs(id: List[Int]) = {
       stitch(path, id.map(_.toString).mkString(","))
     }
     /** Method to get the first n customer IDs.
@@ -110,7 +117,7 @@ object Donor {
      * Customer(pbssMonthly(2)).take(10)
      *  }}}
     */
-    def take(n: Int) = {
+    def custTake(n: Int) = {
       val cids = getCustomerIds(path).take(n)
       stitch(path, cids.map(_.toString).mkString(","))
     }

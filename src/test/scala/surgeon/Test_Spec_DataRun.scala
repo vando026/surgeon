@@ -4,8 +4,20 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
+import conviva.surgeon.Donor._
 
-class DataSuite extends munit.FunSuite {
+trait SparkSessionTestWrapper {
+  lazy val spark: SparkSession = {
+    SparkSession
+      .builder()
+      .master("local")
+      .appName("spark test example")
+      .getOrCreate()
+  }
+}
+
+class DataSuite extends munit.FunSuite
+    with SparkSessionTestWrapper  {
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -19,11 +31,18 @@ class DataSuite extends munit.FunSuite {
     assertEquals(t3(0)(0), expectSec)
   }
 
-  val testSpark = SparkSession.builder
-    .master("local[1]")
-    .appName("Conviva-Surgeon").getOrCreate()
+  // val testSpark = SparkSession.builder
+  //   .master("local[1]")
+  //   .appName("Conviva-Surgeon").getOrCreate()
 
-  val dat = testSpark.read.parquet("./data/pbssHourly1.parquet")
+  // val geoUtilCustomer = GeoUtilCustomer(path = "./spark-warehouse/cust_dat.txt").data
+
+  // test("Customer nrow should be expected") {
+  //   val nrow = geoUtilCustomer.count.toInt
+  //   assertEquals(nrow, 4)
+  // }
+
+  val dat = spark.read.parquet("./data/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
@@ -191,6 +210,11 @@ class DataSuite extends munit.FunSuite {
     val t1 = d1.select(col("sessCnt"))
       .where(col("shouldProcess") === false).collect()
     assertEquals(t1(0)(0), 4)
+  }
+
+  test("isLive should eq expected") {
+    val t1 = d8905.select(c3VideoIsLive).collect()
+    assertEquals(t1(0)(0), "F")
   }
 
 }

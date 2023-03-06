@@ -2,11 +2,12 @@
 // Description: 
 // Date: 27-Jan-2023
 package conviva.surgeon
+import conviva.surgeon.Donor._
 
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 
-   * @define cid The Customer Id(s), eg 1960180360, which can be a list of strings or integers, an integer, or a string.
-   * @define year The default in this version is 2023. Use this parameter to change to a previous year. 
+   * @define year A value for the year. The default in this version is 2023. 
+   * Use this parameter to change to a previous year. 
    * @define day A value from 1 to 31 representing the day of the month.
    * @define hour A value from 0 to 23 representing an hour of the day. Can be a list of strings or integers, an integer, or a string.
 */
@@ -36,99 +37,118 @@ object Paths  {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
-  trait Path {
+  trait ProdPath {
+    def year: Int 
     def fmt(s: Int) = f"${s}%02d"
-    def toString_(x: List[Int]) = x.map(fmt(_)).mkString(",")
+    def toString_(x: List[Int]) = {
+      val out = x.map(fmt(_)).mkString(",")
+      if (x.length == 1) out else s"{$out}"
+    }
   }
-  case class PbSSMonthly(year: Int, month: Int) extends Path {
-    def path(): String = {
-      val nyear: Int = if (month == 12) year + 1 else year 
-      val nmonth: Int = if (month == 12) 1 else month + 1
-      List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-        f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
+
+  /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
+   *  @param year $year
+   *  @param month $month Only a single value for month is permitted. 
+   *  @return 
+   *  @example {{{
+   *  PbSSMonthly(year = 2023, month = 1).asis // all customers
+   *  PbSSMonthly(2023, 1).custAll // defaults to current year, with all customers
+   *  PbSSMonthly(2022,  12).custName("DSS") // Different year with only Disney customer
+   *  PbSSMonthly(2022, 12).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
+   *  PbSSMonthly(2022, 12).custID(1960180360) // call by Id
+   *  PbSSMonthly(2023, 3).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  PbSSMonthly(2023, 5).custTake(3) // take only the first n customers, in
+   *  this case 3
+   *  }}}
+   */ 
+  case class PbSSMonthly(year: Int = 2023, month: Int) extends Customer with ProdPath {
+    val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
+    def asis() = List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+      f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
+    .mkString("/")
+    override def path = asis()
+  }
+
+  /** Class with methods to construct paths to daily PbSS parquet data on
+   *  Databricks. If parameter names are omitted, then the order is month, day,
+   *  year. The default year is the current year. Only single values for month
+   *  and day are permitted. 
+   *  @param month $month
+   *  @param day $day
+   *  @param year $year
+   *  @return 
+   *  @example {{{
+   *  PbSSDaily(year = 2023, month = 1, day = 12).asis // all customers
+   *  PbSSDaily(month = 1, day = 12).custAll // defaults to current year, with all customers
+   *  PbSSDaily(1, 12).custName("DSS") // Different year with only Disney customer
+   *  PbSSDaily(12, 28).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
+   *  PbSSDaily(2, 13).custID(1960180360) // call by Id
+   *  PbSSDaily(year = 2022,  month = 3, day = 1).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  PbSSDaily(5, 27, 2023).custTake(3) // take only the first n customers, in
+   *  this case 3
+   *  // Get customer data over 3 days
+   *  List.range(1, 4).map(d => PbSSDaily(year = 2023, month = 2, day = d).custName("DSS"))
+   *  }}}
+   */ 
+  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) 
+      extends Customer with ProdPath {
+    val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
+      (year + 1, 1, 1) else (year, month, day + 1)
+    def asis() = List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+      f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
+    .mkString("/")
+    override def path = asis() 
+  }
+
+  /** Class with methods to construct paths to hourly PbSS parquet data on
+   *  Databricks. If parameter names are omitted, then the order is month, day,
+   *  hour(s), year. The default year is the current year.  Only the `hours`
+   *  parameter can take a list of integers.
+   *  @param month $month
+   *  @param day $day
+   *  @param hours $hour
+   *  @param year $year
+   *  @return 
+   *  @example {{{
+   *  PbSSHourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).asis // all customers
+   *  PbSSHourly(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
+   *  PbSSHourly(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
+   *  PbSSHourly(2, 13, List(2)).custTake(10)
+   *  PbSSHourly(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  }}}
+   */ 
+  case class PbSSHourly(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
+      extends Customer with ProdPath {
+    def asis() = List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
+      .mkString("/")
+    override def path = asis()
+  }
+
+  /** Class with methods to construct paths to hourly RawLog parquet data on
+   *  Databricks. If parameter names are omitted, then the order is month, day,
+   *  hour(s), year. The default year is the current year.  Only the `hours`
+   *  parameter can take a list of integers.
+   *  @param month $month
+   *  @param day $day
+   *  @param hours $hour
+   *  @param year $year
+   *  @return 
+   *  @example {{{
+   *  PbRawLog(year = 2023, month = 1, day = 12, hours = List(2, 3)).asis // all customers
+   *  PbRawLog(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
+   *  PbRawLog(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
+   *  PbRawLog(2, 13, List(2)).custTake(10)
+   *  PbRawLog(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  }}}
+   */ 
+  case class PbRawLog(month: Int, day: Int, hour: List[Int], year: Int = 2023) 
+    extends Customer with ProdPath {
+      def asis() = List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+        f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hour)}")
         .mkString("/")
-    }
+      override def path = asis()
   }
-
-  object PbSSMonthly {
-    def apply(year: Int, month: Int): PbSSMonthly = {
-      stitch(year, month)
-    }
-  }
-
-  /** Returns a string of the file path to the monthly PbSS parquet data. *
-   *  @param year $year
-   *  @param month $month
-   *  @return 
-   *  @example {{{
-   *  pbssMonthly(year = 2023, month = 1)
-   *  }}}
-   */ 
-
-  // def pbssMonthly(year: Int, month: Int): String = {
-  //   val nyear = if (month == 12) year + 1 else year 
-  //   val nmonth = if (month == 12) 1 else month + 1
-  //   List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
-  //     f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-  //   .mkString("/")
-  // }
-
-  /** Returns a string of the file path to the daily PbSS parquet data.
-   *
-   *  @param month $month
-   *  @param day $day
-   *  @param year $year
-   *  @return 
-   *  @example {{{
-   *  pbssDaily(month = 10, day = 2)
-   *  pbssDaily(month = 12, day = 13, year = 2022) 
-   *  }}}
-   */ 
-
-  // def pbssDaily(month: Int, day: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
-  //     f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${year}_${fmt(month)}_${fmt(day, 1)}_08_00")
-  //   .mkString("/")
-  // }
-
-  /** Returns a string of the file path to the hourly PbSS parquet data.
-   *
-   *  @param month $month
-   *  @param hour $hour
-   *  @param year $year
-   *  @return 
-   *  @example {{{
-   *  pbssHourly(month = 10, day = 2, hour = 12)
-   *  pbssHourly(month = 10, day = 2, hour = List.range(12, 18), year = 2022)
-   *  pbssHourly(month = 10, day = 2, hour = "03")
-   *  }}}
-   */ 
-
-  // def pbssHourly(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-  //   .mkString("/")
-  // }
-
-  /** Returns a string of the file path to the hourly RawLog (Heartbeat) parquet data.
-   *
-   *  @param month $month
-   *  @param day $day
-   *  @param hour $hour
-   *  @param year $year
-   *  @return 
-   *  @example {{{
-   *  pbRawlog(month = 10, day = 2, hour = 12, year = 2022)
-   *  pbRawlog(month = 10, day = 2, hour = List.range(12, 18))
-   *  pbRawlog(month = 10, day = 2, hour = "02")
-   *  }}}
-   */ 
-
-  // def pbRawLog(month: Int, day: Int, hour: Any, year: Int = 2023): String = {
-  //   List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-  //     f"dt=${year}_${fmt(month)}_${fmt(day)}_${fmt(hour)}")
-  //   .mkString("/")
-  // }
 
 }
 
