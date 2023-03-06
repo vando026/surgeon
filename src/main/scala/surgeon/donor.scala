@@ -76,6 +76,45 @@ object Donor {
     def custNames(name: List[String]) = {
       stitch(path, customerNameToId(name).mkString(","))
     }
+    /** Method to get data by customer name.
+     * @example{{{
+     * Customer(pbssMonthly(2)).name("MLB")
+     * }}}
+    */
+    def custName(name: String) = {
+      stitch(path, customerNameToId(List(name)).mkString(","))
+    }
+    /** Method to get all customers.
+     * @example{{{
+     * Customer(pbssMonthly(2)).all
+     * }}}
+     *  */
+    def custAll() = path 
+    /** Method to get data by customer ID.
+     *  @example{{{
+     * Customer(pbssMonthly(2)).id(1960180360)
+     *  }}}
+    */
+    def custID(id: Int) = {
+      stitch(path, id.toString)
+    }
+    /** Method to get data by customer IDs.
+     *  @example{{{
+     * Customer(pbssMonthly(2)).ids(List(1960180360, 1960180492))
+     *  }}}
+    */
+    def custIDs(id: List[Int]) = {
+      stitch(path, id.map(_.toString).mkString(","))
+    }
+    /** Method to get the first n customer IDs.
+     *  @example{{{
+     * Customer(pbssMonthly(2)).take(10)
+     *  }}}
+    */
+    def custTake(n: Int) = {
+      val cids = getCustomerIds(path).take(n)
+      stitch(path, cids.map(_.toString).mkString(","))
+    }
   }
 }
 
