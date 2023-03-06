@@ -2,6 +2,7 @@
 // Description: 
 // Date: 27-Jan-2023
 package conviva.surgeon
+import conviva.surgeon.Donor._
 
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 
@@ -36,11 +37,12 @@ object Paths  {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
+  /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
+  */
   trait ProdPath {
     def year: Int
     def fmt(s: Int) = f"${s}%02d"
     def toString_(x: List[Int]) = x.map(fmt(_)).mkString(",")
-    def custName(args: String) = args
   }
 
   /** Construct a path to monthly PbSS parquet data on Databricks.
@@ -70,14 +72,14 @@ object Paths  {
    *  pbssDaily(month = 12, day = 13, year = 2022) 
    *  }}}
    */ 
-  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends ProdPath {
+  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends Customer with ProdPath {
     val nyear = if (month == 12 & day == 31) year + 1 else year
     val nmonth = if (month == 12 & day == 31) 1 else month
     val nday = if (month == 12 & day == 31) 1 else day + 1
     def asis() = List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
     .mkString("/")
-    def cust(arg: String) = List(asis(), custName(arg)).mkString("--")
+    override def path = asis() 
   }
 
   /** Returns a string of the file path to the hourly PbSS parquet data.

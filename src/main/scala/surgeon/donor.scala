@@ -63,8 +63,9 @@ object Donor {
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  case class Customer(path: String) {
-    private def stitch(path: String, cnames: String) = 
+  trait Customer {
+    def path: String
+    def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"
 
     /** Method to get data by customer names.
@@ -72,47 +73,8 @@ object Donor {
      * Customer(pbssMonthly(2)).names(List("MLB", "CBSCom"))
      *  }}}
     */
-    def names(name: List[String]) = {
+    def custNames(name: List[String]) = {
       stitch(path, customerNameToId(name).mkString(","))
-    }
-    /** Method to get data by customer name.
-     * @example{{{
-     * Customer(pbssMonthly(2)).name("MLB")
-     * }}}
-    */
-    def name(name: String) = {
-      stitch(path, customerNameToId(List(name)).mkString(","))
-    }
-    /** Method to get all customers.
-     * @example{{{
-     * Customer(pbssMonthly(2)).all
-     * }}}
-     *  */
-    def all() = path 
-    /** Method to get data by customer ID.
-     *  @example{{{
-     * Customer(pbssMonthly(2)).id(1960180360)
-     *  }}}
-    */
-    def id(id: Int) = {
-      stitch(path, id.toString)
-    }
-    /** Method to get data by customer IDs.
-     *  @example{{{
-     * Customer(pbssMonthly(2)).ids(List(1960180360, 1960180492))
-     *  }}}
-    */
-    def ids(id: List[Int]) = {
-      stitch(path, id.map(_.toString).mkString(","))
-    }
-    /** Method to get the first n customer IDs.
-     *  @example{{{
-     * Customer(pbssMonthly(2)).take(10)
-     *  }}}
-    */
-    def take(n: Int) = {
-      val cids = getCustomerIds(path).take(n)
-      stitch(path, cids.map(_.toString).mkString(","))
     }
   }
 }
