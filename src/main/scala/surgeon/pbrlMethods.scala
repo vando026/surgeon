@@ -20,21 +20,21 @@ import org.apache.spark.sql.{Column}
  * }}}
  */
 
-object PbSS {
+object PbRL {
 
     /** Extract the `customerId` column as is.
      * @example{{{
      * df.select(customerId.asis)
      * }}}
     */ 
-    def customerId(): Column = col("key.sessId.customerId")
+    def customerId(): Column = col("payload.heartbeat.customerId")
 
     /** Extract the `clientSessionId` column as is.
      * @example{{{
      * df.select(sessionId.asis)
      * }}}
     */ 
-    def sessionId() = IdCol(field = col("key.sessId.clientSessionId"),
+    def sessionId() = IdCol(field = col("payload.heartbeat.clientSessionId"),
       name = "sessionId") 
 
     /** Create the `clientId` column as is or $signed. 
@@ -46,23 +46,20 @@ object PbSS {
      *  clientId.hex)
      * }}}  
     */ 
-    def clientId = IdArray(field = col("key.sessId.clientId.element"), 
+    def clientId = IdArray(field = col("payload.heartbeat.clientId.element"), 
       name = "clientId")
 
-    /** Create sessionCreationTime as an object with hex, signed, and unsigned
-     *  methods. Note that this is not the same as `sessionCreationTime` which
-     *  has ms, sec, and timestamp methods. 
+    /** Create timeStamp $timestamp.
      *  @example{{{
      *  df.select(
-     *    sessionCreationId.asis,
-     *    sessionCreationId.hex,
-     *    sessionCreationId.signed, 
-     *    sessionCreationId.unsigned
+      *   timeStamp.ms,
+      *   timeStamp.sec,
+      *   timeStamp.stamp)
      *  )
      *  }}}
      */
-    def sessionCreationId = IdCol(field = col("val.invariant.sessionCreationTimeMs"), 
-      name = "sessionCreationId")
+    def timeStamp = TimeMsCol(field = col("header.timeStampUs") / 1000,
+      name = "timeStamp")
 
     /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
      * @example{{{
@@ -73,17 +70,6 @@ object PbSS {
      * }}}  
     */ 
     def sid5 = SID(name = "sid5", clientId, sessionId)
-
-    /** Create an sid6 object which concatenates `clientId`, `clientSessionId`, 
-     *  `sessionCreationTime` $signed. 
-     * @example{{{
-     * df.select(
-     *  sid6.signed, 
-     *  sid6.unsigned, 
-     *  sid6.hex)
-     * }}}  
-    */ 
-    def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
     /** Creates an Ad SID5 object which concatenates `clientId` and `c3CsId`
      *  $signed. 

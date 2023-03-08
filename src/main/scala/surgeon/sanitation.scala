@@ -42,6 +42,21 @@ object Sanitize {
       from_unixtime(field * lit(scale)).alias(s"${name}Stamp")
     }
   }
+
+  /** A class for extracting time-based columns in microseconds.
+   * @param field The input field.
+   * @param name The new name for the field. 
+  */
+  case class TimeMsCol(
+      field: Column, name: String
+    ) extends TimeCol {
+      /** Method to return field in milliseconds. */
+      def ms() = convert(1.0/1000, "Ms")
+      /** Method to return field in seconds. */
+      def sec() = convert(1.0/(1000 * 1000), "Sec")
+      /** Method to return the Unix epoch timestamp. */
+      def stamp() = stamp_(1.0/(1000 * 1000))
+    }
   
   /** A class for extracting time-based columns in milliseconds.
    * @param field The input field.
