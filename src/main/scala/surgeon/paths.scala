@@ -37,7 +37,7 @@ object Paths  {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
-  trait ProdPath {
+  trait ProdPath extends Customer {
     def year: Int 
     def fmt(s: Int) = f"${s}%02d"
     def toString_(x: List[Int]) = {
@@ -61,7 +61,7 @@ object Paths  {
    *  this case 3
    *  }}}
    */ 
-  case class PbSSMonthly(year: Int = 2023, month: Int) extends Customer with ProdPath {
+  case class PbSSMonthly(year: Int = 2023, month: Int) extends ProdPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
     def asis() = List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
@@ -91,7 +91,7 @@ object Paths  {
    *  }}}
    */ 
   case class PbSSDaily(month: Int, day: Int, year: Int = 2023) 
-      extends Customer with ProdPath {
+      extends ProdPath {
     val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
       (year + 1, 1, 1) else (year, month, day + 1)
     def asis() = List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
@@ -118,7 +118,7 @@ object Paths  {
    *  }}}
    */ 
   case class PbSSHourly(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
-      extends Customer with ProdPath {
+      extends ProdPath {
     def asis() = List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
       .mkString("/")
@@ -143,7 +143,7 @@ object Paths  {
    *  }}}
    */ 
   case class PbRawLog(month: Int, day: Int, hour: List[Int], year: Int = 2023) 
-    extends Customer with ProdPath {
+    extends ProdPath {
       def asis() = List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
         f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hour)}")
         .mkString("/")
