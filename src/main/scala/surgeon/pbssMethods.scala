@@ -308,6 +308,12 @@ object PbSS {
      *  }}}
      */
 
+    /** Gets the field `exitDuringPreRoll`. */ 
+    def exitDuringPreRoll(): Column = {
+      col("val.sessSummary.exitDuringPreRoll")
+        .alias("exitDuringPreRoll")
+    }
+
     def sid5Ad = SID(name = "sid5Ad", clientId, c3CsId)
 
     /** Creates the intvStartTime column $timestamp.

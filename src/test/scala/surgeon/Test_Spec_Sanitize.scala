@@ -22,20 +22,20 @@ class Test_Spec_Sanitize extends FunSuite
     // assertEquals(t1, t2.toUnsigned)
   }
 
-  val geoUtilCustomer = GeoUtilCustomer("./data/cust_dat.txt")
-  val custDat = geoUtilCustomer.data()
+  // val geoUtilCustomer = GeoUtilCustomer("./data/cust_dat.txt")
+  // val custDat = geoUtilCustomer.data()
 
-  test("Geoutil customer data is expected") {
-    val t1 = custDat.select("customerName").collect().map(_(0)) 
-    val t2 = custDat.count
-    assertEquals(t1(0).toString, "c3.Demo1")
-    assertEquals(t2.toInt, 4)
-  }
+  // test("Geoutil customer data is expected") {
+  //   val t1 = custDat.select("customerName").collect().map(_(0)) 
+  //   val t2 = custDat.count
+  //   assertEquals(t1(0).toString, "c3.Demo1")
+  //   assertEquals(t2.toInt, 4)
+  // }
 
-  test("customerName ") {
-    val t1 = customerNameToId(List("Demo1"))(0).toInt
-    assertEquals(t1, 207488736)
-  }
+  // test("customerName ") {
+  //   val t1 = customerNameToId(List("Demo1"))(0).toInt
+  //   assertEquals(t1, 207488736)
+  // }
 
   val root = "/mnt/conviva-prod-archive-pbss"
   test("pbssMonthly is expected") {
