@@ -42,7 +42,7 @@ class DataSuite extends munit.FunSuite
   //   assertEquals(nrow, 4)
   // }
 
-  val dat = spark.read.parquet("./data/pbssHourly1.parquet")
+  val dat = spark.read.parquet("./src/test/data/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
@@ -184,8 +184,9 @@ class DataSuite extends munit.FunSuite
     testTimeIsMs(d8905, lastRecvTime, 1675767600000L)
   }
 
-  test("sessionTime should compute ms/sec") {
-    testTimeIsMs(d8905, sessionTime, 1906885L)
+  test("sessionTimeMs should compute ms/sec") {
+    val t1 = d8905.select(sessionTimeMs).collect()
+    assertEquals(t1(0)(0), 1906885L)
   }
 
   test("lifeBufferingTime should compute ms/sec") {

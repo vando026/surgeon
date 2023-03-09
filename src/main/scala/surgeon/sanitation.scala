@@ -47,7 +47,7 @@ object Sanitize {
    * @param field The input field.
    * @param name The new name for the field. 
   */
-  case class TimeMsCol(
+  case class TimeUsCol(
       field: Column, name: String
     ) extends TimeCol {
       /** Method to return field in milliseconds. */

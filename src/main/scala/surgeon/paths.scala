@@ -136,16 +136,16 @@ object Paths  {
    *  @return 
    *  @example {{{
    *  PbRawLog(year = 2023, month = 1, day = 12, hours = List(2, 3)).asis // all customers
-   *  PbRawLog(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
+   *  PbRawLog(month = 1, day = 12, hours = List(3)).custAll // defaults to current year, with all customers
    *  PbRawLog(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
-   *  PbRawLog(2, 13, List(2)).custTake(10)
-   *  PbRawLog(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  PbRawLog(year = 2022, 2, 13, List(2)).custTake(10)
+   *  PbRawLog(3, 1, hours = List(4, 5)).custIds(List(1960180360, 1960180492) // call by Ids
    *  }}}
    */ 
-  case class PbRawLog(month: Int, day: Int, hour: List[Int], year: Int = 2023) 
+  case class PbRawLog(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
     extends ProdPath {
       def asis() = List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-        f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hour)}")
+        f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
         .mkString("/")
       override def path = asis()
   }

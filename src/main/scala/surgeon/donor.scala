@@ -71,7 +71,7 @@ object Donor {
 
     /** Method to get data by customer names.
      *  @example{{{
-     * Customer(pbssMonthly(2)).names(List("MLB", "CBSCom"))
+     * PbSSMonthly(2023, 2).custNames(List("MLB", "CBSCom"))
      *  }}}
     */
     def custNames(name: List[String]) = {
@@ -79,7 +79,7 @@ object Donor {
     }
     /** Method to get data by customer name.
      * @example{{{
-     * Customer(pbssMonthly(2)).name("MLB")
+     * PbSSMonthly(2023, 2).custName("MLB")
      * }}}
     */
     def custName(name: String) = {
@@ -87,29 +87,30 @@ object Donor {
     }
     /** Method to get all customers.
      * @example{{{
-     * Customer(pbssMonthly(2)).all
+     * PbSSMonthly(2023, 2).custAll
      * }}}
      *  */
     def custAll() = path 
+
     /** Method to get data by customer ID.
      *  @example{{{
-     * Customer(pbssMonthly(2)).id(1960180360)
+     * PbSSMonthly(2023, 2).custId(1960180360)
      *  }}}
     */
-    def custID(id: Int) = {
+    def custId(id: Int) = {
       stitch(path, id.toString)
     }
     /** Method to get data by customer IDs.
      *  @example{{{
-     * Customer(pbssMonthly(2)).ids(List(1960180360, 1960180492))
+     * PbSSMonthly(2023, 2)).custIds(List(1960180360, 1960180492))
      *  }}}
     */
-    def custIDs(id: List[Int]) = {
-      stitch(path, id.map(_.toString).mkString(","))
+    def custIds(ids: List[Int]) = {
+      stitch(path, ids.map(_.toString).mkString(","))
     }
     /** Method to get the first n customer IDs.
      *  @example{{{
-     * Customer(pbssMonthly(2)).take(10)
+     * PbSSMonthly(2023, 2).custTake(10)
      *  }}}
     */
     def custTake(n: Int) = {

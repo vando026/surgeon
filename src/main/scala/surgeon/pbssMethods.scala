@@ -328,6 +328,7 @@ object PbSS {
       */
     def intvStartTime = TimeSecCol(
       field = col("val.sessSummary.intvStartTimeSec"), name = "intvStartTime")
+    def intvStartTimeSec = col("val.sessSummary.intvStartTimeSec")
 
     /**
       * Parse the lifeFirstRecvTime column $timestamp.
@@ -341,6 +342,7 @@ object PbSS {
       */
       def lifeFirstRecvTime = TimeMsCol( 
         field = col("val.sessSummary.lifeFirstRecvTimeMs"), name = "lifeFirstRecvTime")
+      def lifeFirstRecvTimeMs = col("val.sessSummary.lifeFirstRecvTimeMs")
 
     /**
       * Parse the firstRecvTime column $timestamp
@@ -354,6 +356,7 @@ object PbSS {
       */
     def firstRecvTime = TimeMsCol(
       field = col("key.firstRecvTimeMs"), name = "firstRecvTime")
+    def firstRecvTimeMs = col("key.firstRecvTimeMs")
 
     /**
       * Parse the lastRecvTime column $timestamp.
@@ -367,6 +370,7 @@ object PbSS {
       */
     def lastRecvTime = TimeMsCol(
       field = col("val.sessSummary.lastRecvTimeMs"), name = "lastRecvTime") 
+    def lastRecvTimeMs = col("val.sessSummary.lastRecvTimeMs")
 
     /**
       * Creates the sessionCreationTime object with $timestamp.
@@ -380,19 +384,15 @@ object PbSS {
       */
     def sessionCreationTime = TimeMsCol( 
       field = col("val.invariant.sessionCreationTimeMs"), name = "sessionCreationTime")
+    def sessionCreationTimeMs = col("val.invariant.sessionCreationTimeMs")
 
     /**
-      * Creates the sessionTime object with $timestamp.
+      * Creates the sessionTimeMs field.
       * @example {{{
-      * df.select(
-      *   sessionTime.asis,
-      *   sessionTime.ms,
-      *   sessionTime.sec,
-      *   sessionTime.stamp)
+      * df.select(sessionTimeMs)
       * }}}
       */
-    def sessionTime = TimeMsCol(field = col("val.sessSummary.sessionTimeMs"),
-      name = "sessionTime")
+    def sessionTimeMs(): Column = col("val.sessSummary.sessionTimeMs")
 
     /**
       * Creates the lifeBufferingTime object with $timestamp.
@@ -406,6 +406,7 @@ object PbSS {
       */
     def lifeBufferingTime() = TimeMsCol(field = col("val.sessSummary.lifeBufferingTimeMs"), 
       name = "lifeBufferingTime")
+    def lifeBufferingTimeMs = col("val.sessSummary.lifeBufferingTimeMs")
 
 }
 

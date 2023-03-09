@@ -70,9 +70,9 @@ class Test_Spec_Sanitize extends FunSuite
     val expect2 = s"$root-hourly/pbss/hourly/st=0/y=2023/m=02/d=22/dt=2023_02_22_23"
     val expect3 = s"$root-hourly/pbss/hourly/st=0/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360,19000200}"
     val expect4 = s"$root-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00/cust={1960180361,1960180418}"
-    val t1 = PbSSHourly(2, 22, List(23), 2023).custID(1960180360)
+    val t1 = PbSSHourly(2, 22, List(23), 2023).custId(1960180360)
     val t2 = PbSSHourly(2, 22, List(23), 2023).custAll
-    val t3 = PbSSHourly(2, 22, List(23), 2023).custIDs(List(1960180360, 19000200))
+    val t3 = PbSSHourly(2, 22, List(23), 2023).custIds(List(1960180360, 19000200))
     // val t4 = Customer(pbssMonthly(2023, 2)).names(List("MLB", "CBSCom"))
     assertEquals(t1, expect1)
     assertEquals(t2, expect2)

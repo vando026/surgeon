@@ -58,7 +58,7 @@ object PbRL {
      *  )
      *  }}}
      */
-    def timeStamp = TimeMsCol(field = col("header.timeStampUs") / 1000,
+    def timeStamp = TimeUsCol(field = col("header.timeStampUs"),
       name = "timeStamp")
 
     /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
@@ -84,12 +84,12 @@ object PbRL {
     def sid5Ad = SID(name = "sid5Ad", clientId, c3CsId)
 
 
-    /** Extract the `shouldProcess` field as is.
+    /** Extract the `seqNumber` field as is.
      * @example{{{
-     * df.select(shouldProcess)
+     * df.select(seqNumber)
      * }}}
     */ 
-    def shouldProcess(): Column = col("val.sessSummary.shouldProcess")
+    def seqNumber(): Column = col("payload.heartbeat.seqNumber")
 
     /** Extract the `hasEnded` field as is. 
      * @example{{{
