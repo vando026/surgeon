@@ -4,11 +4,12 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 A scala library with tools to operate on data generated from Conviva
-Heartbeats. The library is aimed at data scientists or engineers who run their analysis scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies the basic but often tedious tasks of converting between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned session Ids; and cleaning or recoding frequently used fields; to name some of these tasks. 
-For example, a primary goal of surgeon is to reduce this mess:
+Heartbeats. The library is aimed at data scientists or engineers who run their scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but often tedious tasks of data conversion between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned/hexadecimal session Ids; cleaning or recoding fields; among others
+For example, surgeon reduces this mess:
 
 ```
-val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2022/m=12/d=25/dt=2022_12_25_{16,17,18,19}/cust={1960184999}")
+val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
+  st=0/y=2022/m=12/d=25/dt=2022_12_25_{16,17,18,19}/cust={1960184999}")
 hourly_df.createOrReplaceTempView("hourly_df")
 
 val sessionSummary_simplified = sqlContext.sql(s"""
@@ -53,16 +54,19 @@ val hourly_df = spark.read.parquet(path)
 )
 
 ```
-Do you always struggle to remember what customer name the Id represents, or
-vice versa? Then you can construct your path like so:
+Surgeon makes constructing the paths to the data easier. 
+Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
 val path = PbSSHourly(2022, 12, 24, List.range(16, 20)).custName("CBSCom")
 val hourly_df = spark.read.parquet(path)
 ```
+See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon) for more details about functionality.
 
-In the code above, some fields are objects with methods, so that you could get
-various formats of, for example, `lifeFirstRecvTime`:
+Surgeon makes selecting fields easier. No more
+`col("val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs")`. Some fields are
+objects with methods, which makes out of the box data manipulation easier. For
+example, since `lifeFirstRecvTime` is of `TimeMsCol` type, you can do 
 
 ```scala 
 hourly_df.select(
@@ -73,8 +77,8 @@ hourly_df.select(
 )
 ```
 
-Similarly, we could get the client Id : session Id (sid5) as signed or unsigned
-integers or hexadecimal. 
+Similarly, we could get the clientId:clientSessionId (sid5) as signed or unsigned
+integers or as hexadecimal, without all the biolerplate code:
 
 ```scala 
 hourly_df.select(
@@ -84,5 +88,7 @@ hourly_df.select(
 )
 ```
 
-Please see the wiki page for descriptions of surgeon's features. 
+Documentation forthcoming. 
+
+<!-- Please see the wiki page for descriptions of surgeon's features. --> 
 

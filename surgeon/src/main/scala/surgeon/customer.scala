@@ -5,7 +5,7 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
 import org.apache.hadoop.fs._
 
-object Donor {
+object Customer {
 
   val sparkDonor = SparkSession
       .builder()
@@ -64,7 +64,7 @@ object Donor {
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  trait Customer {
+  trait CustomerPath {
     def path: String
     def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"

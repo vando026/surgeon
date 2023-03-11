@@ -2,7 +2,8 @@
 // Description: 
 // Date: 27-Jan-2023
 package conviva.surgeon
-import conviva.surgeon.Donor._
+
+import conviva.surgeon.Customer._
 
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 
@@ -36,7 +37,9 @@ object Paths {
     val root = "dbfs:/FileStore/Geo_Utils"
   }
 
-  trait ProdPath extends Customer {
+  /** Trait with methods to format strings paths on the Databricks `/mnt`
+   *  directory. */
+  trait ProdPath extends CustomerPath {
     def year: Int 
     def fmt(s: Int) = f"${s}%02d"
     def toString_(x: List[Int]) = {

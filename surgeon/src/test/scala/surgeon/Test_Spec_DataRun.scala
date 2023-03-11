@@ -36,7 +36,7 @@ class DataSuite extends munit.FunSuite
   //   assertEquals(nrow, 4)
   // }
 
-  val dat = spark.read.parquet("./common/src/test/data/pbssHourly1.parquet")
+  val dat = spark.read.parquet("./surgeon/src/test/data/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 

@@ -3,8 +3,8 @@ version := "0.0.1"
 name := "surgeon"
 organization := "conviva"
 
-lazy val common = (
-  Project("common", file("common"))
+lazy val surgeon = (
+  Project("surgeon", file("surgeon"))
    .settings(
     libraryDependencies ++= List(
       "org.apache.spark" %% "spark-sql" % "3.3.1",
@@ -25,5 +25,5 @@ testFrameworks += TestFramework("munit.TestFramework")
 
 lazy val docs = project
   .in(file("conviva-surgeon.wiki"))
-  .dependsOn(common)
+  .dependsOn(surgeon)
   .enablePlugins(MdocPlugin)

@@ -24,7 +24,7 @@ class Test_Spec_Sanitize extends FunSuite
 
   object TestRoot {
     /** The root path. */
-    val custDat = "./common/src/test/data/cust_dat.txt"
+    val custDat = "./surgeon/src/test/data/cust_dat.txt"
   }
 
   val custDat = geoUtilCustomer(geopath =  TestRoot.custDat)
