@@ -2,7 +2,9 @@ package conviva.surgeon
 
 import org.apache.spark.sql.functions.{
   col, udf, array_join, transform, lower, 
-  concat_ws, conv, from_unixtime, when, lit
+  concat_ws, conv, from_unixtime, when, lit,
+  aggregate, filter, size, array_min, array_max, 
+  array_distinct, array_position
 }
 import org.apache.spark.sql.{Column}
 
@@ -152,9 +154,47 @@ object Sanitize {
     }
   }
 
+  /** Method for extracting fields from the `val.invariant.summarizedTags`. */
   def invTag(field: String, name: String): Column = {
     col("val.invariant.summarizedTags")
       .getItem(field)
       .alias(name)
   }
+
+  /** Class with methods to operate on arrays. */
+  case class ArrayCol(field: Column, name: String) extends AsCol {
+    /** Sum all the elements in the array. This methods first removes all Null
+      *  values then does a sum reduce. */
+    def sum(): Column = {
+      aggregate(filter(field, x => x.isNotNull),
+        lit(0), (x, y) => x.cast("int")  + y.cast("int"))
+        .alias(s"${name}Sum")
+    }
+    /** Remove nulls, keep the same name. */
+    def notNull(): Column = {
+      filter(field, x => x.isNotNull)
+        .alias(s"${name}")
+    }
+    /** Are all elements in the array null. */   
+    def allNull(): Column = {
+      when(size(filter(field, x => x.isNotNull)) === 0, true)
+       .otherwise(false).alias(s"${name}AllNull")
+    }
+    /** Return only distinct elements in array. Removes nulls. */
+    def distinct(): Column = {
+      array_distinct(filter(field, x => x.isNotNull))
+        .alias(s"${name}Distinct")
+    }
+    /** Return first distinct element in array. Removes nulls. */
+    def firstDistinct(): Column = {
+      array_distinct(
+        filter(field, x => x.isNotNull))(0)
+        .alias(s"${name}Distinct1")
+    }
+    /** Return minimum value in array. */
+    def min(): Column = array_min(field).alias(s"${name}Min")
+    /** Return maximum value in array. */
+    def max(): Column = array_max(field).alias(s"${name}Max")
+  }
+
 }

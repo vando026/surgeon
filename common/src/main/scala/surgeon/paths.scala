@@ -12,8 +12,7 @@ import conviva.surgeon.Donor._
    * @define hour A value from 0 to 23 representing an hour of the day. Can be a list of strings or integers, an integer, or a string.
 */
 
-
-object Paths  {
+object Paths {
    
   /** Common root paths used to read in parquet files on the `conviva-prod-archive`
    *  GCS bucket on Databricks. 

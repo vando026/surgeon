@@ -31,18 +31,12 @@ class DataSuite extends munit.FunSuite
     assertEquals(t3(0)(0), expectSec)
   }
 
-  // val testSpark = SparkSession.builder
-  //   .master("local[1]")
-  //   .appName("Conviva-Surgeon").getOrCreate()
-
-  // val geoUtilCustomer = GeoUtilCustomer(path = "./spark-warehouse/cust_dat.txt").data
-
   // test("Customer nrow should be expected") {
   //   val nrow = geoUtilCustomer.count.toInt
   //   assertEquals(nrow, 4)
   // }
 
-  val dat = spark.read.parquet("./src/test/data/pbssHourly1.parquet")
+  val dat = spark.read.parquet("./common/src/test/data/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
