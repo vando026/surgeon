@@ -4,7 +4,8 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 A scala library with tools to operate on data generated from Conviva
-Heartbeats. The library is aimed at data scientists or engineers who run their scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but often tedious tasks of data conversion between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned/hexadecimal session Ids; cleaning or recoding fields; among others
+Heartbeats. The library is aimed at data scientists or engineers who run their scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but often tedious tasks of data conversion between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned/hexadecimal session Ids; cleaning or recoding fields; among others.
+
 For example, surgeon reduces this mess:
 
 ```
@@ -52,16 +53,14 @@ val hourly_df = spark.read.parquet(path)
     endedStatus, shouldProcess, 
     intvStartTime.sec
 )
-
 ```
 Surgeon makes constructing the paths to the data easier. 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
 val path = PbSSHourly(2022, 12, 24, List.range(16, 20)).custName("CBSCom")
-val hourly_df = spark.read.parquet(path)
 ```
-See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon) for more details about functionality.
+See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/1-Paths-to-datasets) for more details about functionality.
 
 Surgeon makes selecting fields easier. No more
 `col("val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs")`. Some fields are
@@ -88,7 +87,7 @@ hourly_df.select(
 )
 ```
 
-Documentation forthcoming. 
+More documentation forthcoming. 
 
 <!-- Please see the wiki page for descriptions of surgeon's features. --> 
 
