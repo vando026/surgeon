@@ -4,8 +4,8 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 A scala library with tools to operate on data generated from Conviva
-Heartbeats. This library is aimed for data scientists or engineers that run their data analysis scripts on Databricks. Surgeon is designed to reduce the often verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but ultimately tedious tasks of working with Unix epoch times, arrays, and constructing sessions Ids. 
-For example, a primary goal is to reduce this mess:
+Heartbeats. The library is aimed at data scientists or engineers who run their analysis scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies the basic but often tedious tasks of converting between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned session Ids; and cleaning or recoding frequently used fields; to name some of these tasks. 
+For example, a primary goal of surgeon is to reduce this mess:
 
 ```
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2022/m=12/d=25/dt=2022_12_25_{16,17,18,19}/cust={1960184999}")
@@ -53,15 +53,23 @@ val hourly_df = spark.read.parquet(path)
 )
 
 ```
+Do you always struggle to remember what customer name the Id represents, or
+vice versa? Then you can construct your path like so:
+
+```scala 
+val path = PbSSHourly(2022, 12, 24, List.range(16, 20)).custName("CBSCom")
+val hourly_df = spark.read.parquet(path)
+```
+
 In the code above, some fields are objects with methods, so that you could get
 various formats of, for example, `lifeFirstRecvTime`:
 
 ```scala 
 hourly_df.select(
   lifeFirstRecvTime.stamp, // as a timestamp 
-  lifePlayingTime.ms, // milliseconds since unix epoch
-  lifePlayingTime.sec, // seconds since unix epoch
-  lifePlayingTime.asis // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime.ms, // milliseconds since unix epoch
+  lifeFirstRecvTime.sec, // seconds since unix epoch
+  lifeFirstRecvTime.asis // its original form, milliseconds since unix epoch
 )
 ```
 
