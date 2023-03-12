@@ -4,7 +4,7 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
-import conviva.surgeon.Donor._
+import conviva.surgeon.Customer._
 
 trait SparkSessionTestWrapper {
   lazy val spark: SparkSession = {

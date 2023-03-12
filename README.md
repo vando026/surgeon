@@ -8,7 +8,7 @@ Heartbeats. The library is aimed at data scientists or engineers who run their s
 
 For example, surgeon reduces this mess:
 
-```
+```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
   st=0/y=2022/m=12/d=25/dt=2022_12_25_{16,17,18,19}/cust={1960184999}")
 hourly_df.createOrReplaceTempView("hourly_df")
@@ -76,8 +76,8 @@ hourly_df.select(
 )
 ```
 
-Similarly, we could get the clientId:clientSessionId (sid5) as signed or unsigned
-integers or as hexadecimal, without all the biolerplate code:
+Similarly, we could get the `clientId:clientSessionId` (sid5) as signed or unsigned
+integers or as hexadecimal.
 
 ```scala 
 hourly_df.select(

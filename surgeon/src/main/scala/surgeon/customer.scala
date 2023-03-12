@@ -16,19 +16,38 @@ object Customer {
   /** Read customer data from GeoUtils. 
    *  @param prefix Remove the `c3.` prefix from customer name.
   */
-  def geoUtilCustomer(prefix: Boolean = true, 
-      geopath: String = s"${GeoUtils.root}/cust_dat.txt"):
-    DataFrame = {
-    val dat = sparkDonor.read
-      .option("delimiter", "|")
-      .option("inferSchema", "true")
-      .csv(geopath)
-      .toDF("customerId", "customerName")
-      if (!prefix)
-        dat.withColumn("customerName", 
-          regexp_replace(col("customerName"), "c3.", ""))
-      else dat
+  trait GeoUtilCustomer {
+    val geopath: String
+    def CustomerData(prefix: Boolean = true):
+        DataFrame = {
+      val dat = sparkDonor.read
+        .option("delimiter", "|")
+        .option("inferSchema", "true")
+        .csv(geopath)
+        .toDF("customerId", "customerName")
+        if (!prefix)
+          dat.withColumn("customerName", 
+            regexp_replace(col("customerName"), "c3.", ""))
+        else dat
+    }
+    /** Get the ID of the customer name. 
+     *  @param name Name of the customer
+     *  @example{{{
+     *  getCustId(List("c3.MLB")) // or
+     *  getCustId(List("MLB"))
+     *  }}}
+     */
+    def customerNameToId(name: List[String]):
+        Array[String] = {
+      val names = name.map(_.replace("c3.", ""))
+      val out = CustomerData(prefix = false)
+        .select(col("customerId"))
+        .where(col("customerName").isin(names:_*))
+        .collect().map(_(0).toString)
+      out
+    }
   }
+
   /** Get the customer IDs associated with a file path on Databricks Prod Archive folder. 
    *  @param path The path to the GCS files on Databricks.
    *  @example{{{
@@ -45,26 +64,12 @@ object Customer {
     paths.map(f => { val pattern(h) = f; h })
   }
 
-  /** Get the ID of the customer name. 
-   *  @param name Name of the customer
-   *  @example{{{
-   *  getCustId(List("c3.MLB")) // or
-   *  getCustId(List("MLB"))
-   *  }}}
-   */
-  def customerNameToId(name: List[String]): Array[String] = {
-    val names = name.map(_.replace("c3.", ""))
-    val out = geoUtilCustomer(prefix = false)
-      .select(col("customerId"))
-      .where(col("customerName").isin(names:_*))
-      .collect().map(_(0).toString)
-    out
-  }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  trait CustomerPath {
+  trait CustomerPath extends GeoUtilCustomer {
+    def customerData: DataFrame
     def path: String
     def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"
