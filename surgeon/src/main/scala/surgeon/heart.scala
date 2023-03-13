@@ -1,17 +1,9 @@
 package conviva.surgeon
 
-import conviva.surgeon.Paths._
-import conviva.surgeon.Customer._
-
-// object Surgeon {
-//   def main(args: Array[String]) = {
-//     println("Loading the Surgeon library...")
-//   }
-// }
-
 object Heart {
 
-  val geoUtils: String = "dbfs:/FileStore/Geo_Utils"
-  val testEnv: String = "./src/test/data"
+     // val geoUtilCust = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
+     val geoUtilCust = "./src/test/data/cust_dat.txt"
+    // System.getProperty("user.dir")
 
 }

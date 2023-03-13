@@ -3,7 +3,7 @@ package conviva.surgeon
 import conviva.surgeon.Paths._
 import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
-import conviva.surgeon.Heart.{geoUtils, testEnv}
+import conviva.surgeon.Heart.geoUtilCust
 import org.apache.hadoop.fs._
 
 object Customer {
@@ -27,12 +27,6 @@ object Customer {
           regexp_replace(col("customerName"), "c3.", ""))
   }
   
-  /** Set the data environment: default is Databricks. */
-  def getCustomerData(default: Boolean = true): DataFrame = {
-    val path = if (default) geoUtils else testEnv
-    geoUtilCustomer(s"${path}/cust_dat.txt")
-  }
-
     /** Get the ID of the customer name. 
      *  @param name Name of the customer
      *  @example{{{
@@ -67,62 +61,64 @@ object Customer {
   }
 
 
-  def stitch(path: String, cnames: String) = s"${path}/cust={${cnames}}"
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  def makeCustomerId(input: Any) {
-    val customerData = getCustomerData(false)
-    val out = input match {
-      case s: List[String] => customerNameToId(s, customerData).mkString
-      case s: String  => customerNameToId(List(s), customerData)
-      case s: Int => s.toString
-      case s: List[Int] => s.map(_.toString)
-      // case s:  cids = getCustomerId(path).take(n)
-      // stitch(path, cids.map(_.toString).mkString(","))
+  trait CustomerPath {
+    val customerData = geoUtilCustomer(geoUtilCust)
+    def path: String
+    def stitch(path: String, cnames: String) = 
+      s"${path}/cust={${cnames}}"
+
+    /** Method to get data by customer names.
+     *  @example{{{
+     * PbSSMonthly(2023, 2).custNames(List("MLB", "CBSCom"))
+     *  }}}
+    */
+    def custNames(name: List[String]) = {
+      stitch(path, customerNameToId(name, customerData).mkString(","))
     }
-    out.mkString(",")
+    /** Method to get data by customer name.
+     * @example{{{
+     * PbSSMonthly(2023, 2).custName("MLB")
+     * }}}
+    */
+    def custName(name: String) = {
+      stitch(path, customerNameToId(List(name), customerData).mkString(","))
+    }
+    /** Method to get all customers.
+     * @example{{{
+     * PbSSMonthly(2023, 2).custAll
+     * }}}
+     *  */
+    def custAll() = path 
+
+    /** Method to get data by customer ID.
+     *  @example{{{
+     * PbSSMonthly(2023, 2).custId(1960180360)
+     *  }}}
+    */
+    def custId(id: Int) = {
+      stitch(path, id.toString)
+    }
+    /** Method to get data by customer IDs.
+     *  @example{{{
+     * PbSSMonthly(2023, 2)).custIds(List(1960180360, 1960180492))
+     *  }}}
+    */
+    def custIds(ids: List[Int]) = {
+      stitch(path, ids.map(_.toString).mkString(","))
+    }
+    /** Method to get the first n customer IDs.
+     *  @example{{{
+     * PbSSMonthly(2023, 2).custTake(10)
+     *  }}}
+    */
+    def custTake(n: Int) = {
+      val cids = getCustomerIds(path).take(n)
+      stitch(path, cids.map(_.toString).mkString(","))
+    }
   }
 
 }
-    // /** Method to get data by customer names.
-    //  *  @example{{{
-    //  * PbSSMonthly(2023, 2).custNames(List("MLB", "CBSCom"))
-    //  *  }}}
-    // */
-    // /** Method to get data by customer name.
-    //  * @example{{{
-    //  * PbSSMonthly(2023, 2).custName("MLB")
-    //  * }}}
-    // */
-    // /** Method to get all customers.
-    //  * @example{{{
-    //  * PbSSMonthly(2023, 2).custAll
-    //  * }}}
-    //  *  */
-    // /** Method to get data by customer ID.
-    //  *  @example{{{
-    //  * PbSSMonthly(2023, 2).custId(1960180360)
-    //  *  }}}
-    // */
-    // /** Method to get data by customer IDs.
-    //  *  @example{{{
-    //  * PbSSMonthly(2023, 2)).custIds(List(1960180360, 1960180492))
-    //  *  }}}
-    // */
-    // def custIds(ids: List[Int]) = {
-    //   stitch(path, ids.map(_.toString).mkString(","))
-    // }
-    // /** Method to get the first n customer IDs.
-    //  *  @example{{{
-    //  * PbSSMonthly(2023, 2).custTake(10)
-    //  *  }}}
-    // */
-    // def custTake(n: Int) = {
-    //   val cids = getCustomerId(path).take(n)
-    //   stitch(path, cids.map(_.toString).mkString(","))
-    // }
-  // }
-// }
-
 
