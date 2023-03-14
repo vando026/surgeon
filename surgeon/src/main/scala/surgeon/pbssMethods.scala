@@ -407,6 +407,12 @@ object PbSS {
     def lifeBufferingTime() = TimeMsCol(field = col("val.sessSummary.lifeBufferingTimeMs"), 
       name = "lifeBufferingTime")
     def lifeBufferingTimeMs = col("val.sessSummary.lifeBufferingTimeMs")
+    
+    def intvMaxEncodedFps(): Column = {
+      col("val.sessSummary.d3SessSummary.intvMaxEncodedFps")
+    }
+
+
 
 }
 

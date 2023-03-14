@@ -1,9 +1,22 @@
 package conviva.surgeon
 
+import org.apache.spark.sql.SparkSession
+import conviva.surgeon.Customer._
+
 object Heart {
 
-     // val geoUtilCust = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
-     val geoUtilCust = "./src/test/data/cust_dat.txt"
-    // System.getProperty("user.dir")
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession
+      .builder()
+      .master("local[*]")
+      .getOrCreate();
+    spark.sparkContext.setLogLevel("ERROR")
+  }
+
+  val localEnv = false
+  val geoCustPath = if (localEnv) "./src/test/data/cust_dat.txt" else
+    "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
+  val pbssTestPath = if (localEnv)  "./src/test/data" else
+    "/mnt/conviva-dev-convivaid0/users/avandormael/surgeon/data"
 
 }

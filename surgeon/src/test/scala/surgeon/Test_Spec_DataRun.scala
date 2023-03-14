@@ -5,19 +5,16 @@ import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
 import conviva.surgeon.Customer._
+import conviva.surgeon.Heart._
 
-trait SparkSessionTestWrapper {
-  lazy val spark: SparkSession = {
-    SparkSession
+
+class DataSuite extends munit.FunSuite {
+
+  val spark = SparkSession
       .builder()
-      .master("local")
-      .appName("spark test example")
+      .master("local[*]")
       .getOrCreate()
-  }
-}
-
-class DataSuite extends munit.FunSuite
-    with SparkSessionTestWrapper  {
+  spark.sparkContext.setLogLevel("ERROR")
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -31,12 +28,7 @@ class DataSuite extends munit.FunSuite
     assertEquals(t3(0)(0), expectSec)
   }
 
-  // test("Customer nrow should be expected") {
-  //   val nrow = geoUtilCustomer.count.toInt
-  //   assertEquals(nrow, 4)
-  // }
-
-  val dat = spark.read.parquet("./src/test/data/pbssHourly1.parquet")
+  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
     .cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
@@ -46,17 +38,18 @@ class DataSuite extends munit.FunSuite
   }
 
   test("sessionId should eq chosen session") {
-    val expect: Any = 89057425
+    val expect: String = "89057425"
     val t1 = d8905.select(sessionId.asis)
-      .collect()
-    assertEquals(t1(0)(0), expect)
+      .collect()(0)(0).toString
+    assertEquals(t1, expect)
   }
 
-  test("clientId should eq signed ID str") {
+  test("clientId should eq signed and asis ID str") {
     val expect = "476230728:1293028608:-1508640558:-1180571212"
-    val t1 = d8905.select(clientId.signed)
-      .collect()
+    val t1 = d8905.select(clientId.signed).collect()
+    val t2 = d8905.select(clientId.asis).collect()
     assertEquals(t1(0)(0).toString, expect)
+    assertEquals(t2(0)(0).toString, expect)
   }
 
   test("clientId should eq unsigned ID str") {
@@ -80,18 +73,20 @@ class DataSuite extends munit.FunSuite
     assertEquals(t1(0)(0).toString, expect)
   }
 
-  test("sid5 should eq signed ID str") {
+  test("sid5 should eq signed and asis ID str") {
     val expect = "476230728:1293028608:-1508640558:-1180571212:89057425"
-    val t1 = d8905.select(sid5.signed)
-      .collect()
+    val t1 = d8905.select(sid5.signed).collect()
+    val t2 = d8905.select(sid5.asis).collect()
     assertEquals(t1(0)(0).toString, expect)
+    assertEquals(t2(0)(0).toString, expect)
   }
 
-  test("sid6 should eq signed ID str") {
+  test("sid6 should eq signed and asis ID str") {
     val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
-    val t1 = d8905.select(sid6.signed)
-      .collect()
+    val t1 = d8905.select(sid6.signed).collect()
+    val t2 = d8905.select(sid6.asis).collect()
     assertEquals(t1(0)(0).toString, expect)
+    assertEquals(t2(0)(0).toString, expect)
   }
 
   test("sessionCreationId should eq expected") {
@@ -108,10 +103,10 @@ class DataSuite extends munit.FunSuite
   }
 
   test("ad session id should eq chosen session") {
-    val expect: Any = 89057425
+    val expect = "89057425"
     val t1 = d8905.select(sessionId.asis)
-      .collect()
-    assertEquals(t1(0)(0), expect)
+      .collect()(0)(0).toString
+    assertEquals(t1, expect)
   }
 
   test("intvStartTimeSec should compute ms/sec") {

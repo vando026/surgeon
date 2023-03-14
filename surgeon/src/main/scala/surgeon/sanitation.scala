@@ -116,6 +116,9 @@ object Sanitize {
     /** Method to convert to signed format */
     def signed(): Column = concat_ws(":", field)
       .alias(s"${name}Signed")
+    /** Method concatenates fields unconverted. */
+    override def asis(): Column = concat_ws(":", field)
+      .alias(s"${name}")
   }
 
   /** Class to extract and convert IDs from non-array fields.
@@ -131,7 +134,7 @@ object Sanitize {
    */
   case class IdArray(field: Column, name: String) extends IdColTrait {
     /** Method to convert to hexadecimal format */
-   override def hex(): Column = arrayToHex(field)
+    override def hex(): Column = arrayToHex(field)
       .alias(s"${name}Hex")
     /** Method to convert to unsigned format */
     override def unsigned(): Column = arrayToUnsigned(field)
@@ -151,6 +154,10 @@ object Sanitize {
     /** Method to convert to signed format */
     def signed(): Column = {
       concat_ws(":", fields.map(_.signed):_*).alias(s"${name}Signed")
+    }
+    /** Methods to concatenate fields as is. */
+    def asis(): Column = {
+      concat_ws(":", fields.map(_.asis):_*).alias(s"${name}")
     }
   }
 

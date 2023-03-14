@@ -116,7 +116,7 @@ object PbRL {
 
     def sessionTime() = ArrayCol(
       field = col("payload.heartbeat.pbSdmEvents.sessionTimeMs"),
-      name = "sessionTime")
+      name = "sessionTimeMs")
 
     // def hbDuration(): Column = {
     //   val windowSpec = Window

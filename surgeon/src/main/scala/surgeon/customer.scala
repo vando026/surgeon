@@ -1,27 +1,20 @@
 package conviva.surgeon
 
 import conviva.surgeon.Paths._
-import org.apache.spark.sql.{SparkSession, DataFrame, Column}
+import conviva.surgeon.Heart._
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
-import conviva.surgeon.Heart.geoUtilCust
 import org.apache.hadoop.fs._
 
 object Customer {
 
-  val sparkDonor = SparkSession
-      .builder()
-      .master("local")
-      .appName("spark wrapper")
-      .getOrCreate()
-
-  /** Read customer data from GeoUtils. 
-   *  @param prefix Remove the `c3.` prefix from customer name.
-  */
-  def geoUtilCustomer(path: String): DataFrame = {
-      sparkDonor.read
+  /** Read customer data from GeoUtils. */
+  def geoUtilCustomer(): DataFrame = {
+      SparkSession.builder.getOrCreate
+        .read
         .option("delimiter", "|")
         .option("inferSchema", "true")
-        .csv(path)
+        .csv(geoCustPath)
         .toDF("customerId", "customerName")
         .withColumn("NameNoC3",
           regexp_replace(col("customerName"), "c3.", ""))
@@ -51,7 +44,9 @@ object Customer {
    *  }}}
   */
   def getCustomerIds(path: String): Array[String] = {
-    val dbfs = FileSystem.get(sparkDonor.sparkContext.hadoopConfiguration)
+    val ss = SparkSession.builder
+      .getOrCreate.sparkContext.hadoopConfiguration
+    val dbfs = FileSystem.get(ss)
     val paths = dbfs.listStatus(new Path(path))
       .map(_.getPath.toString)
       .filter(!_.contains("_SUCCESS"))
@@ -64,8 +59,8 @@ object Customer {
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  trait CustomerPath {
-    val customerData = geoUtilCustomer(geoUtilCust)
+  trait CustExtract {
+    val customerData = geoUtilCustomer()
     def path: String
     def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"

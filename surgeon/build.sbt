@@ -10,3 +10,6 @@ libraryDependencies ++= List(
 
 publishArtifact := false
 testFrameworks += TestFramework("munit.TestFramework")
+
+// unmanagedBase := new java.io.File("/Users/avandormael/miniconda3/envs/dbconnect/lib/python3.9/site-packages/pyspark/jars")
+// mainClass := Some("com.conviva.surgeon.Heart")

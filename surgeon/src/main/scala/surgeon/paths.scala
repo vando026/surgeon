@@ -16,20 +16,20 @@ import org.apache.spark.sql.DataFrame
 
 object Paths {
    
-  /** Common root paths used to read in parquet files on the `conviva-prod-archive`
+  /** Common root paths used to read in parquet files on the `mnt/conviva-prod-archive`
    *  GCS bucket on Databricks. 
    */
-  object PrArchPaths {
+  object Mnt {
     /** The root path on `conviva-prod-archive`. */
-    val root    = "/mnt/conviva-prod-archive-"
+    val prod    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
-    val daily   = root + "pbss-daily/pbss/daily"
+    val daily   = prod + "pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    val hourly  = root + "pbss-hourly/pbss/hourly/st=0"
+    val hourly  = prod + "pbss-hourly/pbss/hourly/st=0"
     /** Path to the monthly session summary parquet files. */
-    val monthly = root + "pbss-monthly/pbss/monthly"
+    val monthly = prod + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    val rawlog  = root + "pbrl/3d/rawlogs/pbrl/lt_1"
+    val rawlog  = prod + "pbrl/3d/rawlogs/pbrl/lt_1"
   }
 
   def fmt(s: Int) = f"${s}%02d"
@@ -56,9 +56,9 @@ object Paths {
    *  this case 3
    *  }}}
    */ 
-  case class PbSSMonthly(year: Int = 2023, month: Int) extends CustomerPath {
+  case class PbSSMonthly(year: Int = 2023, month: Int) extends CustExtract {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-    override def path() = List(PrArchPaths.monthly, s"y=${year}", f"m=${fmt(month)}",
+    override def path() = List(Mnt.monthly, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
     .mkString("/")
   }
@@ -83,10 +83,10 @@ object Paths {
    *  List.range(1, 4).map(d => PbSSDaily(year = 2023, month = 2, day = d).custName("DSS"))
    *  }}}
    */ 
-  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends CustomerPath {
+  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends CustExtract {
     val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
       (year + 1, 1, 1) else (year, month, day + 1)
-    override def path() = List(PrArchPaths.daily, s"y=${year}", f"m=${fmt(month)}", 
+    override def path() = List(Mnt.daily, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
     .mkString("/")
   }
@@ -109,8 +109,8 @@ object Paths {
    *  }}}
    */ 
   case class PbSSHourly(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
-      extends CustomerPath {
-    override def path() = List(PrArchPaths.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      extends CustExtract {
+    override def path() = List(Mnt.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
       .mkString("/")
   }
@@ -133,8 +133,8 @@ object Paths {
    *  }}}
    */ 
   case class PbRawLog(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
-    extends CustomerPath {
-      override def path() = List(PrArchPaths.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+    extends CustExtract {
+      override def path() = List(Mnt.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
         f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
         .mkString("/")
   }
