@@ -192,11 +192,9 @@ object Sanitize {
       array_distinct(filter(field, x => x.isNotNull))
         .alias(s"${name}Distinct")
     }
-    /** Return first distinct element in array. Removes nulls. */
-    def firstDistinct(): Column = {
-      array_distinct(
-        filter(field, x => x.isNotNull))(0)
-        .alias(s"${name}Distinct1")
+    /** Return first non null element in array. */
+    def first(): Column = {
+        filter(field, x => x.isNotNull)(0).alias(s"${name}First")
     }
     /** Return minimum value in array. */
     def min(): Column = array_min(field).alias(s"${name}Min")

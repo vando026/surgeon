@@ -22,6 +22,14 @@ import org.apache.spark.sql.{Column}
 
 object PbRL {
 
+    /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
+    def cwsPlayer(field: String): ArrayCol = {
+      ArrayCol(
+        field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
+        name = field
+      )
+    }
+
     /** Extract the `customerId` column as is.
      * @example{{{
      * df.select(customerId.asis)
@@ -71,37 +79,12 @@ object PbRL {
     */ 
     def sid5 = SID(name = "sid5", clientId, sessionId)
 
-    /** Extract `playerState` field as is. */ 
-    def playerState() = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.playerState"),
-      name = "playerState")
-
     /** Extract the `seqNumber` field as is.
      * @example{{{
      * df.select(seqNumber)
      * }}}
     */ 
     def seqNumber(): Column = col("payload.heartbeat.seqNumber")
-
-    /** Extract `encodedFps` field. */
-    def encodedFps() = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.encodedFps"),
-      name = "encodedFps")
-
-    /** Extract `averageFps` field as is, */
-    def averageFps() = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.averageFps"),
-      name = "averageFps") 
-
-    /** Extract `renderedFpsTotal` field with array methods. */
-    def renderedFpsTotal()  = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.renderedFpsTotal"),
-      name = "renderedFpsTotal")
-
-    /** Extract `renderedFpsCount` field with array methods. */
-    def renderedFpsCount() = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.renderedFpsCount"),
-      name = "renderedFpsCount")
 
     /** Extract dropped frames total. */
     def droppedFramesTotal(): Column = 
@@ -114,7 +97,7 @@ object PbRL {
         .getItem("dfcnt").alias("droppedFramesCount")
     }
 
-    def sessionTime() = ArrayCol(
+    def sessionTimeMs() = ArrayCol(
       field = col("payload.heartbeat.pbSdmEvents.sessionTimeMs"),
       name = "sessionTimeMs")
 

@@ -408,10 +408,18 @@ object PbSS {
       name = "lifeBufferingTime")
     def lifeBufferingTimeMs = col("val.sessSummary.lifeBufferingTimeMs")
     
+    /** Extract the `intvMaxEncodedFps` field. */
     def intvMaxEncodedFps(): Column = {
       col("val.sessSummary.d3SessSummary.intvMaxEncodedFps")
     }
-
+    
+    /** Method to extract fields from the `lifeSwitchInfos` container. */
+    def lifeSwitch(field: String): ArrayCol = {
+      ArrayCol(
+        field = col(s"val.sessSummary.lifeSwitchInfos.${field}"),
+        name = field
+      )
+    }
 
 
 }
