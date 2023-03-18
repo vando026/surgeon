@@ -67,7 +67,7 @@ object Customer {
 
     /** Method to get data by customer names.
      *  @example{{{
-     * PbSSMonthly(2023, 2).custNames(List("MLB", "CBSCom"))
+     * Monthly(2023, 2).custNames(List("MLB", "CBSCom"))
      *  }}}
     */
     def custNames(name: List[String]) = {
@@ -75,7 +75,7 @@ object Customer {
     }
     /** Method to get data by customer name.
      * @example{{{
-     * PbSSMonthly(2023, 2).custName("MLB")
+     * Monthly(2023, 2).custName("MLB")
      * }}}
     */
     def custName(name: String) = {
@@ -83,14 +83,14 @@ object Customer {
     }
     /** Method to get all customers.
      * @example{{{
-     * PbSSMonthly(2023, 2).custAll
+     * Monthly(2023, 2).custAll
      * }}}
      *  */
     def custAll() = path 
 
     /** Method to get data by customer ID.
      *  @example{{{
-     * PbSSMonthly(2023, 2).custId(1960180360)
+     * Monthly(2023, 2).custId(1960180360)
      *  }}}
     */
     def custId(id: Int) = {
@@ -98,7 +98,7 @@ object Customer {
     }
     /** Method to get data by customer IDs.
      *  @example{{{
-     * PbSSMonthly(2023, 2)).custIds(List(1960180360, 1960180492))
+     * Monthly(2023, 2)).custIds(List(1960180360, 1960180492))
      *  }}}
     */
     def custIds(ids: List[Int]) = {
@@ -106,7 +106,7 @@ object Customer {
     }
     /** Method to get the first n customer IDs.
      *  @example{{{
-     * PbSSMonthly(2023, 2).custTake(10)
+     * Monthly(2023, 2).custTake(10)
      *  }}}
     */
     def custTake(n: Int) = {

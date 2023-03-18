@@ -12,6 +12,7 @@ import org.apache.spark.sql.DataFrame
    * Use this parameter to change to a previous year. 
    * @define day A value from 1 to 31 representing the day of the month.
    * @define hour A value from 0 to 23 representing an hour of the day. Can be a list of strings or integers, an integer, or a string.
+   * @define root The root of the path, see `PathDB`. Defaults to the `/mnt/conviva-prod-archive/...` root.
 */
 
 object Paths {
@@ -19,17 +20,17 @@ object Paths {
   /** Common root paths used to read in parquet files on the `mnt/conviva-prod-archive`
    *  GCS bucket on Databricks. 
    */
-  object Mnt {
+  object PathDB {
     /** The root path on `conviva-prod-archive`. */
-    val prod    = "/mnt/conviva-prod-archive-"
+    val prodArch    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
-    val daily   = prod + "pbss-daily/pbss/daily"
+    val daily   = prodArch + "pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    val hourly  = prod + "pbss-hourly/pbss/hourly/st=0"
+    val hourly  = prodArch + "pbss-hourly/pbss/hourly/st=0"
     /** Path to the monthly session summary parquet files. */
-    val monthly = prod + "pbss-monthly/pbss/monthly"
+    val monthly = prodArch + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    val rawlog  = prod + "pbrl/3d/rawlogs/pbrl/lt_1"
+    val rawlog  = prodArch + "pbrl/3d/rawlogs/pbrl/lt_1"
   }
 
   def fmt(s: Int) = f"${s}%02d"
@@ -44,23 +45,24 @@ object Paths {
   /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
    *  @param year $year
    *  @param month $month Only a single value for month is permitted. 
+   *  @param root The root of the path, see `PathDB`.
    *  @return 
    *  @example {{{
-   *  PbSSMonthly(year = 2023, month = 1).path // all customers
-   *  PbSSMonthly(2023, 1).custAll // defaults to current year, with all customers
-   *  PbSSMonthly(2022,  12).custName("DSS") // Different year with only Disney customer
-   *  PbSSMonthly(2022, 12).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
-   *  PbSSMonthly(2022, 12).custID(1960180360) // call by Id
-   *  PbSSMonthly(2023, 3).custIDs(List(1960180360, 1960180492) // call by Ids
-   *  PbSSMonthly(2023, 5).custTake(3) // take only the first n customers, in
-   *  this case 3
+   *  Monthly(year = 2023, month = 1).path // all customers
+   *  Monthly(2023, 1).custAll // defaults to current year, with all customers
+   *  Monthly(2022,  12).custName("DSS") // Different year with only Disney customer
+   *  Monthly(2022, 12).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
+   *  Monthly(2022, 12).custID(1960180360) // call by Id
+   *  Monthly(2023, 3).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  Monthly(2023, 5).custTake(3) // take only the first n customers, in this case 3
    *  }}}
    */ 
-  case class PbSSMonthly(year: Int = 2023, month: Int) extends CustExtract {
+  case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
+      extends CustExtract {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-    override def path() = List(Mnt.monthly, s"y=${year}", f"m=${fmt(month)}",
+    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-    .mkString("/")
+        .mkString("/")
   }
   /** Class with methods to construct paths to daily PbSS parquet data on
    *  Databricks. If parameter names are omitted, then the order is month, day,
@@ -71,71 +73,51 @@ object Paths {
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  PbSSDaily(year = 2023, month = 1, day = 12).path // all customers
-   *  PbSSDaily(month = 1, day = 12).custAll // defaults to current year, with all customers
-   *  PbSSDaily(1, 12).custName("DSS") // Different year with only Disney customer
-   *  PbSSDaily(12, 28).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
-   *  PbSSDaily(2, 13).custID(1960180360) // call by Id
-   *  PbSSDaily(year = 2022,  month = 3, day = 1).custIDs(List(1960180360, 1960180492) // call by Ids
-   *  PbSSDaily(5, 27, 2023).custTake(3) // take only the first n customers, in
+   *  Daily(year = 2023, month = 1, day = 12).path // all customers
+   *  Daily(month = 1, day = 12).custAll // defaults to current year, with all customers
+   *  Daily(1, 12).custName("DSS") // Different year with only Disney customer
+   *  Daily(12, 28).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
+   *  Daily(2, 13).custID(1960180360) // call by Id
+   *  Daily(year = 2022,  month = 3, day = 1).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  Daily(5, 27, 2023).custTake(3) // take only the first n customers, in
    *  this case 3
    *  // Get customer data over 3 days
-   *  List.range(1, 4).map(d => PbSSDaily(year = 2023, month = 2, day = d).custName("DSS"))
+   *  List.range(1, 4).map(d => Daily(year = 2023, month = 2, day = d).custName("DSS"))
    *  }}}
    */ 
-  case class PbSSDaily(month: Int, day: Int, year: Int = 2023) extends CustExtract {
+  case class Daily(month: Int, day: Int, year: Int = 2023, root: String = PathDB.daily)
+      extends CustExtract {
     val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
       (year + 1, 1, 1) else (year, month, day + 1)
-    override def path() = List(Mnt.daily, s"y=${year}", f"m=${fmt(month)}", 
+    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
-    .mkString("/")
+        .mkString("/")
   }
 
-  /** Class with methods to construct paths to hourly PbSS parquet data on
+  /** Class with methods to construct paths to hourly parquet data on
    *  Databricks. If parameter names are omitted, then the order is month, day,
-   *  hour(s), year. The default year is the current year.  Only the `hours`
+   *  hour(s), year, path. The default year is the current year. 
+   *  The default is the hourly Session Summary path. See `PathDB`.  Only the `hours`
    *  parameter can take a list of integers.
    *  @param month $month
    *  @param day $day
    *  @param hours $hour
    *  @param year $year
+   *  @param root $root
    *  @return 
    *  @example {{{
-   *  PbSSHourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).path // all customers
-   *  PbSSHourly(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
-   *  PbSSHourly(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
-   *  PbSSHourly(2, 13, List(2)).custTake(10)
-   *  PbSSHourly(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).path // all customers
+   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3), root = PathDB.rawlog).path // change to rawlog data
+   *  Hourly(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
+   *  Hourly(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
+   *  Hourly(2, 13, List(2)).custTake(10)
+   *  Hourly(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
    *  }}}
    */ 
-  case class PbSSHourly(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
+  case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly) 
       extends CustExtract {
-    override def path() = List(Mnt.hourly, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
-      .mkString("/")
-  }
-
-  /** Class with methods to construct paths to hourly RawLog parquet data on
-   *  Databricks. If parameter names are omitted, then the order is month, day,
-   *  hour(s), year. The default year is the current year.  Only the `hours`
-   *  parameter can take a list of integers.
-   *  @param month $month
-   *  @param day $day
-   *  @param hours $hour
-   *  @param year $year
-   *  @return 
-   *  @example {{{
-   *  PbRawLog(year = 2023, month = 1, day = 12, hours = List(2, 3)).path // all customers
-   *  PbRawLog(month = 1, day = 12, hours = List(3)).custAll // defaults to current year, with all customers
-   *  PbRawLog(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
-   *  PbRawLog(year = 2022, 2, 13, List(2)).custTake(10)
-   *  PbRawLog(3, 1, hours = List(4, 5)).custIds(List(1960180360, 1960180492) // call by Ids
-   *  }}}
-   */ 
-  case class PbRawLog(month: Int, day: Int, hours: List[Int], year: Int = 2023) 
-    extends CustExtract {
-      override def path() = List(Mnt.rawlog, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-        f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
         .mkString("/")
   }
 

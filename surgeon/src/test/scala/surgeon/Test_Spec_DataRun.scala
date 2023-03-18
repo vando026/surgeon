@@ -14,6 +14,7 @@ class DataSuite extends munit.FunSuite {
       .builder()
       .master("local[*]")
       .getOrCreate()
+
   spark.sparkContext.setLogLevel("ERROR")
 
   /** Helper function to test time fields. */ 

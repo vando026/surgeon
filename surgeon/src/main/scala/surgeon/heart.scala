@@ -10,7 +10,9 @@ object Heart {
       .builder()
       .master("local[*]")
       .getOrCreate();
+
     spark.sparkContext.setLogLevel("ERROR")
+
   }
 
   val localEnv = false
