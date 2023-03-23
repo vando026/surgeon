@@ -9,15 +9,19 @@ import org.apache.hadoop.fs._
 object Customer {
 
   /** Read customer data from GeoUtils. */
-  def geoUtilCustomer(): DataFrame = {
-      SparkSession.builder.getOrCreate
+  def geoUtilCustomer(prefix: Boolean = false): DataFrame = {
+    val out = SparkSession.builder.getOrCreate
         .read
         .option("delimiter", "|")
         .option("inferSchema", "true")
         .csv(geoCustPath)
         .toDF("customerId", "customerName")
-        .withColumn("NameNoC3",
-          regexp_replace(col("customerName"), "c3.", ""))
+    if (prefix == false) { 
+      out.withColumn("customerName",
+            regexp_replace(col("customerName"), "c3.", ""))
+    } else {
+      out
+    }
   }
   
     /** Get the ID of the customer name. 
@@ -32,7 +36,7 @@ object Customer {
       val names = name.map(_.replace("c3.", ""))
       val out = cdat
         .select(col("customerId"))
-        .where(col("NameNoC3").isin(names:_*))
+        .where(col("customerName").isin(names:_*))
         .collect().map(_(0).toString)
       out
     }
@@ -60,7 +64,7 @@ object Customer {
    @param path Path to the files with customer heartbeats or sessions. 
   */
   trait CustExtract {
-    val customerData = geoUtilCustomer()
+    val customerData = geoUtilCustomer(prefix = false)
     def path: String
     def stitch(path: String, cnames: String) = 
       s"${path}/cust={${cnames}}"

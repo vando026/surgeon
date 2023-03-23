@@ -161,13 +161,6 @@ object Sanitize {
     }
   }
 
-  /** Method for extracting fields from the `val.invariant.summarizedTags`. */
-  def invTag(field: String, name: String): Column = {
-    col("val.invariant.summarizedTags")
-      .getItem(field)
-      .alias(name)
-  }
-
   /** Class with methods to operate on arrays. */
   case class ArrayCol(field: Column, name: String) extends AsCol {
     /** Sum all the elements in the array. This methods first removes all Null

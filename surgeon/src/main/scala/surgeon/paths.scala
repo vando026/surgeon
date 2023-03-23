@@ -17,11 +17,13 @@ import org.apache.spark.sql.DataFrame
 
 object Paths {
    
-  /** Common root paths used to read in parquet files on the `mnt/conviva-prod-archive`
-   *  GCS bucket on Databricks. 
-   */
+  /** Database of common paths to the parquet files on Databricks. 
+   *
+  */
   object PathDB {
-    /** The root path on `conviva-prod-archive`. */
+    /** Root path to `databricks-user-share`. */
+    val dbUserShare = "/mnt/databricks-user-share"
+    /** Root path to `conviva-prod-archive`. */
     val prodArch    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
     val daily   = prodArch + "pbss-daily/pbss/daily"
@@ -31,6 +33,13 @@ object Paths {
     val monthly = prodArch + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
     val rawlog  = prodArch + "pbrl/3d/rawlogs/pbrl/lt_1"
+    def tlb1hour(snap: String, st: Int = 0): String = {
+      s""" 
+       | $dbUserShare/tlb/analytics-1hr/
+       | parquet/tlb_offlineJob-assesmbly_$snap/
+       | pbss/hourly/st=${st}/
+      """.stripMargin
+    }
   }
 
   def fmt(s: Int) = f"${s}%02d"

@@ -28,7 +28,7 @@ class Test_Spec_Sanitize extends munit.FunSuite {
   test("Customer data is expected") {
     val t1 = custData
       .select(col("customerId"))
-      .where(col("NameNoC3") === "MSNBC")
+      .where(col("customerName") === "MSNBC")
       .collect().map(_(0)) 
     assertEquals(t1(0).toString, "207488736")
   }
@@ -48,8 +48,8 @@ class Test_Spec_Sanitize extends munit.FunSuite {
 
   val root = "/mnt/conviva-prod-archive-pbss"
   test("pbssMonthly is expected") {
-    val expect1 = s"${Mnt.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
-    val expect2 = s"${Mnt.monthly}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={207488736}"
+    val expect1 = s"${PathDB.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
+    val expect2 = s"${PathDB.monthly}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={207488736}"
     val t1 = Monthly(2023, 2).path
     val t2 = Monthly(2022, 12).custName("MSNBC")
     assertEquals(t1, expect1)
@@ -57,8 +57,8 @@ class Test_Spec_Sanitize extends munit.FunSuite {
   }
 
   test("Daily is expected") {
-    val expect1 = s"${Mnt.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
-    val expect2 = s"${Mnt.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={207488736}"
+    val expect1 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
+    val expect2 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={207488736}"
     val t1 = Daily(2, 22, 2023).custAll
     val t2 = Daily(2, 22, 2023).custName("MSNBC")
     assertEquals(t1, expect1)
@@ -67,8 +67,8 @@ class Test_Spec_Sanitize extends munit.FunSuite {
 
   val rhourly = root + "-hourly/pbss/hourly/st=0/"
   test("Hourly is expected") {
-    val expect1 = s"${Mnt.hourly}/y=2023/m=02/d=04/dt=2023_02_04_23"
-    val expect3 = s"${Mnt.hourly}/y=2023/m=02/d=22/dt=2023_02_22_{23,24,25}"
+    val expect1 = s"${PathDB.hourly}/y=2023/m=02/d=04/dt=2023_02_04_23"
+    val expect3 = s"${PathDB.hourly}/y=2023/m=02/d=22/dt=2023_02_22_{23,24,25}"
     val t1 = Hourly(2, 4, List(23), 2023).path
     val t3 = Hourly(2, 22, List(23, 24, 25), 2023).path
     assertEquals(t1, expect1)
@@ -76,10 +76,10 @@ class Test_Spec_Sanitize extends munit.FunSuite {
   }
   
   test("Hourly with customer is expected") {
-    val expect1 = s"${Mnt.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360}"
-    val expect2 = s"${Mnt.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23"
-    val expect3 = s"${Mnt.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360,19000200}"
-    val expect4 = s"${Mnt.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00/cust={1960180361,1960180418}"
+    val expect1 = s"${PathDB.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360}"
+    val expect2 = s"${PathDB.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23"
+    val expect3 = s"${PathDB.hourly}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360,19000200}"
+    val expect4 = s"${PathDB.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00/cust={1960180361,1960180418}"
     val t1 = Hourly(2, 22, List(23), 2023).custId(1960180360)
     val t2 = Hourly(2, 22, List(23), 2023).custAll
     val t3 = Hourly(2, 22, List(23), 2023).custIds(List(1960180360, 19000200))

@@ -143,11 +143,10 @@ class DataSuite extends munit.FunSuite {
     assertEquals(tnames, expect)
   }
 
-  test("Select should include joinTime fields") {
-    val expect = "joinTime:joinTimeMs:joinTimeSec:joinTimeStamp"
+  test("Select should include lifePlayingTime fields") {
+    val expect = "lifePlayingTimeMs:lifePlayingTimeSec:lifePlayingTimeStamp"
     val tnames = d8905
-      .select(joinTime.asis, joinTime.ms,
-        joinTime.sec, joinTime.stamp)
+      .select(lifePlayingTime.ms, lifePlayingTime.sec, lifePlayingTime.stamp)
       .columns.mkString(":")
     assertEquals(tnames, expect)
   }
@@ -164,10 +163,6 @@ class DataSuite extends munit.FunSuite {
 
   test("lifePlayingTime should compute ms/sec") {
     testTimeIsMs(d8905, lifePlayingTime, 1742812L)
-  }
-
-  test("joinTime should compute ms/sec") {
-    testTimeIsMs(d8905, joinTime, 4978L)
   }
 
   test("lastRecvTime should compute ms/sec") {
