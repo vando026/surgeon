@@ -15,7 +15,7 @@ object Heart {
 
   }
 
-  val localEnv = false
+  val localEnv = true
   val geoCustPath = if (localEnv) "./src/test/data/cust_dat.txt" else
     "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   val pbssTestPath = if (localEnv)  "./src/test/data" else

@@ -3,6 +3,7 @@ package conviva.surgeon
 import conviva.surgeon.Sanitize._
 import org.apache.spark.sql.functions.{lower, col, when}
 import org.apache.spark.sql.{Column}
+import conviva.surgeon.Metrics._
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -17,7 +18,7 @@ import org.apache.spark.sql.{Column}
  * @define signed as a signed, unsigned, or hexadecimal string
  * @define ss `val.sessSummary`
  * @example {{{
- * df.select(customerId.asis, clientId.hex, hasEnded.asis, justJoined.asis)
+ * df.select(customerId.asis, clientId.hex, hasEnded, justJoined)
  * }}}
  */
 
@@ -146,7 +147,37 @@ object PbSS {
   */ 
   def endedStatus(): Column = col("val.sessSummary.endedStatus")
 
-  /** Extract the `joinState` field as is.
+  /** Extract the `justJoined` field as is from $ss. 
+   * @example{{{
+   * df.select(justJoined)
+   * }}}
+  */ 
+  def justJoined(): Column = col("val.sessSummary.justJoined")
+
+  /** Construct `hasJoined` from $ss using the `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
+   * @example{{{
+   * df.select(hasJoined)
+   * }}}
+  */ 
+  def hasJoined(): Column = hasJoinedUDF(col("val.sessSummary")).alias("hasJoined")
+
+  /** Construct `isEBVS` (Exit Before Video Start) from $ss using the 
+   *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
+   * @example{{{
+   * df.select(isEBVS)
+   * }}}
+  */ 
+  def isEBVS(): Column = EBVSUDF(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
+
+  /** Construct `isVSF` (Video Start Failure) from $ss using the
+   *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
+   * @example{{{
+   * df.select(isVSF)
+   * }}}
+  */ 
+  def isVSF(): Column = VSFUDF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
+
+  /** Extract the `joinState` field as is from $ss
    * @example{{{
    * df.select(joinState)
    * }}}

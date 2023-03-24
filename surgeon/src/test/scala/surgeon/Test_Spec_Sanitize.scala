@@ -7,7 +7,7 @@ import conviva.surgeon.Heart._
 import org.apache.spark.sql.functions.{col}
 import org.apache.spark.sql.{SparkSession}
 
-class Test_Spec_Sanitize extends munit.FunSuite { 
+class SanitizeSuite extends munit.FunSuite { 
 
   val spark = SparkSession
       .builder()
