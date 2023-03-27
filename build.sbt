@@ -7,7 +7,7 @@ lazy val surgeon = (
   Project("surgeon", file("surgeon"))
    .settings(
     libraryDependencies ++= List(
-      "org.apache.spark" %% "spark-sql" % "3.3.1",
+      "org.apache.spark" %% "spark-sql" % "3.3.1" exclude("org.slf4j", "slf4j-log4j12"),
       "org.scalameta" %% "munit" % "0.7.29" % Test,
      )
    )

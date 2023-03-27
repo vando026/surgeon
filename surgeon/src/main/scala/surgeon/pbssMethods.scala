@@ -32,11 +32,14 @@ object PbSS {
     )
   }
 
-  /** Method for extracting fields from the `val.invariant.summarizedTags`. */
-  def invTag(field: String, name: String): Column = {
-    col("val.invariant.summarizedTags")
-      .getItem(field)
-      .alias(name)
+  /** Method for extracting fields from `val.invariant`. */
+  def invTag(field: String): Column = {
+    col(s"val.invariant.${field}").alias(field)
+  }
+
+  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  def sumTag(field: String): Column = {
+    col("val.invariant.summarizedTags").getItem(field).alias(field)
   }
 
   /** Method for extracting fields from `val.sessSummary.d3SessSummary`. */
@@ -107,7 +110,7 @@ object PbSS {
   */ 
   def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
-  /** Creates an Ad SID5 object which concatenates `clientId` and `c3CsId`
+  /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
    *  $signed. 
    *  @example{{{
    *  df.select(
@@ -117,7 +120,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, c3CsId)
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
   /** Extract the `shouldProcess` field as is.
    * @example{{{
@@ -266,28 +269,6 @@ object PbSS {
     .otherwise(0).alias("isConsistent")
   }
 
-  /** Create a column flagging if session is an AdSession or ContentSession. */
-  def c3IsAd(): Column = {
-    when(col("val.invariant.summarizedTags")
-      .getItem("c3.video.isAd") === "T", "adSession").otherwise("contentSession")
-      .alias("c3IsAd")
-   }
-
-  /** Get field for the m3 Device Name. */
-  def m3DeviceName() = invTag("m3.dv.n", "m3DeviceName")
-
-   /** Get field for m3 Device OS. */
-  def m3DvOs() = invTag("m3.dv.os", "m3DvOs")
-
-  /** Get the field for the m3 Device name with f. */
-  def m3DvOsf() = invTag("m3.dv.osf", "m3DvOsf")
-
-  /** Get the field for the m3 Device name with version. */
-  def m3DvOsv() = invTag("m3.dv.osv", "m3DvOsv")
-
-  /** Get the field for is Live or Video on Demands. */
-  def c3VideoIsLive() = invTag("c3.video.isLive", "c3VideoIsLive")
-
   def liveOrVod(): Column = {
     col("val.sessSummary.d3SessSummary.liveOrVod")
       .alias("liveOrVod")
@@ -340,16 +321,16 @@ object PbSS {
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
    * df.select(
-   *   c3CsId.asis,
-   *   c3CsId.signed, 
-   *   c3CsId.hex, 
-   *   c3CsId.unsigned
+   *   c3_csid.asis,
+   *   c3_csid.signed, 
+   *   c3_csid.hex, 
+   *   c3_csid.unsigned
    * )
    * }}}
    */ 
-  def c3CsId = IdCol(
+  def c3_csid = IdCol(
     field = col("val.invariant.summarizedTags").getItem("c3.csid"),
-    name = "c3CsId")
+    name = "c3_csid")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")

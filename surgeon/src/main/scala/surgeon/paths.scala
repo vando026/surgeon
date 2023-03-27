@@ -24,15 +24,15 @@ object Paths {
     /** Root path to `databricks-user-share`. */
     val dbUserShare = "/mnt/databricks-user-share"
     /** Root path to `conviva-prod-archive`. */
-    val prodArch    = "/mnt/conviva-prod-archive-"
+    val prodArchive    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
-    val daily   = prodArch + "pbss-daily/pbss/daily"
+    val daily   = prodArchive + "pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    val hourly  = prodArch + "pbss-hourly/pbss/hourly/st=0"
+    def hourly(st: Int = 0)  = prodArchive + s"pbss-hourly/pbss/hourly/st=$st"
     /** Path to the monthly session summary parquet files. */
-    val monthly = prodArch + "pbss-monthly/pbss/monthly"
+    val monthly = prodArchive + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    val rawlog  = prodArch + "pbrl/3d/rawlogs/pbrl/lt_1"
+    def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
     def tlb1hour(snap: String, st: Int = 0): String = {
       s""" 
        | $dbUserShare/tlb/analytics-1hr/
@@ -123,7 +123,7 @@ object Paths {
    *  Hourly(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
    *  }}}
    */ 
-  case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly) 
+  case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly()) 
       extends CustExtract {
     override def path() = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")

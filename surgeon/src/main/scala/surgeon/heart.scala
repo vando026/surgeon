@@ -11,11 +11,9 @@ object Heart {
       .master("local[*]")
       .getOrCreate();
 
-    spark.sparkContext.setLogLevel("ERROR")
-
   }
 
-  val localEnv = true
+  val localEnv = false
   val geoCustPath = if (localEnv) "./src/test/data/cust_dat.txt" else
     "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   val pbssTestPath = if (localEnv)  "./src/test/data" else

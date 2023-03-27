@@ -5,8 +5,7 @@ organization := "conviva"
 
 resolvers ++= Seq(
   Resolver.mavenLocal,
-  DefaultMavenRepository,
-  "sbt-ivy-releases" at "https://repo1.maven.org/maven2/",
+  // "sbt-ivy-releases" at "https://repo1.maven.org/maven2/",
   "sbt-maven-releases" at "https://repo1.maven.org/maven2/",
   "usconviva-sbt-ivy-releases" at "https://usconviva.jfrog.io/usconviva/sbt-ivy-releases/",
   "usconviva-eng-mvn-all" at "https://usconviva.jfrog.io/usconviva/eng-mvn-all/"
@@ -17,8 +16,8 @@ credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 libraryDependencies ++= List(
   "org.apache.spark" %% "spark-sql" % "3.3.1",
   "com.conviva.packetbrain" % "parquet-pb" % "9.1.0",
-  "com.conviva.3d" %% "3dReports" % "2.228.0.6879",
-  "com.twitter" %% "algebird-core" % "0.13.9", 
+  "com.conviva.3d" %% "3dReports" % "2.228.0.6879" exclude("org.slf4j", "slf4j-log4j12"),
+  "com.twitter" %% "algebird-core" % "0.13.9",
   "com.conviva" %% "deviceMetadata_mapAdaptor" % "4.9.0",
   "com.conviva" %% "connectionMetadata" % "4.9.0",
   "org.scalameta" %% "munit" % "0.7.29" % Test,

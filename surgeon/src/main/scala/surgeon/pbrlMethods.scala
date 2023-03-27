@@ -20,107 +20,121 @@ import org.apache.spark.sql.{Column}
  * }}}
  */
 
-object PbRL {
+object PbRl {
 
-    /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
-    def cwsPlayer(field: String): ArrayCol = {
-      ArrayCol(
-        field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
-        name = field
-      )
-    }
+  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  def c3Tag(field: String): Column = {
+    col("payload.heartbeat.c3Tags").getItem(field).alias(field)
+  }
 
-    /** Extract the `customerId` column as is.
-     * @example{{{
-     * df.select(customerId.asis)
-     * }}}
-    */ 
-    def customerId(): Column = col("payload.heartbeat.customerId")
+  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  def clientTag(field: String): Column = {
+    col("payload.heartbeat.clientTags").getItem(field).alias(field)
+  }
 
-    /** Extract the `clientSessionId` column as is.
-     * @example{{{
-     * df.select(sessionId.asis)
-     * }}}
-    */ 
-    def sessionId() = IdCol(field = col("payload.heartbeat.clientSessionId"),
-      name = "sessionId") 
+  /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
+  def cwsPlayer(field: String): ArrayCol = {
+    ArrayCol(
+      field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
+      name = field
+    )
+  }
 
-    /** Create the `clientId` column as is or $signed. 
-     * @example{{{
-     * df.select(
-     *  clientId.asis,
-     *  clientId.signed, 
-     *  clientId.unsigned, 
-     *  clientId.hex)
-     * }}}  
-    */ 
-    def clientId = IdArray(field = col("payload.heartbeat.clientId.element"), 
-      name = "clientId")
+  /** Extract the `customerId` column as is.
+   * @example{{{
+   * df.select(customerId.asis)
+   * }}}
+  */ 
+  def customerId(): Column = col("payload.heartbeat.customerId")
 
-    /** Create timeStamp $timestamp.
-     *  @example{{{
-     *  df.select(
-      *   timeStamp.ms,
-      *   timeStamp.sec,
-      *   timeStamp.stamp)
-     *  )
-     *  }}}
-     */
-    def timeStamp = TimeUsCol(field = col("header.timeStampUs"),
-      name = "timeStamp")
+  /** Extract the `clientSessionId` column as is.
+   * @example{{{
+   * df.select(sessionId.asis)
+   * }}}
+  */ 
+  def sessionId() = IdCol(field = col("payload.heartbeat.clientSessionId"),
+    name = "sessionId") 
 
-    /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
-     * @example{{{
-     * df.select(
-     *  sid5.signed, 
-     *  sid5.unsigned, 
-     *  sid5.hex)
-     * }}}  
-    */ 
-    def sid5 = SID(name = "sid5", clientId, sessionId)
+  /** Create the `clientId` column as is or $signed. 
+   * @example{{{
+   * df.select(
+   *  clientId.asis,
+   *  clientId.signed, 
+   *  clientId.unsigned, 
+   *  clientId.hex)
+   * }}}  
+  */ 
+  def clientId = IdArray(field = col("payload.heartbeat.clientId.element"), 
+    name = "clientId")
 
-    /** Extract the `seqNumber` field as is.
-     * @example{{{
-     * df.select(seqNumber)
-     * }}}
-    */ 
-    def seqNumber(): Column = col("payload.heartbeat.seqNumber")
+  /** Create timeStamp $timestamp.
+   *  @example{{{
+   *  df.select(
+    *   timeStamp.ms,
+    *   timeStamp.sec,
+    *   timeStamp.stamp)
+   *  )
+   *  }}}
+   */
+  def timeStamp = TimeUsCol(field = col("header.timeStampUs"),
+    name = "timeStamp")
 
-    /** Extract dropped frames total. */
-    def droppedFramesTotal(): Column = 
-      col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
-        .getItem("dftot").alias("droppedFramesTotal")
+  /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
+   * @example{{{
+   * df.select(
+   *  sid5.signed, 
+   *  sid5.unsigned, 
+   *  sid5.hex)
+   * }}}  
+  */ 
+  def sid5 = SID(name = "sid5", clientId, sessionId)
 
-    /** Extract dropped frames total. */
-    def droppedFramesCount(): Column = {
-      col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
-        .getItem("dfcnt").alias("droppedFramesCount")
-    }
+  /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
+   *  $signed. 
+   *  @example{{{
+   *  df.select(
+   *    sid5Ad.hex, 
+   *    sid5Ad.signed, 
+   *    sid5Ad.unsigned
+   *  )
+   *  }}}
+   */
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
-    def sessionTimeMs() = ArrayCol(
-      field = col("payload.heartbeat.pbSdmEvents.sessionTimeMs"),
-      name = "sessionTimeMs")
+  /** Creates a client session Id (c3.csid) object asis or $signed. 
+   * @example{{{
+   * df.select(
+   *   c3_csid.asis,
+   *   c3_csid.signed, 
+   *   c3_csid.hex, 
+   *   c3_csid.unsigned
+   * )
+   * }}}
+   */ 
+  def c3_csid = IdCol(field = clientTag("c3.csid"), name = "c3_csid")
 
-    // def hbDuration(): Column = {
-    //   val windowSpec = Window
-    //     .partitionBy("sid5Hex")
-    //     .orderBy("timeStampSec")
-    //   withColumn("hbDuration", 
-    //     lag(col(""))
-    //     )
-    // }
+  /** Extract the `seqNumber` field as is.
+   * @example{{{
+   * df.select(seqNumber)
+   * }}}
+  */ 
+  def seqNumber(): Column = col("payload.heartbeat.seqNumber")
+
+  /** Extract dropped frames total. */
+  def droppedFramesTotal(): Column = 
+    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
+      .getItem("dftot").alias("droppedFramesTotal")
+
+  /** Extract dropped frames total. */
+  def droppedFramesCount(): Column = {
+    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
+      .getItem("dfcnt").alias("droppedFramesCount")
+  }
+
+  /** Extract the session time. */
+  def sessionTimeMs() = ArrayCol(
+    field = col("payload.heartbeat.pbSdmEvents.sessionTimeMs"),
+    name = "sessionTimeMs")
 
 }
-
-// object readcsv {
-//   def main(path: String): Unit = {
-//     val spark = SparkSession.builder
-//       .master("local[1]")
-//       .appName("Simple Application").getOrCreate()
-//     val dat = spark.read.csv(path).limit(10)
-//     println("=========> This might have worked")
-//     dat.show()
-//     spark.stop()
-//   }
-// }
 
