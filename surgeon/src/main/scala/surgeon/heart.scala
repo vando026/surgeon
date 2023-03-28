@@ -13,10 +13,10 @@ object Heart {
 
   }
 
-  val localEnv = false
-  val geoCustPath = if (localEnv) "./src/test/data/cust_dat.txt" else
-    "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
-  val pbssTestPath = if (localEnv)  "./src/test/data" else
-    "/mnt/conviva-dev-convivaid0/users/avandormael/surgeon/data"
+  // val localEnv = false
+  // val geoCustPath = if (localEnv) "./src/test/data/cust_dat.txt" else
+  //   "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
+  // val pbssTestPath = if (localEnv)  "./src/test/data" else
+  //   "/mnt/conviva-dev-convivaid0/users/avandormael/surgeon/data"
 
 }

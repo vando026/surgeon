@@ -33,6 +33,7 @@ object Paths {
     val monthly = prodArchive + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
     def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
+    /** Path to TLB 1-hour analytics. */
     def tlb1hour(snap: String, st: Int = 0): String = {
       s""" 
        | $dbUserShare/tlb/analytics-1hr/
@@ -40,6 +41,8 @@ object Paths {
        | pbss/hourly/st=${st}/
       """.stripMargin
     }
+    /** Path to Geo_Utils folder on Databricks. */
+    val geoUtil = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   }
 
   def fmt(s: Int) = f"${s}%02d"
@@ -50,6 +53,9 @@ object Paths {
 
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
+  trait DataPath {
+    def toPath: String
+  }
 
   /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
    *  @param year $year
@@ -57,7 +63,7 @@ object Paths {
    *  @param root The root of the path, see `PathDB`.
    *  @return 
    *  @example {{{
-   *  Monthly(year = 2023, month = 1).path // all customers
+   *  Monthly(year = 2023, month = 1).toPath // all customers
    *  Monthly(2023, 1).custAll // defaults to current year, with all customers
    *  Monthly(2022,  12).custName("DSS") // Different year with only Disney customer
    *  Monthly(2022, 12).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
@@ -67,9 +73,9 @@ object Paths {
    *  }}}
    */ 
   case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
-      extends CustExtract {
+      extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}",
+    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
         .mkString("/")
   }
@@ -82,7 +88,7 @@ object Paths {
    *  @param year $year
    *  @return 
    *  @example {{{
-   *  Daily(year = 2023, month = 1, day = 12).path // all customers
+   *  Daily(year = 2023, month = 1, day = 12).toPath // all customers
    *  Daily(month = 1, day = 12).custAll // defaults to current year, with all customers
    *  Daily(1, 12).custName("DSS") // Different year with only Disney customer
    *  Daily(12, 28).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
@@ -95,10 +101,10 @@ object Paths {
    *  }}}
    */ 
   case class Daily(month: Int, day: Int, year: Int = 2023, root: String = PathDB.daily)
-      extends CustExtract {
+      extends DataPath {
     val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
       (year + 1, 1, 1) else (year, month, day + 1)
-    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}", 
+    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
         .mkString("/")
   }
@@ -124,8 +130,8 @@ object Paths {
    *  }}}
    */ 
   case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly()) 
-      extends CustExtract {
-    override def path() = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+      extends DataPath {
+    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
         .mkString("/")
   }
