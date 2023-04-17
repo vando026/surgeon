@@ -22,14 +22,30 @@ import org.apache.spark.sql.{Column}
 
 object PbRl {
 
-  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  // case class GenericEvent(field: Column, name: String) extends AsCol {
+  //   def fname(): Column = {
+  //     field.getItem("name").alias("genEventName")
+  //   }
+  // }
+
+  def genericEvent(field: String): ArrayCol = {
+    ArrayCol(
+      field =  col("payload.heartbeat.pbSdmEvents.genericEvent").getItem(field),
+      name = s"genericEvent_$field"
+    )
+  }
+
+  /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
+   *  with periods are replaced with underscores by default.*/
   def c3Tag(field: String): Column = {
-    col("payload.heartbeat.c3Tags").getItem(field).alias(field)
+    col("payload.heartbeat.c3Tags").getItem(field)
+      .alias(field.replaceAll("\\.", "_"))
   }
 
   /** Method for extracting fields from `val.invariant.summarizedTags`. */
   def clientTag(field: String): Column = {
-    col("payload.heartbeat.clientTags").getItem(field).alias(field)
+    col("payload.heartbeat.clientTags").getItem(field)
+      .alias(field.replaceAll("\\.", "_"))
   }
 
   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/

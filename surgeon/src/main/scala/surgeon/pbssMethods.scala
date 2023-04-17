@@ -32,6 +32,22 @@ object PbSS {
     )
   }
 
+  /** Method to extract fields from the `intvSwitchInfos` container. */
+  def intvSwitch(field: String): ArrayCol = {
+    ArrayCol(
+      field = col(s"val.sessSummary.intvSwitchInfos.${field}"),
+      name = field
+    )
+  }
+
+  /** Method to extract fields from the `joinSwitchInfos` container. */
+  def joinSwitch(field: String): ArrayCol = {
+    ArrayCol(
+      field = col(s"val.sessSummary.joinSwitchInfos.${field}"),
+      name = field
+    )
+  }
+
   /** Method for extracting fields from `val.invariant`. */
   def invTag(field: String): Column = {
     col(s"val.invariant.${field}").alias(field)
@@ -45,6 +61,11 @@ object PbSS {
   /** Method for extracting fields from `val.sessSummary.d3SessSummary`. */
   def d3SS(field: String): Column = {
     col(s"val.sessSummary.d3SessSummary.${field}").alias(field)
+  }
+
+  /** Method for extracting fields from `val.sessSummary`. */
+  def sessSum(field: String): Column = {
+    col(s"val.sessSummary.${field}").alias(field)
   }
 
   /** Extract the `customerId` column as is.
@@ -203,18 +224,24 @@ object PbSS {
   /** Extract the `joinTime` field as is. */
   def joinTimeMs(): Column = col("val.sessSummary.joinTimeMs")
 
-  /** Create `lifePlayingTime` object with methods. 
+  /** Extract `lifePlayingTime` field as is from $ss. 
    * @example{{{
    * df.select(
-   *   lifePlayingTime.asis,
-   *   lifePlayingTime.ms, 
-   *   lifePlayingTime.sec, 
-   *   lifePlayingTime.stamp
+   *   lifePlayingTimeMs
    * )
    * }}}
   */
-  def lifePlayingTime() = TimeMsCol(field = col("val.sessSummary.lifePlayingTimeMs"),
-    name = "lifePlayingTime")
+  def lifePlayingTimeMs(): Column = col("val.sessSummary.lifePlayingTimeMs")
+
+
+  /** Extract `lifeBufferingTimeMs` field as is from $ss. 
+   * @example{{{
+   * df.select(
+   *   lifeBufferingTimeMs
+   * )
+   * }}}
+  */
+  def lifeBufferingTimeMs(): Column = col("val.sessSummary.lifeBufferingTimeMs")
 
   /** Create a field that flags if `joinTimeMs` is greater than zero,
    *  otherwise gets values less than or equal zero. 
@@ -233,7 +260,7 @@ object PbSS {
    *  }}}
    */
   def isLifePlayingTime(): Column = {
-    when(lifePlayingTime.asis > 0, 1).otherwise(lifePlayingTime.asis)
+    when(lifePlayingTimeMs > 0, 1).otherwise(lifePlayingTimeMs)
       .alias("isLifePlayingTime")
   }
 
@@ -244,6 +271,16 @@ object PbSS {
    */
   def isJoined(): Column = {
     when(joinTimeMs === -1, 0).otherwise(1).alias("isJoined")
+  }
+
+  /** Create a field that indicates if there was any play over lifetime of the
+   *  session. 
+   *  @example{{{
+   *  df.select(isPlay)
+   *  }}}
+   */
+  def isPlay(): Column = {
+    when(sessSum("lifePlayingTimeMs") > 0, true).otherwise(false).alias("isPlay")
   }
 
   /** Create a field to flag consistency between joinTimeMs, joinState and lifePlayingTimeMs.
@@ -261,11 +298,9 @@ object PbSS {
     lifePlayingTime: Column = col("val.sessSummary.lifePlayingTimeMs")): 
   Column = {
     val isJoinTime = when(joinTime > 0, 1).otherwise(joinTime)
-    val isLifePlayingTime = when(lifePlayingTime > 0, 1)
-      .otherwise(lifePlayingTime)
-    when(isJoinTime === -1 && joinState  === -1 && isLifePlayingTime  === 0, 1) 
-      .when(isJoinTime === 1 && joinState   === 1 && isLifePlayingTime  === 1, 1)
-      .when(isJoinTime === -3 && joinState  === 0 &&  isLifePlayingTime  === 1, 1) 
+    when(isJoinTime === -1 && joinState  === -1 && isPlay  === 0, 1) 
+      .when(isJoinTime === 1 && joinState   === 1 && isPlay  === 1, 1)
+      .when(isJoinTime === -3 && joinState  === 0 &&  isPlay  === 1, 1) 
     .otherwise(0).alias("isConsistent")
   }
 
@@ -415,20 +450,6 @@ object PbSS {
     */
   def sessionTimeMs(): Column = col("val.sessSummary.sessionTimeMs")
 
-  /**
-    * Creates the lifeBufferingTime object with $timestamp.
-    * @example {{{
-    * df.select(
-    *   lifeBufferingTime.asis,
-    *   lifeBufferingTime.ms,
-    *   lifeBufferingTime.sec,
-    *   lifeBufferingTime.stamp)
-    * }}}
-    */
-  def lifeBufferingTime() = TimeMsCol(field = col("val.sessSummary.lifeBufferingTimeMs"), 
-    name = "lifeBufferingTime")
-  def lifeBufferingTimeMs = col("val.sessSummary.lifeBufferingTimeMs")
-  
   /** Extract the `intvMaxEncodedFps` field. */
   def intvMaxEncodedFps(): Column = {
     col("val.sessSummary.d3SessSummary.intvMaxEncodedFps")

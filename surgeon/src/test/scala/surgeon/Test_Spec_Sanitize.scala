@@ -20,5 +20,4 @@ class SanitizeSuite extends munit.FunSuite {
     assertEquals(t1, t2) 
   }
 
-
 }

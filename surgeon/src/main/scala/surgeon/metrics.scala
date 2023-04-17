@@ -22,5 +22,8 @@ object Metrics {
   // val UDFIntvBitrate = udf((ss: Row) => buildStdSs(ss).intvBitrateKbps().toDouble)
   // val UDFIntvBuffering = udf((ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble)
   // val UDFIntvPlaying = udf((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble)
+
+  val isVPFUDF = udf((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
+
 }
 

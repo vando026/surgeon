@@ -1,4 +1,4 @@
-scalaVersion := "2.12.13"
+scalaVersion := "2.12.17"
 version := "0.0.1"
 name := "surgeon"
 organization := "conviva"

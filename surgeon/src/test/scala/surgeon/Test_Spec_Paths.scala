@@ -27,7 +27,7 @@ class PathSuite extends munit.FunSuite {
     assertEquals(t1(0).toString, "207488736")
   }
 
-  test("customerNameToId is expected") {
+  test("customerNamToId is expected") {
     val custData = geoUtilCustomer(geopath = geopath)
     val t1 = customerNameToId(List("MSNBC"), custData)(0).toInt
     val t2 = customerNameToId(List("MSNBC", "TV2"), custData)
@@ -45,7 +45,7 @@ class PathSuite extends munit.FunSuite {
   test("pbssMonthly is expected") {
     val expect1 = s"${PathDB.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
     val expect2 = s"${PathDB.monthly}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={207488736}"
-    val t1 = Monthly(2023, 2).toPath
+    val t1 = Monthly(2023, 2).toString
     val t2 = Cust(Monthly(2022, 12), names = List("MSNBC"), geopath)
     assertEquals(t1, expect1)
     assertEquals(t2, expect2)
@@ -54,7 +54,7 @@ class PathSuite extends munit.FunSuite {
   test("Daily is expected") {
     val expect1 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
     val expect2 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={207488736}"
-    val t1 = Daily(2, 22, 2023).toPath
+    val t1 = Daily(2, 22, 2023).toString
     val t2 = Cust(Daily(2, 22, 2023), names = List("MSNBC"), geopath)
     assertEquals(t1, expect1)
     assertEquals(t2, expect2)
@@ -63,8 +63,8 @@ class PathSuite extends munit.FunSuite {
   test("Hourly is expected") {
     val expect1 = s"${PathDB.hourly()}/y=2023/m=02/d=04/dt=2023_02_04_23"
     val expect3 = s"${PathDB.hourly()}/y=2023/m=02/d=22/dt=2023_02_22_{23,24,25}"
-    val t1 = Hourly(2, 4, List(23), 2023).toPath
-    val t3 = Hourly(2, 22, List(23, 24, 25), 2023).toPath
+    val t1 = Hourly(2, 4, List(23), 2023).toString
+    val t3 = Hourly(2, 22, List(23, 24, 25), 2023).toString
     assertEquals(t1, expect1)
     assertEquals(t3, expect3)
   }
@@ -89,29 +89,6 @@ class PathSuite extends munit.FunSuite {
   val pathx = ois.readObject.asInstanceOf[Array[String]]
   ois.close
 
-  // Customer(Monthly(2023, 2), name = "TV2", geopath)
-  // Monthly(2023, 2).toPath
-
-  // trait Path
-  // case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
-  //     extends Path {
-  //   val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-  //   def path() = List(root, s"y=${year}", f"m=${fmt(month)}",
-  //     f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-  //       .mkString("/")
-  // }
-
-// implicit class CustExtract(val path: Path) {
-  // val geoCustPath = "./src/test/data/cust_dat.txt"
-  // val cdat = geoUtilCustomer()
-  // def Test = path + "ThisMyTest"
-// }
-// Monthly(2023, 2).Test
-
-  // val geoCustPath = if (localEnv) else
-  //   "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
-  // val pbssTestPath = if (localEnv)  "./src/test/data" else
-  //   "/mnt/conviva-dev-convivaid0/users/avandormael/surgeon/data"
 
 }
 

@@ -53,29 +53,22 @@ object Paths {
 
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
-  trait DataPath {
-    def toPath: String
-  }
+  trait DataPath
 
   /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
    *  @param year $year
    *  @param month $month Only a single value for month is permitted. 
-   *  @param root The root of the path, see `PathDB`.
+   *  @param root The root of the path, defaults to `PathDB.monthly()`.
    *  @return 
    *  @example {{{
-   *  Monthly(year = 2023, month = 1).toPath // all customers
-   *  Monthly(2023, 1).custAll // defaults to current year, with all customers
-   *  Monthly(2022,  12).custName("DSS") // Different year with only Disney customer
-   *  Monthly(2022, 12).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
-   *  Monthly(2022, 12).custID(1960180360) // call by Id
-   *  Monthly(2023, 3).custIDs(List(1960180360, 1960180492) // call by Ids
-   *  Monthly(2023, 5).custTake(3) // take only the first n customers, in this case 3
+   *  Monthly(year = 2023, month = 1)
+   *  Monthly(2023, 1).toString 
    *  }}}
    */ 
   case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
       extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}",
+    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
         .mkString("/")
   }
@@ -86,25 +79,21 @@ object Paths {
    *  @param month $month
    *  @param day $day
    *  @param year $year
+   *  @param root The root of the path, defaults to `PathDB.daily`.
    *  @return 
    *  @example {{{
-   *  Daily(year = 2023, month = 1, day = 12).toPath // all customers
-   *  Daily(month = 1, day = 12).custAll // defaults to current year, with all customers
-   *  Daily(1, 12).custName("DSS") // Different year with only Disney customer
-   *  Daily(12, 28).custNames(List("DSS", "CBSCom")) // Only Disney and CBS customers
-   *  Daily(2, 13).custID(1960180360) // call by Id
-   *  Daily(year = 2022,  month = 3, day = 1).custIDs(List(1960180360, 1960180492) // call by Ids
-   *  Daily(5, 27, 2023).custTake(3) // take only the first n customers, in
-   *  this case 3
+   *  Daily(year = 2023, month = 1, day = 12)
+   *  Daily(month = 1, day = 12)
+   *  Daily(1, 12).toString
    *  // Get customer data over 3 days
-   *  List.range(1, 4).map(d => Daily(year = 2023, month = 2, day = d).custName("DSS"))
+   *  List.range(1, 4).map(d => Daily(2023, month = 2, day = d).toString)
    *  }}}
    */ 
   case class Daily(month: Int, day: Int, year: Int = 2023, root: String = PathDB.daily)
       extends DataPath {
     val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
       (year + 1, 1, 1) else (year, month, day + 1)
-    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}", 
+    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
         .mkString("/")
   }
@@ -121,20 +110,67 @@ object Paths {
    *  @param root $root
    *  @return 
    *  @example {{{
-   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).path // all customers
-   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3), root = PathDB.rawlog).path // change to rawlog data
-   *  Hourly(month = 1, day = 12, hours = List(3, 5)).custAll // defaults to current year, with all customers
-   *  Hourly(1, 12, List.range(1, 7)).custName("DSS") // Different year with only Disney customer
-   *  Hourly(2, 13, List(2)).custTake(10)
-   *  Hourly(year = 2022,  month = 3, day = 1, hours = List(4, 5)).custIDs(List(1960180360, 1960180492) // call by Ids
+   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).toString
    *  }}}
    */ 
   case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly()) 
       extends DataPath {
-    override def toPath() = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
+    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
       f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
         .mkString("/")
   }
 
+  /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
+   @param path Path to the files with customer heartbeats or sessions. 
+  */
+  case class Cust(obj: DataPath)
+
+  object Cust {
+
+    private def stitch(obj: DataPath, cnames: String) = 
+      s"${obj.toString}/cust={${cnames}}"
+
+    /** Method to get data path using customer names.
+     *  @param obj A DataPath object. 
+     *  @param names The customer names with `c3.` prefix removed. 
+     *  @example{{{
+     *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
+     *  }}}
+    */
+    def apply(obj: DataPath, names: List[String], geopath: String = PathDB.geoUtil): String = {
+      val cnames = customerNameToId(names, geoUtilCustomer(geopath = geopath))
+      stitch(obj, cnames.mkString(","))
+    }
+
+    /** Method to get paths to data by customer IDs.
+     *  @param obj A DataPath object. 
+     *  @param ids List of customer Ids. 
+     *  @example{{{
+     *  Cust(Monthly(2023, 2), ids = List(1960180360))
+     *  }}}
+    */
+    def apply(obj: DataPath, ids: List[Int]) = {
+      stitch(obj, ids.mkString(","))
+    }
+
+    /** Method to get paths to data for the first n customer IDs.
+     *  @param obj A DataPath object. 
+     *  @param take The number of customer Ids to take. 
+     *  @example{{{
+     * Cust(Monthly(2023, 2), take = 10)
+     *  }}}
+    */
+    def apply(obj: DataPath, take: Int) = {
+      val cids = getCustomerIds(obj.toString).take(take)
+      stitch(obj, cids.map(_.toString).mkString(","))
+    }
+
+    /** Method to get path to data for all customers.
+    * @example{{{
+    * Cust(Monthly(2023, 2))
+    * }}}
+    */
+    def apply(obj: DataPath) = stitch(obj, "*")
+  }
 }
 

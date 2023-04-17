@@ -142,13 +142,14 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(tnames, expect)
   }
 
-  test("Select should include lifePlayingTime fields") {
-    val expect = "lifePlayingTimeMs:lifePlayingTimeSec:lifePlayingTimeStamp"
-    val tnames = d8905
-      .select(lifePlayingTime.ms, lifePlayingTime.sec, lifePlayingTime.stamp)
-      .columns.mkString(":")
-    assertEquals(tnames, expect)
-  }
+  // This has changed select another
+  // test("Select should include lifePlayingTime fields") {
+  //   val expect = "lifePlayingTimeMs:lifePlayingTimeSec:lifePlayingTimeStamp"
+  //   val tnames = d8905
+  //     .select(lifePlayingTime.ms, lifePlayingTime.sec, lifePlayingTime.stamp)
+  //     .columns.mkString(":")
+  //   assertEquals(tnames, expect)
+  // }
 
   // test("Should equal contentSession") {
   //   val t1 = d8905.select(isAd).distinct
@@ -160,8 +161,9 @@ class PbSS_Suite extends munit.FunSuite {
     testTimeIsMs(d8905, lifeFirstRecvTime, 1675765693115L)
   }
 
-  test("lifePlayingTime should compute ms/sec") {
-    testTimeIsMs(d8905, lifePlayingTime, 1742812L)
+  test("lifePlayingTime should be expected") {
+    val t1 = d8905.select(lifePlayingTimeMs).first.getInt(0)
+    assertEquals(t1, 1742812)
   }
 
   test("lastRecvTime should compute ms/sec") {
@@ -173,8 +175,9 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1(0)(0), 1906885L)
   }
 
-  test("lifeBufferingTime should compute ms/sec") {
-    testTimeIsMs(d8905, lifeBufferingTime, 2375L)
+  test("lifeBufferingTime should compute") {
+    val t1 = d8905.select(lifeBufferingTimeMs).first.getInt(0)
+    assertEquals(t1, 2375)
   }
 
   test("sessionCreationTime should compute ms/sec") {

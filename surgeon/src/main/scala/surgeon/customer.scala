@@ -26,6 +26,21 @@ object Customer {
       out
     }
   }
+
+  /** Get the ID of the customer name. 
+   *  @param ids The ids of the customer.
+   *  @param cdat A dataset derived from `geoUtilCustomer`.
+   *  @example{{{
+   *  customerIdToName(List("c3.MLB")) // or
+   *  customerIdToName(List("MLB"))
+   *  }}}
+   */
+  def customerIdToName(ids: List[Int], 
+      cdat: DataFrame = geoUtilCustomer(false)): Array[String] = {
+    cdat.where(col("customerId").isin(ids: _*))
+      .select(col("customerName"))
+      .collect().map(_.getString(0))
+  }
   
   /** Get the ID of the customer name. 
    *  @param names The names of the customer.
@@ -35,14 +50,13 @@ object Customer {
    *  customerNameToId(List("MLB"))
    *  }}}
    */
-  def customerNameToId(names: List[String], cdat: DataFrame):
-      Array[String] = {
+  def customerNameToId(names: List[String], 
+      cdat: DataFrame = geoUtilCustomer(false)): Array[String] = {
     val snames = names.map(_.replace("c3.", ""))
-    val out = cdat
+    cdat
       .select(col("customerId"))
       .where(col("customerName").isin(snames:_*))
       .collect().map(_(0).toString)
-    out
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 
@@ -65,57 +79,5 @@ object Customer {
   }
 
 
-  /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
-   @param path Path to the files with customer heartbeats or sessions. 
-  */
-  case class Cust(obj: DataPath)
-
-  object Cust {
-
-    def stitch(obj: DataPath, cnames: String) = 
-      s"${obj.toPath}/cust={${cnames}}"
-
-    /** Method to get data path using customer names.
-     *  @param obj A DataPath object. 
-     *  @param names The customer names with `c3.` prefix removed. 
-     *  @example{{{
-     *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
-     *  }}}
-    */
-    def apply(obj: DataPath, names: List[String], geopath: String = PathDB.geoUtil): String = {
-      val cnames = customerNameToId(names, geoUtilCustomer(geopath = geopath))
-      stitch(obj, cnames.mkString(","))
-    }
-
-    /** Method to get paths to data by customer IDs.
-     *  @param obj A DataPath object. 
-     *  @param ids List of customer Ids. 
-     *  @example{{{
-     *  Cust(Monthly(2023, 2), ids = List(1960180360))
-     *  }}}
-    */
-    def apply(obj: DataPath, ids: List[Int]) = {
-      stitch(obj, ids.mkString(","))
-    }
-
-    /** Method to get paths to data for the first n customer IDs.
-     *  @param obj A DataPath object. 
-     *  @param take The number of customer Ids to take. 
-     *  @example{{{
-     * Cust(Monthly(2023, 2), take = 10)
-     *  }}}
-    */
-    def apply(obj: DataPath, take: Int) = {
-      val cids = getCustomerIds(obj.toPath).take(take)
-      stitch(obj, cids.map(_.toString).mkString(","))
-    }
-
-    /** Method to get path to data for all customers.
-    * @example{{{
-    * Cust(Monthly(2023, 2))
-    * }}}
-    */
-    def apply(obj: DataPath) = stitch(obj, "*")
-  }
 }
 

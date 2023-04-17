@@ -4,7 +4,7 @@ import org.apache.spark.sql.functions.{
   col, udf, array_join, transform, lower, 
   concat_ws, conv, from_unixtime, when, lit,
   aggregate, filter, size, array_min, array_max, 
-  array_distinct, array_position
+  array_distinct, array_position, array_contains
 }
 import org.apache.spark.sql.{Column}
 
@@ -167,7 +167,7 @@ object Sanitize {
       *  values then does a sum reduce. */
     def sum(): Column = {
       aggregate(filter(field, x => x.isNotNull),
-        lit(0), (x, y) => x.cast("int")  + y.cast("int"))
+        lit(0), (x, y) => x  + y)
         .alias(s"${name}Sum")
     }
     /** Remove nulls, keep the same name. */
@@ -189,10 +189,19 @@ object Sanitize {
     def first(): Column = {
         filter(field, x => x.isNotNull)(0).alias(s"${name}First")
     }
+    /** Return last element in array, with null elements removed. */
+    def last(): Column = {
+      field.apply(size(filter(field, x => x.isNotNull))
+        .minus(1)).alias(s"${name}Last")
+    }
     /** Return minimum value in array. */
     def min(): Column = array_min(field).alias(s"${name}Min")
     /** Return maximum value in array. */
     def max(): Column = array_max(field).alias(s"${name}Max")
+    /** Return true if the array contains a value. */
+    def contains(value: String): Column = {
+      array_contains(field, value).alias(s"${name}Match")
+    }
   }
 
 }
