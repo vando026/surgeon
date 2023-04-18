@@ -298,9 +298,9 @@ object PbSS {
     lifePlayingTime: Column = col("val.sessSummary.lifePlayingTimeMs")): 
   Column = {
     val isJoinTime = when(joinTime > 0, 1).otherwise(joinTime)
-    when(isJoinTime === -1 && joinState  === -1 && isPlay  === 0, 1) 
-      .when(isJoinTime === 1 && joinState   === 1 && isPlay  === 1, 1)
-      .when(isJoinTime === -3 && joinState  === 0 &&  isPlay  === 1, 1) 
+    when(isJoinTime === -1 && joinState  === -1 && isPlay  === false, 1) 
+      .when(isJoinTime === 1 && joinState   === 1 && isPlay  === true, 1)
+      .when(isJoinTime === -3 && joinState  === 0 &&  isPlay  === true, 1) 
     .otherwise(0).alias("isConsistent")
   }
 

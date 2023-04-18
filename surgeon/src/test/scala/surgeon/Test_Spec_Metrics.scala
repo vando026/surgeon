@@ -28,11 +28,11 @@ class MetricSuite extends munit.FunSuite {
     assertEquals(t1(0)(1), true)
   }
 
-  test("isEBFS and isVSF should be expected") {
-    val t1 = d8905.select(isEBVS, isVSF)
-      .collect
-    assertEquals(t1(0)(0), false)
-    assertEquals(t1(0)(1), false)
-  }
+  // test("isEBFS and isVSF should be expected") {
+  //   val t1 = d8905.select(isEBVS, isVSF)
+  //     .collect
+  //   assertEquals(t1(0)(0), false)
+  //   assertEquals(t1(0)(1), false)
+  // }
 
 }

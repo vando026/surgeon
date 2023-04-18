@@ -154,3 +154,26 @@ object PbRl {
 
 }
 
+
+//   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
+//   def cwsPlayer(field: String): ArrayCol = {
+//     ArrayCol(
+//       field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
+//       name = field
+//     )
+//   }
+
+// trait ArrCol {
+//   def asis(): Column = field.alias("test")
+// }
+
+// class cwsPlayer(field: Column) {
+//   def rename(x: String): Column = field.alias(x)
+// }
+// object cwsPlayer {
+//   def apply(field: Column): Column = {
+//     new cwsPlayer(col(field))
+//   }
+// }
+
+// val cwsPlayer("")

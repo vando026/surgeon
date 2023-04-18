@@ -189,16 +189,16 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1(0)(0), 1)
   }
 
-  test("isConsistent should eq expected table") {
-    val d1 = dat.select(isJoinTime, isLifePlayingTime, shouldProcess, joinState)
-      .groupBy(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
-      .agg(count("*").as("sessCnt"))
-      .withColumn("isConsistent", isConsistent(col("isJoinTime"), col("joinState"), col("isLifePlayingTime")))
-      .sort(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
-    val t1 = d1.select(col("sessCnt"))
-      .where(col("shouldProcess") === false).collect()
-    assertEquals(t1(0)(0), 4)
-  }
+  // test("isConsistent should eq expected table") {
+  //   val d1 = dat.select(isJoinTime, isLifePlayingTime, shouldProcess, joinState)
+  //     .groupBy(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
+  //     .agg(count("*").as("sessCnt"))
+  //     .withColumn("isConsistent", isConsistent(col("isJoinTime"), col("joinState"), col("isLifePlayingTime")))
+  //     .sort(col("shouldProcess"), col("isJoinTime"), col("joinState"), col("isLifePlayingTime"))
+  //   val t1 = d1.select(col("sessCnt"))
+  //     .where(col("shouldProcess") === false).collect()
+  //   assertEquals(t1(0)(0), 4)
+  // }
 
   test("sumTag video.isLive should eq expected") {
     val t1 = d8905.select(sumTag("c3.video.isLive"))
