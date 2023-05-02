@@ -219,5 +219,42 @@ class PbSS_Suite extends munit.FunSuite {
  }
 
 
+trait TestMe {
+  def field: Column
+  def rename(s: String): Column = field.alias(s)
 }
 
+val h = "payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent"
+class CWSPlayer(name: String) extends Column(s"$h.$name") {
+  def rename(s: String): Column = this.alias(s)
+}
+def CWS(s: String): CWSPlayer = {
+  new CWSPlayer(s) 
+}
+
+class SS(name: String) extends Column(name) {
+  def rename(s: String): Column = this.alias(s)
+}
+def SSMake(s: String): SS = {
+  new SS(s) 
+}
+val tt = SSMake("val.sessSummary.shouldProcess")
+
+
+  class ArrayCol2(name: String) extends Column(name) {
+    // def rename(s: String): Column = this.alias(s)
+    val nm = name.split("\\.").last
+    def first(): Column = {
+        filter(this, x => x.isNotNull)(0).alias(s"${nm}First")
+    }
+  }
+  def joinSwitch(name: String): ArrayCol2 = {
+    new ArrayCol2(s"val.sessSummary.joinSwitchInfos.$name")
+  }
+
+  dat.select(
+    joinSwitch("framesPlayingTimeMs"),
+    joinSwitch("framesPlayingTimeMs").first
+  ).show
+
+}

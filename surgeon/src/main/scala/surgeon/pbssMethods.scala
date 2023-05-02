@@ -467,15 +467,3 @@ object PbSS {
 
 }
 
-// object readcsv {
-//   def main(path: String): Unit = {
-//     val spark = SparkSession.builder
-//       .master("local[1]")
-//       .appName("Simple Application").getOrCreate()
-//     val dat = spark.read.csv(path).limit(10)
-//     println("=========> This might have worked")
-//     dat.show()
-//     spark.stop()
-//   }
-// }
-

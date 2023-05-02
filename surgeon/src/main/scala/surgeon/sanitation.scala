@@ -165,9 +165,9 @@ object Sanitize {
   case class ArrayCol(field: Column, name: String) extends AsCol {
     /** Sum all the elements in the array. This methods first removes all Null
       *  values then does a sum reduce. */
-    def sum(): Column = {
+    def sumInt(): Column = {
       aggregate(filter(field, x => x.isNotNull),
-        lit(0), (x, y) => x  + y)
+        lit(0), (x, y) => x.cast("int")  + y.cast("int"))
         .alias(s"${name}Sum")
     }
     /** Remove nulls, keep the same name. */
@@ -203,5 +203,10 @@ object Sanitize {
       array_contains(field, value).alias(s"${name}Match")
     }
   }
+
+
+  // implicit class cws(field: Column)  {
+  //   def rename(x: String): Column = field.alias(x)
+  // }
 
 }

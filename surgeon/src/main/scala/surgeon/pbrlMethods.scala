@@ -42,7 +42,8 @@ object PbRl {
       .alias(field.replaceAll("\\.", "_"))
   }
 
-  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
+   *  with periods are replaced with underscores by default.*/
   def clientTag(field: String): Column = {
     col("payload.heartbeat.clientTags").getItem(field)
       .alias(field.replaceAll("\\.", "_"))
@@ -137,14 +138,14 @@ object PbRl {
   def seqNumber(): Column = col("payload.heartbeat.seqNumber")
 
   /** Extract dropped frames total. */
-  def droppedFramesTotal(): Column = 
-    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
-      .getItem("dftot").alias("droppedFramesTotal")
+  def dftot(): Column = 
+    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")
+      .apply(0).getItem("dftot").alias("dftot")
 
-  /** Extract dropped frames total. */
-  def droppedFramesCount(): Column = {
-    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")(0)
-      .getItem("dfcnt").alias("droppedFramesCount")
+  /** Extract dropped frames count. */
+  def dfcnt(): Column = {
+    col("payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.genericDictLong")
+      .apply(0).getItem("dfcnt").alias("dfcnt")
   }
 
   /** Extract the session time. */
@@ -153,27 +154,3 @@ object PbRl {
     name = "sessionTimeMs")
 
 }
-
-
-//   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
-//   def cwsPlayer(field: String): ArrayCol = {
-//     ArrayCol(
-//       field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
-//       name = field
-//     )
-//   }
-
-// trait ArrCol {
-//   def asis(): Column = field.alias("test")
-// }
-
-// class cwsPlayer(field: Column) {
-//   def rename(x: String): Column = field.alias(x)
-// }
-// object cwsPlayer {
-//   def apply(field: Column): Column = {
-//     new cwsPlayer(col(field))
-//   }
-// }
-
-// val cwsPlayer("")
