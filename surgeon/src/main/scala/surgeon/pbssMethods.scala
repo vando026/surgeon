@@ -25,27 +25,18 @@ import conviva.surgeon.Metrics._
 object PbSS {
 
   /** Method to extract fields from the `lifeSwitchInfos` container. */
-  def lifeSwitch(field: String): ArrayCol = {
-    ArrayCol(
-      field = col(s"val.sessSummary.lifeSwitchInfos.${field}"),
-      name = field
-    )
+  def lifeSwitch(name: String): ArrayCol = {
+    new ArrayCol(s"val.sessSummary.lifeSwitchInfos.$name")
   }
 
   /** Method to extract fields from the `intvSwitchInfos` container. */
-  def intvSwitch(field: String): ArrayCol = {
-    ArrayCol(
-      field = col(s"val.sessSummary.intvSwitchInfos.${field}"),
-      name = field
-    )
+  def intvSwitch(name: String): ArrayCol = {
+    new ArrayCol(s"val.sessSummary.intvSwitchInfos.$name")
   }
 
   /** Method to extract fields from the `joinSwitchInfos` container. */
-  def joinSwitch(field: String): ArrayCol = {
-    ArrayCol(
-      field = col(s"val.sessSummary.joinSwitchInfos.${field}"),
-      name = field
-    )
+  def joinSwitch(name: String): ArrayCol = {
+    new ArrayCol(s"val.sessSummary.joinSwitchInfos.$name")
   }
 
   /** Method for extracting fields from `val.invariant`. */
@@ -304,11 +295,6 @@ object PbSS {
     .otherwise(0).alias("isConsistent")
   }
 
-  def liveOrVod(): Column = {
-    col("val.sessSummary.d3SessSummary.liveOrVod")
-      .alias("liveOrVod")
-  }
-
   /** Extract `Ad Technology` field with methods. */
   case class AdTech(field: Column, name: String) extends AsCol {
     def recode(): Column = {
@@ -346,13 +332,6 @@ object PbSS {
      field = col("val.sessSummary.AdContentMetadata"),
      name = "adContentMetadata")
 
-  /** Get field for c3 Viewer Id. */
-  def c3ViewerId(): Column = {
-    col("val.invariant.summarizedTags")
-      .getItem("c3.viewer.id")
-      .alias("c3ViewerId")
-  }
-
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
    * df.select(
@@ -369,9 +348,6 @@ object PbSS {
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")
-  
-  /** Extract the `playerState` field as is from `val.sessSummary`. */
-  def playerState(): Column = col("val.sessSummary.playerState")
   
   /** Creates the intvStartTime column $timestamp.
     * @example {{{

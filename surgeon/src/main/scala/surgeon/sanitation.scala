@@ -162,51 +162,48 @@ object Sanitize {
   }
 
   /** Class with methods to operate on arrays. */
-  case class ArrayCol(field: Column, name: String) extends AsCol {
+  class ArrayCol(name: String) extends Column(name) {
+    val nm = name.split("\\.").last
     /** Sum all the elements in the array. This methods first removes all Null
       *  values then does a sum reduce. */
     def sumInt(): Column = {
-      aggregate(filter(field, x => x.isNotNull),
+      aggregate(filter(this, x => x.isNotNull),
         lit(0), (x, y) => x.cast("int")  + y.cast("int"))
         .alias(s"${name}Sum")
     }
     /** Remove nulls, keep the same name. */
     def notNull(): Column = {
-      filter(field, x => x.isNotNull)
-        .alias(s"${name}")
+      filter(this, x => x.isNotNull)
+        .alias(s"${nm}")
     }
     /** Are all elements in the array null. */   
     def allNull(): Column = {
-      when(size(filter(field, x => x.isNotNull)) === 0, true)
-       .otherwise(false).alias(s"${name}AllNull")
+      when(size(filter(this, x => x.isNotNull)) === 0, true)
+       .otherwise(false).alias(s"${nm}AllNull")
     }
     /** Return only distinct elements in array. Removes nulls. */
     def distinct(): Column = {
-      array_distinct(filter(field, x => x.isNotNull))
-        .alias(s"${name}Distinct")
+      array_distinct(filter(this, x => x.isNotNull))
+        .alias(s"${nm}Distinct")
     }
     /** Return first non null element in array. */
     def first(): Column = {
-        filter(field, x => x.isNotNull)(0).alias(s"${name}First")
+        filter(this, x => x.isNotNull)(0).alias(s"${nm}First")
     }
     /** Return last element in array, with null elements removed. */
     def last(): Column = {
-      field.apply(size(filter(field, x => x.isNotNull))
-        .minus(1)).alias(s"${name}Last")
+      this.apply(size(filter(this, x => x.isNotNull))
+        .minus(1)).alias(s"${nm}Last")
     }
     /** Return minimum value in array. */
-    def min(): Column = array_min(field).alias(s"${name}Min")
+    def min(): Column = array_min(this).alias(s"${nm}Min")
     /** Return maximum value in array. */
-    def max(): Column = array_max(field).alias(s"${name}Max")
+    def max(): Column = array_max(this).alias(s"${nm}Max")
     /** Return true if the array contains a value. */
     def contains(value: String): Column = {
-      array_contains(field, value).alias(s"${name}Match")
+      array_contains(this, value).alias(s"${nm}Match")
     }
   }
 
-
-  // implicit class cws(field: Column)  {
-  //   def rename(x: String): Column = field.alias(x)
-  // }
 
 }

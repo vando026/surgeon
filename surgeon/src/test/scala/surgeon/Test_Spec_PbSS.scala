@@ -219,6 +219,32 @@ class PbSS_Suite extends munit.FunSuite {
  }
 
 
+ test("lifeSwitchInfo.sessionTimeMsSum should eq expected ") {
+  val t1 = d8905.select(lifeSwitch("sessionTimeMs").sumInt)
+  assertEquals(t1.first.getInt(0), 1906885)
+ }
+
+ test("lifeSwitchInfo.playingTimeMsSum should eq expected ") {
+  val t1 = d8905.select(lifeSwitch("playingTimeMs").sumInt)
+  assertEquals(t1.first.getInt(0), 1742812)
+ }
+
+ test("lifeSwitchInfo.playingTimeMsFirst should eq expected ") {
+  val t1 = d8905.select(lifeSwitch("playingTimeMs").first)
+  assertEquals(t1.first.getInt(0), 1742812)
+ }
+
+ // test("lifeSwitchInfo.framesLoaded distinct should eq expected ") {
+ //  val t1 = d8905.select(lifeSwitch("framesLoaded").distinct)
+ //  assertEquals(t1.first.getInt(0), 41827)
+ // }
+
+ // test("lifeSwitchInfo.framesLoaded notNull should eq expected ") {
+ //  val t1 = d8905.select(lifeSwitch("framesLoaded").notNull)
+ //  assertEquals(t1.first.getInt(0), 41827)
+ // }
+
+/*
 trait TestMe {
   def field: Column
   def rename(s: String): Column = field.alias(s)
@@ -256,5 +282,5 @@ val tt = SSMake("val.sessSummary.shouldProcess")
     joinSwitch("framesPlayingTimeMs"),
     joinSwitch("framesPlayingTimeMs").first
   ).show
-
+*/
 }

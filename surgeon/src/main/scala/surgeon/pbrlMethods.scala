@@ -22,18 +22,10 @@ import org.apache.spark.sql.{Column}
 
 object PbRl {
 
-  // case class GenericEvent(field: Column, name: String) extends AsCol {
-  //   def fname(): Column = {
-  //     field.getItem("name").alias("genEventName")
-  //   }
+  // def genericEvent(name: String): ArrayCol = {
+  //   val event = new ArrayCol("payload.heartbeat.pbSdmEvents.genericEvent")
+  //   event.getItem(name),
   // }
-
-  def genericEvent(field: String): ArrayCol = {
-    ArrayCol(
-      field =  col("payload.heartbeat.pbSdmEvents.genericEvent").getItem(field),
-      name = s"genericEvent_$field"
-    )
-  }
 
   /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
    *  with periods are replaced with underscores by default.*/
@@ -50,11 +42,8 @@ object PbRl {
   }
 
   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
-  def cwsPlayer(field: String): ArrayCol = {
-    ArrayCol(
-      field = col(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${field}"),
-      name = field
-    )
+  def cwsPlayer(name: String): ArrayCol = {
+      new ArrayCol(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${name}")
   }
 
   /** Extract the `customerId` column as is.
@@ -149,8 +138,6 @@ object PbRl {
   }
 
   /** Extract the session time. */
-  def sessionTimeMs() = ArrayCol(
-    field = col("payload.heartbeat.pbSdmEvents.sessionTimeMs"),
-    name = "sessionTimeMs")
+  def sessionTimeMs() = new ArrayCol("payload.heartbeat.pbSdmEvents.sessionTimeMs")
 
 }
