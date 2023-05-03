@@ -123,6 +123,7 @@ object Sanitize {
    */
 
   case class IdCol(field: Column, name: String) extends IdColTrait
+  // class IdCol2(field: String, name: String) extends IdColTrait
   
   /** Class to extract and convert IDs from arrays, such as `cliendId`. 
    * @param field The input field
