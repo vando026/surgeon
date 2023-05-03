@@ -25,66 +25,63 @@ object Sanitize {
     def asis(): Column = field.alias(s"$name")
   }
 
-  /** A trait for extracting time-based columns such as `firstRecvTimeMs`. */
-  trait TimeCol extends AsCol {
-    /** Convert to Unix epoch time to a different timescale.
-     *  @param scale A multiplier such as 1000.0 that converts seconds to
-     *  milliseconds, or 1.0/1000 that converts milliseconds to seconds. 
-     *  @param suffix A suffix added to `name` to identify time scale of field.
-     *  Typically `Ms` or `Sec`.
-     */
-    def convert(scale: Double, suffix: String): Column = {
-      (field * lit(scale)).cast("Long").alias(s"${name}${suffix}")
-    }
-    /** Convert Unix epoch time to readable time stamp.
-     *  @param scale A multiplier such as 1000.0 that converts seconds to
-     *  milliseconds, or 1.0/1000 that converts milliseconds to seconds.
-     */
-    def stamp_(scale: Double): Column = {
-      from_unixtime(field * lit(scale)).alias(s"${name}Stamp")
-    }
+  /** Convert to Unix epoch time to a different timescale.
+   *  @param field The name of the field. 
+   *  @param scale A multiplier such as 1000.0 that converts seconds to
+   *  milliseconds, or 1.0/1000 that converts milliseconds to seconds. 
+   *  @param suffix A suffix added to `name` to identify time scale of field.
+   *  Typically `Ms` or `Sec`.
+   */
+  def convert_(field: Column, scale: Double, suffix: String): Column = {
+    (field * lit(scale)).cast("Long").alias(suffix)
   }
 
+  /** Convert Unix epoch time to readable time stamp.
+   *  @param field The name of the field. 
+   *  @param scale A multiplier such as 1000.0 that converts seconds to
+   *  milliseconds, or 1.0/1000 that converts milliseconds to seconds.
+   *  @param suffix A suffix added to `name` to identify time scale of field.
+   *  Typically `Ms` or `Sec`.
+   */
+  def stamp_(field: Column, scale: Double, suffix: String): Column = {
+    from_unixtime(field * lit(scale)).alias(suffix)
+  }
+
+  /* Method to extract last component of name.
+   * @param name The name for the field. 
+  */ 
+  def getName(name: String) = name.split("\\.").last
+
   /** A class for extracting time-based columns in microseconds.
-   * @param field The input field.
-   * @param name The new name for the field. 
+   * @param name The name for the field. 
   */
-  case class TimeUsCol(
-      field: Column, name: String
-    ) extends TimeCol {
+  class TimeUsCol(name: String) extends Column(name) {
+      private val nm = getName(name)
       /** Method to return field in milliseconds. */
-      def ms() = convert(1.0/1000, "Ms")
+      def ms() = convert_(this, 1.0/1000, s"${nm}Ms")
       /** Method to return field in seconds. */
-      def sec() = convert(1.0/(1000 * 1000), "Sec")
+      def sec() = convert_(this, 1.0/(1000 * 1000), s"${nm}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(1.0/(1000 * 1000))
+      def stamp() = stamp_(this, 1.0/(1000 * 1000), s"${nm}Stamp")
     }
   
   /** A class for extracting time-based columns in milliseconds.
-   * @param field The input field.
-   * @param name The new name for the field. 
+   * @param name The name of the field.
   */
-  case class TimeMsCol(
-      field: Column, name: String
-    ) extends TimeCol {
-      /** Method to return field in milliseconds. */
-      def ms() = convert(1.0, "Ms")
+  class TimeMsCol(field: String, name: String) extends Column(field) {
       /** Method to return field in seconds. */
-      def sec() = convert(1.0/1000, "Sec")
+      def sec() = convert_(this, 1.0/1000, s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(1.0/1000)
+      def stamp() = stamp_(this, 1.0/1000, s"${name}Stamp")
     }
 
+
   /** A class for extracting time-based columns in seconds.
-   * @param field The input field.
-   * @param name The new name for the field. 
+   * @param name The name of the field.
   */
-  case class TimeSecCol(
-      field: Column, name: String
-    ) extends TimeCol {
-      def ms() = convert(1000.0, "Ms")
-      def sec() = convert(1.0, "Sec")
-      def stamp() = stamp_(1.0)
+  class TimeSecCol(field: String, name: String) extends Column(field) {
+      def ms() = convert_(this, 1000.0, s"${name}Ms")
+      def stamp() = stamp_(this, 1.0, s"${name}Stamp")
     }
 
   /** Convert value from signed to unsigned. */

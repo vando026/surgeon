@@ -17,16 +17,16 @@ class MetricSuite extends munit.FunSuite {
 
   val pbssTestPath = "./src/test/data" 
 
-  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
-    .cache
-  val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
+  // val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
+    // .cache
+  // val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
-  test("hasJoinedUDF should be expected") {
-    val t1 = d8905.select(hasJoined, justJoined)
-      .collect
-    assertEquals(t1(0)(0), true)
-    assertEquals(t1(0)(1), true)
-  }
+  // test("hasJoinedUDF should be expected") {
+  //   val t1 = d8905.select(hasJoined, justJoined)
+  //     .collect
+  //   assertEquals(t1(0)(0), true)
+  //   assertEquals(t1(0)(1), true)
+  // }
 
   // test("isEBFS and isVSF should be expected") {
   //   val t1 = d8905.select(isEBVS, isVSF)

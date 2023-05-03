@@ -324,8 +324,7 @@ object PbSS {
     def preRollStatus(): Column = field.getItem("preRollStatus").alias("preRollStatus")
     def hasSSAI(): Column = field.getItem("hasSSAI").alias("hasSSAI")
     def hasCSAI(): Column = field.getItem("hasCSAI").alias("hasCSAI")
-    def preRollStartTime = TimeMsCol(field = field.getItem("preRollStartTimeMs"),
-      name = "preRollStartTime")
+    def preRollStartTime = field.getItem("preRollStartTimeMs")
   }
   /** Get field for AdContentMetadata. */
    def adContentMetadata = AdContentMetadata(
@@ -352,71 +351,58 @@ object PbSS {
   /** Creates the intvStartTime column $timestamp.
     * @example {{{
     * df.select(
-    *   intvStartTime.asis, 
+    *   intvStartTime, 
     *   intvStartTime.ms,
-    *   intvStartTime.sec,
     *   intvStartTime.stamp)
     * }}}
     */
-  def intvStartTime = TimeSecCol(
-    field = col("val.sessSummary.intvStartTimeSec"), name = "intvStartTime")
-  def intvStartTimeSec = col("val.sessSummary.intvStartTimeSec")
+  def intvStartTime = new TimeSecCol("val.sessSummary.intvStartTimeSec", "intvStartTime")
 
   /**
     * Parse the lifeFirstRecvTime column $timestamp.
     * @example {{{
     * df.select(
-    *   lifeFirstRecvTime.asis,
+    *   lifeFirstRecvTime,
     *   lifeFirstRecvTime.sec,
-    *   lifeFirstRecvTime.ms, 
     *   lifeFirstRecvTime.stamp)
     * }}}
     */
-    def lifeFirstRecvTime = TimeMsCol( 
-      field = col("val.sessSummary.lifeFirstRecvTimeMs"), name = "lifeFirstRecvTime")
-    def lifeFirstRecvTimeMs = col("val.sessSummary.lifeFirstRecvTimeMs")
+    def lifeFirstRecvTime = 
+      new TimeMsCol("val.sessSummary.lifeFirstRecvTimeMs", "lifeFirstRecvTime")
 
   /**
     * Parse the firstRecvTime column $timestamp
     * @example {{{
     * df.select(
-    *   firstRecvTime.asis,
-    *   firstRecvTime.ms,
+    *   firstRecvTime,
     *   firstRecvTime.sec,
     *   firstRecvTime.stamp)
     * }}}
     */
-  def firstRecvTime = TimeMsCol(
-    field = col("key.firstRecvTimeMs"), name = "firstRecvTime")
-  def firstRecvTimeMs = col("key.firstRecvTimeMs")
+  def firstRecvTime = new TimeMsCol("key.firstRecvTimeMs", "firstRecvTime")
 
   /**
     * Parse the lastRecvTime column $timestamp.
     * @example {{{
     * df.select(
-    *   lastRecvTime.asis,
-    *   lastRecvTime.ms,
+    *   lastRecvTime,
     *   lastRecvTime.sec,
     *   lastRecvTime.stamp)
     * }}}
     */
-  def lastRecvTime = TimeMsCol(
-    field = col("val.sessSummary.lastRecvTimeMs"), name = "lastRecvTime") 
-  def lastRecvTimeMs = col("val.sessSummary.lastRecvTimeMs")
+  def lastRecvTime = new TimeMsCol("val.sessSummary.lastRecvTimeMs", "lastRecvTime")
 
   /**
     * Creates the sessionCreationTime object with $timestamp.
     * @example {{{
     * df.select(
-    *   sessionCreationTime.asis,
-    *   sessionCreationTime.ms,
+    *   sessionCreationTime,
     *   sessionCreationTime.sec,
     *   sessionCreationTime.stamp)
     * }}}
     */
-  def sessionCreationTime = TimeMsCol( 
-    field = col("val.invariant.sessionCreationTimeMs"), name = "sessionCreationTime")
-  def sessionCreationTimeMs = col("val.invariant.sessionCreationTimeMs")
+  def sessionCreationTime = 
+    new TimeMsCol("val.invariant.sessionCreationTimeMs", "sessionCreationTime")
 
   /**
     * Creates the sessionTimeMs field.

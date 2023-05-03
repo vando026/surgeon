@@ -19,12 +19,10 @@ class PbSS_Suite extends munit.FunSuite {
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
     expectMs: Long): Unit = {
     val expectSec: Long = (expectMs * (1.0/1000)).toLong
-    val t1 = dat.select(field.asis).collect()
-    val t2 = dat.select(field.ms).collect()
-    val t3 = dat.select(field.sec).collect()
-    assertEquals(t1(0)(0), expectMs)
-    assertEquals(t2(0)(0), expectMs)
-    assertEquals(t3(0)(0), expectSec)
+    val t1 = dat.select(field).first.getLong(0)
+    val t2 = dat.select(field.sec).first.getLong(0)
+    assertEquals(t1, expectMs)
+    assertEquals(t2, expectSec)
   }
 
   val pbssTestPath = "./src/test/data" 
@@ -102,27 +100,6 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1(0)(0).toString, expect)
   }
 
-  test("ad session id should eq chosen session") {
-    val expect = "89057425"
-    val t1 = d8905.select(sessionId.asis)
-      .collect()(0)(0).toString
-    assertEquals(t1, expect)
-  }
-
-  test("intvStartTimeSec should compute ms/sec") {
-    val expect: Any = 1675764000L
-    val expect2: Any = 1675764000L * 1000
-    val t1 = d8905.select(intvStartTime.asis)
-      .collect()
-    val t2 = d8905.select(intvStartTime.ms)
-      .collect()
-    val t3 = d8905.select(intvStartTime.sec)
-      .collect()
-    assertEquals(t1(0)(0), expect)
-    assertEquals(t2(0)(0), expect2)
-    assertEquals(t3(0)(0), expect)
-  }
-
   test("Select should include all ID field names") {
     val expect = "customerId:clientId:sessionId:sid5Signed:sid5Unsigned"
     val tnames = d8905
@@ -133,29 +110,27 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(tnames, expect)
   }
 
+  test("ad session id should eq chosen session") {
+    val expect = "89057425"
+    val t1 = d8905.select(sessionId.asis)
+      .collect()(0)(0).toString
+    assertEquals(t1, expect)
+  }
+
+  test("intvStartTimeSec should compute ms/sec") {
+    val t1 = d8905.select(intvStartTime).first.getInt(0)
+    val t2 = d8905.select(intvStartTime.ms).first.getLong(0)
+    assertEquals(t1, 1675764000)
+    assertEquals(t2, 1675764000L * 1000)
+  }
+
   test("Select should include intvStartTime fields") {
-    val expect = "intvStartTime:intvStartTimeMs:intvStartTimeSec:intvStartTimeStamp"
+    val expect = "intvStartTimeSec:intvStartTimeMs:intvStartTimeStamp"
     val tnames = d8905
-      .select(intvStartTime.asis, intvStartTime.ms,
-        intvStartTime.sec, intvStartTime.stamp)
+      .select(intvStartTime, intvStartTime.ms, intvStartTime.stamp)
       .columns.mkString(":")
     assertEquals(tnames, expect)
   }
-
-  // This has changed select another
-  // test("Select should include lifePlayingTime fields") {
-  //   val expect = "lifePlayingTimeMs:lifePlayingTimeSec:lifePlayingTimeStamp"
-  //   val tnames = d8905
-  //     .select(lifePlayingTime.ms, lifePlayingTime.sec, lifePlayingTime.stamp)
-  //     .columns.mkString(":")
-  //   assertEquals(tnames, expect)
-  // }
-
-  // test("Should equal contentSession") {
-  //   val t1 = d8905.select(isAd).distinct
-  //     .collect()(0)(0).toString
-  //   assertEquals(t1, "contentSession")
-  // }
 
   test("lifeFirstRecvTime should compute sec/ms") {
     testTimeIsMs(d8905, lifeFirstRecvTime, 1675765693115L)
@@ -171,8 +146,8 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("sessionTimeMs should compute ms/sec") {
-    val t1 = d8905.select(sessionTimeMs).collect()
-    assertEquals(t1(0)(0), 1906885L)
+    val t1 = d8905.select(sessionTimeMs).first.getInt(0)
+    assertEquals(t1, 1906885)
   }
 
   test("lifeBufferingTime should compute") {

@@ -82,8 +82,7 @@ object PbRl {
    *  )
    *  }}}
    */
-  def timeStamp = TimeUsCol(field = col("header.timeStampUs"),
-    name = "timeStamp")
+  def timeStamp = new TimeUsCol("header.timeStampUs")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
