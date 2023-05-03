@@ -48,7 +48,7 @@ object PbRl {
 
   /** Extract the `customerId` column as is.
    * @example{{{
-   * df.select(customerId.asis)
+   * df.select(customerId)
    * }}}
   */ 
   def customerId(): Column = col("payload.heartbeat.customerId")
@@ -82,7 +82,7 @@ object PbRl {
    *  )
    *  }}}
    */
-  def timeStamp = new TimeUsCol("header.timeStampUs")
+  def timeStamp = new TimeUsCol("header.timeStampUs", "timeStamp")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{

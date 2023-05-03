@@ -55,14 +55,13 @@ object Sanitize {
   /** A class for extracting time-based columns in microseconds.
    * @param name The name for the field. 
   */
-  class TimeUsCol(name: String) extends Column(name) {
-      private val nm = getName(name)
+  class TimeUsCol(field: String, name: String) extends Column(name) {
       /** Method to return field in milliseconds. */
-      def ms() = convert_(this, 1.0/1000, s"${nm}Ms")
+      def ms() = convert_(this, 1.0/1000, s"${name}Ms")
       /** Method to return field in seconds. */
-      def sec() = convert_(this, 1.0/(1000 * 1000), s"${nm}Sec")
+      def sec() = convert_(this, 1.0/(1000 * 1000), s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(this, 1.0/(1000 * 1000), s"${nm}Stamp")
+      def stamp() = stamp_(this, 1.0/(1000 * 1000), s"${name}Stamp")
     }
   
   /** A class for extracting time-based columns in milliseconds.
