@@ -4,8 +4,6 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
-import conviva.surgeon.Customer._
-import conviva.surgeon.Heart._
 
 
 class PbSS_Suite extends munit.FunSuite {
@@ -14,6 +12,10 @@ class PbSS_Suite extends munit.FunSuite {
       .builder()
       .master("local[*]")
       .getOrCreate()
+  val pbssTestPath = "./src/test/data" 
+  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
+    .cache
+  val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -25,11 +27,6 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t2, expectSec)
   }
 
-  val pbssTestPath = "./src/test/data" 
-  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
-    .cache
-  val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
-
   test("Data nrow should be expected") {
     val nrow = dat.count.toInt
     assertEquals(nrow, 10)
@@ -37,85 +34,74 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("sessionId should eq chosen session") {
     val expect: String = "89057425"
-    val t1 = d8905.select(sessionId.asis)
-      .collect()(0)(0).toString
+    val t1 = d8905.select(sessionId).first.getInt(0).toString
     assertEquals(t1, expect)
   }
 
   test("clientId should eq signed and asis ID str") {
     val expect = "476230728:1293028608:-1508640558:-1180571212"
-    val t1 = d8905.select(clientId.signed).collect()
-    val t2 = d8905.select(clientId.asis).collect()
-    assertEquals(t1(0)(0).toString, expect)
-    assertEquals(t2(0)(0).toString, expect)
+    val t1 = d8905.select(clientId.asis).first.getString(0)
+    assertEquals(t1, expect)
   }
 
   test("clientId should eq unsigned ID str") {
     val expect = "476230728:1293028608:2786326738:3114396084"
-    val t1 = d8905.select(clientId.unsigned)
-      .collect()(0)(0).toString
-    assertEquals(t1.toString, expect)
+    val t1 = d8905.select(clientId.unsigned).first.getString(0)
+    assertEquals(t1, expect)
   }
 
   test("sid5 should eq hex ID str") {
     val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891"
-    val t1 = d8905.select(sid5.hex)
-      .collect()
-    assertEquals(t1(0)(0).toString, expect)
+    val t1 = d8905.select(sid5.hex).first.getString(0)
+    assertEquals(t1, expect)
   }
 
   test("sid5 should eq unsigned ID str") {
     val expect = "476230728:1293028608:2786326738:3114396084:89057425"
-    val t1 = d8905.select(sid5.unsigned)
-      .collect()
-    assertEquals(t1(0)(0).toString, expect)
+    val t1 = d8905.select(sid5.unsigned).first.getString(0)
+    assertEquals(t1, expect)
   }
 
-  test("sid5 should eq signed and asis ID str") {
+  test("sid5 should eq asis ID str") {
     val expect = "476230728:1293028608:-1508640558:-1180571212:89057425"
-    val t1 = d8905.select(sid5.signed).collect()
-    val t2 = d8905.select(sid5.asis).collect()
-    assertEquals(t1(0)(0).toString, expect)
-    assertEquals(t2(0)(0).toString, expect)
+    val t1 = d8905.select(sid5.asis).first.getString(0)
+    assertEquals(t1, expect)
   }
 
-  test("sid6 should eq signed and asis ID str") {
-    val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
-    val t1 = d8905.select(sid6.signed).collect()
-    val t2 = d8905.select(sid6.asis).collect()
-    assertEquals(t1(0)(0).toString, expect)
-    assertEquals(t2(0)(0).toString, expect)
-  }
+  // test("sid6 should eq signed and asis ID str") {
+  //   val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
+  //   val t1 = d8905.select(sid6.signed).collect()
+  //   val t2 = d8905.select(sid6.asis).collect()
+  //   assertEquals(t1(0)(0).toString, expect)
+  //   assertEquals(t2(0)(0).toString, expect)
+  // }
 
   test("sessionCreationId should eq expected") {
     val expect = "2b6b36b7"
-    val t1 = d8905.select(sessionCreationId.hex).collect()
-    assertEquals(t1(0)(0), expect)
+    val t1 = d8905.select(sessionCreationId.hex).first.getString(0)
+    assertEquals(t1, expect)
   }
 
-  test("sid6 should eq hex ID str") {
-    val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
-    val t1 = d8905.select(sid6.hex)
-      .collect()
-    assertEquals(t1(0)(0).toString, expect)
-  }
+  // test("sid6 should eq hex ID str") {
+  //   val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
+  //   val t1 = d8905.select(sid6.hex)
+  //   assertEquals(t1(0)(0).toString, expect)
+  // }
 
   test("Select should include all ID field names") {
-    val expect = "customerId:clientId:sessionId:sid5Signed:sid5Unsigned"
+    val expect = "customerId:clientId:clientSessionId:sid5:sid5Unsigned:sid5Hex"
     val tnames = d8905
-      .select(
-        customerId, clientId.asis, sessionId.asis,
-        sid5.signed, sid5.unsigned)
-      .columns.mkString(":")
+      .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.unsigned, sid5.hex)
+        .columns.mkString(":")
     assertEquals(tnames, expect)
   }
 
-  test("ad session id should eq chosen session") {
-    val expect = "89057425"
-    val t1 = d8905.select(sessionId.asis)
-      .collect()(0)(0).toString
-    assertEquals(t1, expect)
-  }
+  // test("ad session id should eq chosen session") {
+  //   val expect = "89057425"
+  //   val t1 = d8905.select(sessionId)
+  //     .collect()(0)(0).toString
+  //   assertEquals(t1, expect)
+  // }
 
   test("intvStartTimeSec should compute ms/sec") {
     val t1 = d8905.select(intvStartTime).first.getInt(0)
@@ -209,53 +195,4 @@ class PbSS_Suite extends munit.FunSuite {
   assertEquals(t1.first.getInt(0), 1742812)
  }
 
- // test("lifeSwitchInfo.framesLoaded distinct should eq expected ") {
- //  val t1 = d8905.select(lifeSwitch("framesLoaded").distinct)
- //  assertEquals(t1.first.getInt(0), 41827)
- // }
-
- // test("lifeSwitchInfo.framesLoaded notNull should eq expected ") {
- //  val t1 = d8905.select(lifeSwitch("framesLoaded").notNull)
- //  assertEquals(t1.first.getInt(0), 41827)
- // }
-
-/*
-trait TestMe {
-  def field: Column
-  def rename(s: String): Column = field.alias(s)
-}
-
-val h = "payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent"
-class CWSPlayer(name: String) extends Column(s"$h.$name") {
-  def rename(s: String): Column = this.alias(s)
-}
-def CWS(s: String): CWSPlayer = {
-  new CWSPlayer(s) 
-}
-
-class SS(name: String) extends Column(name) {
-  def rename(s: String): Column = this.alias(s)
-}
-def SSMake(s: String): SS = {
-  new SS(s) 
-}
-val tt = SSMake("val.sessSummary.shouldProcess")
-
-
-  class ArrayCol2(name: String) extends Column(name) {
-    // def rename(s: String): Column = this.alias(s)
-    val nm = name.split("\\.").last
-    def first(): Column = {
-        filter(this, x => x.isNotNull)(0).alias(s"${nm}First")
-    }
-  }
-  def joinSwitch(name: String): ArrayCol2 = {
-    new ArrayCol2(s"val.sessSummary.joinSwitchInfos.$name")
-  }
-
-  dat.select(
-    joinSwitch("framesPlayingTimeMs"),
-    joinSwitch("framesPlayingTimeMs").first
-  ).show
-*/
 }

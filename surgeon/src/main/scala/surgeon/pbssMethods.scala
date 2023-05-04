@@ -71,8 +71,7 @@ object PbSS {
    * df.select(sessionId.asis)
    * }}}
   */ 
-  def sessionId() = IdCol(field = col("key.sessId.clientSessionId"),
-    name = "sessionId") 
+  def sessionId() = new IdCol("key.sessId.clientSessionId", "sessionId") 
 
   /** Create the `clientId` column as is or $signed. 
    * @example{{{
@@ -83,8 +82,7 @@ object PbSS {
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = IdArray(field = col("key.sessId.clientId.element"), 
-    name = "clientId")
+  def clientId = new IdArray2("key.sessId.clientId.element", name = "clientId")
 
   /** Create sessionCreationTime as an object with hex, signed, and unsigned
    *  methods. Note that this is not the same as `sessionCreationTime` which
@@ -93,13 +91,11 @@ object PbSS {
    *  df.select(
    *    sessionCreationId.asis,
    *    sessionCreationId.hex,
-   *    sessionCreationId.signed, 
    *    sessionCreationId.unsigned
    *  )
    *  }}}
    */
-  def sessionCreationId = IdCol(field = col("val.invariant.sessionCreationTimeMs"), 
-    name = "sessionCreationId")
+  def sessionCreationId = new IdCol("val.invariant.sessionCreationTimeMs", "sessionCreationId")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
@@ -120,7 +116,7 @@ object PbSS {
    *  sid6.hex)
    * }}}  
   */ 
-  def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
+  // def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
   /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
    *  $signed. 
@@ -296,7 +292,8 @@ object PbSS {
   }
 
   /** Extract `Ad Technology` field with methods. */
-  case class AdTech(field: Column, name: String) extends AsCol {
+  case class AdTech(field: Column, name: String) {
+    def get(): Column = field
     def recode(): Column = {
       when(lower(field).rlike("server|ssai|sever"), "server")
         .when(lower(field).rlike("client|csai"), "client")
@@ -309,27 +306,25 @@ object PbSS {
    *  unknown.
    *  @example{{{
    *  df.select(
-   *    c3AdTechnology.asis, 
+   *    c3AdTechnology.get, 
    *    c3AdTechnology.recode
    *  )
    *  }}}
    */
   def c3AdTechnology = AdTech(
-    field = col("val.invariant.summarizedTags").getItem("c3.ad.technology"),
-    name = "c3AdTechnology")
+    field = sumTag("c3.ad.Technology"), name = "c3AdTechnology")
 
   /** Extract fields from `AdContentMetadata` with methods. */
-  case class AdContentMetadata(field: Column, name: String) extends AsCol {
-    def adRequested(): Column = field.getItem("adRequested").alias("adRequested")
-    def preRollStatus(): Column = field.getItem("preRollStatus").alias("preRollStatus")
-    def hasSSAI(): Column = field.getItem("hasSSAI").alias("hasSSAI")
-    def hasCSAI(): Column = field.getItem("hasCSAI").alias("hasCSAI")
-    def preRollStartTime = field.getItem("preRollStartTimeMs")
+  case class AdContentMetadata(field: String, name: String) extends Column(field) {
+    def adRequested(): Column = this.getItem("adRequested").alias("adRequested")
+    def preRollStatus(): Column = this.getItem("preRollStatus").alias("preRollStatus")
+    def hasSSAI(): Column = this.getItem("hasSSAI").alias("hasSSAI")
+    def hasCSAI(): Column = this.getItem("hasCSAI").alias("hasCSAI")
+    def preRollStartTime = this.getItem("preRollStartTimeMs")
   }
   /** Get field for AdContentMetadata. */
-   def adContentMetadata = AdContentMetadata(
-     field = col("val.sessSummary.AdContentMetadata"),
-     name = "adContentMetadata")
+  def adContentMetadata = AdContentMetadata(
+     "val.sessSummary.AdContentMetadata", "adContentMetadata")
 
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
@@ -341,9 +336,7 @@ object PbSS {
    * )
    * }}}
    */ 
-  def c3_csid = IdCol(
-    field = col("val.invariant.summarizedTags").getItem("c3.csid"),
-    name = "c3_csid")
+  def c3_csid = new IdCol("val.invariant.summarizedTags.c3.csid", name = "c3_csid")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")

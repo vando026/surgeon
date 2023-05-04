@@ -58,8 +58,7 @@ object PbRl {
    * df.select(sessionId.asis)
    * }}}
   */ 
-  def sessionId() = IdCol(field = col("payload.heartbeat.clientSessionId"),
-    name = "sessionId") 
+  def sessionId() = new IdCol(field = "payload.heartbeat.clientSessionId", name = "sessionId") 
 
   /** Create the `clientId` column as is or $signed. 
    * @example{{{
@@ -70,8 +69,7 @@ object PbRl {
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = IdArray(field = col("payload.heartbeat.clientId.element"), 
-    name = "clientId")
+  def clientId = new IdArray2(field = "payload.heartbeat.clientId.element", name = "clientId")
 
   /** Create timeStamp $timestamp.
    *  @example{{{
@@ -92,7 +90,7 @@ object PbRl {
    *  sid5.hex)
    * }}}  
   */ 
-  def sid5 = SID(name = "sid5", clientId, sessionId)
+  // def sid5 = SID(name = "sid5", clientId, sessionId)
 
   /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
    *  $signed. 
@@ -104,7 +102,7 @@ object PbRl {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
+  // def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
@@ -116,7 +114,7 @@ object PbRl {
    * )
    * }}}
    */ 
-  def c3_csid = IdCol(field = clientTag("c3.csid"), name = "c3_csid")
+  // def c3_csid = new IdCol(field = clientTag("c3.csid"), name = "c3_csid")
 
   /** Extract the `seqNumber` field as is.
    * @example{{{

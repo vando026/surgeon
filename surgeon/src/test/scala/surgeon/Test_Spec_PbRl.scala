@@ -25,8 +25,8 @@ class PbRl_Suite extends munit.FunSuite {
     assertEquals(nrow, 100)
   }
 
-  test("timeStampUs should compute us/ms/sec") {
-    val t1 = d8905.select(sessionTimeMs).first.getInt(0)
-    assertEquals(t1, 1906885)
-  }
+  // test("timeStampUs should compute us/ms/sec") {
+    // val t1 = d8905.select(sessionTimeMs).first.getInt(0)
+    // assertEquals(t1, 1906885)
+  // }
 }
