@@ -13,8 +13,7 @@ class PbSS_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
   val pbssTestPath = "./src/test/data" 
-  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet")
-    .cache
+  val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
 
   /** Helper function to test time fields. */ 

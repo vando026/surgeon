@@ -4,8 +4,6 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions._
 import conviva.surgeon.PbRl._
 import conviva.surgeon.Sanitize._
-import conviva.surgeon.Customer._
-import conviva.surgeon.Heart._
 
 
 class PbRl_Suite extends munit.FunSuite {
