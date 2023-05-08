@@ -3,7 +3,7 @@ package conviva.surgeon
 import conviva.surgeon.Sanitize._
 import org.apache.spark.sql.functions.{lower, col, when}
 import org.apache.spark.sql.{Column}
-import conviva.surgeon.Metrics._
+// import conviva.surgeon.Metrics._
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -82,7 +82,7 @@ object PbSS {
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = new IdArray2("key.sessId.clientId.element", name = "clientId")
+  def clientId = new IdArray("key.sessId.clientId.element", name = "clientId")
 
   /** Create sessionCreationTime as an object with hex, signed, and unsigned
    *  methods. Note that this is not the same as `sessionCreationTime` which
@@ -170,7 +170,7 @@ object PbSS {
    * df.select(hasJoined)
    * }}}
   */ 
-  def hasJoined(): Column = hasJoinedUDF(col("val.sessSummary")).alias("hasJoined")
+  // def hasJoined(): Column = hasJoinedUDF(col("val.sessSummary")).alias("hasJoined")
 
   /** Construct `isEBVS` (Exit Before Video Start) from $ss using the 
    *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
@@ -178,7 +178,7 @@ object PbSS {
    * df.select(isEBVS)
    * }}}
   */ 
-  def isEBVS(): Column = EBVSUDF(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
+  // def isEBVS(): Column = EBVSUDF(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
 
   /** Construct `isVSF` (Video Start Failure) from $ss using the
    *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
@@ -186,7 +186,7 @@ object PbSS {
    * df.select(isVSF)
    * }}}
   */ 
-  def isVSF(): Column = VSFUDF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
+  // def isVSF(): Column = VSFUDF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
 
   /** Extract the `joinState` field as is from $ss
    * @example{{{

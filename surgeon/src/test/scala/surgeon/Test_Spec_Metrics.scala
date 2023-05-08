@@ -4,9 +4,8 @@ import org.apache.spark.sql.{SparkSession, DataFrame, Column}
 import org.apache.spark.sql.functions._
 import conviva.surgeon.PbSS._
 import conviva.surgeon.Sanitize._
-import conviva.surgeon.Heart._
-import conviva.surgeon.PbSSCoreLib._
-import conviva.surgeon.Metrics._
+// import conviva.surgeon.PbSSCoreLib._
+// import conviva.surgeon.Metrics._
 
 class MetricSuite extends munit.FunSuite {
 

@@ -69,7 +69,7 @@ object PbRl {
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = new IdArray2(field = "payload.heartbeat.clientId.element", name = "clientId")
+  def clientId = new IdArray(field = "payload.heartbeat.clientId.element", name = "clientId")
 
   /** Create timeStamp $timestamp.
    *  @example{{{

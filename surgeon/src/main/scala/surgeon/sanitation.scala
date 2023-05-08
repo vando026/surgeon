@@ -100,7 +100,7 @@ object Sanitize {
     def unsigned(): Column = toUnsignedUDF(this).alias(s"${name}Unsigned")
   }
   
-  class IdArray2(field: String, name: String) extends Column(field) {
+  class IdArray(field: String, name: String) extends Column(field) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = arrayToHex(this).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
@@ -110,7 +110,7 @@ object Sanitize {
   }
 
   /** Class for creating sid5 and sid6 fields. */
-  case class SID(name: String, clientId: IdArray2, id: IdCol) {
+  case class SID(name: String, clientId: IdArray, id: IdCol) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
       concat_ws(":", clientId.hex, id.hex).alias(s"${name}Hex")
