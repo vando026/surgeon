@@ -45,7 +45,7 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("clientId should eq unsigned ID str") {
     val expect = "476230728:1293028608:2786326738:3114396084"
-    val t1 = d8905.select(clientId.unsigned).first.getString(0)
+    val t1 = d8905.select(clientId.nosign).first.getString(0)
     assertEquals(t1, expect)
   }
 
@@ -57,7 +57,7 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("sid5 should eq unsigned ID str") {
     val expect = "476230728:1293028608:2786326738:3114396084:89057425"
-    val t1 = d8905.select(sid5.unsigned).first.getString(0)
+    val t1 = d8905.select(sid5.nosign).first.getString(0)
     assertEquals(t1, expect)
   }
 
@@ -67,13 +67,11 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1, expect)
   }
 
-  // test("sid6 should eq signed and asis ID str") {
-  //   val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
-  //   val t1 = d8905.select(sid6.signed).collect()
-  //   val t2 = d8905.select(sid6.asis).collect()
-  //   assertEquals(t1(0)(0).toString, expect)
-  //   assertEquals(t2(0)(0).toString, expect)
-  // }
+  test("sid6 should eq asis ID str") {
+    val expect = "476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087"
+    val t1 = d8905.select(sid6.asis).first.getString(0)
+    assertEquals(t1, expect)
+  }
 
   test("sessionCreationId should eq expected") {
     val expect = "2b6b36b7"
@@ -81,16 +79,16 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1, expect)
   }
 
-  // test("sid6 should eq hex ID str") {
-  //   val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
-  //   val t1 = d8905.select(sid6.hex)
-  //   assertEquals(t1(0)(0).toString, expect)
-  // }
+  test("sid6 should eq hex ID str") {
+    val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
+    val t1 = d8905.select(sid6.hex).first.getString(0)
+    assertEquals(t1, expect)
+  }
 
   test("Select should include all ID field names") {
-    val expect = "customerId:clientId:clientSessionId:sid5:sid5Unsigned:sid5Hex"
+    val expect = "customerId:clientId:clientSessionId:sid5:sid5NoSign:sid5Hex"
     val tnames = d8905
-      .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.unsigned, sid5.hex)
+      .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.nosign, sid5.hex)
         .columns.mkString(":")
     assertEquals(tnames, expect)
   }
@@ -193,5 +191,8 @@ class PbSS_Suite extends munit.FunSuite {
   val t1 = d8905.select(lifeSwitch("playingTimeMs").first)
   assertEquals(t1.first.getInt(0), 1742812)
  }
+
+
+
 
 }

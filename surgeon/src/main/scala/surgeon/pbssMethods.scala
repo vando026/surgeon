@@ -15,7 +15,7 @@ import org.apache.spark.sql.{Column}
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
  * @define timestamp to seconds, milliseconds, timestamp or asis methods
- * @define signed as a signed, unsigned, or hexadecimal string
+ * @define signed as a signed, nosign, or hexadecimal string
  * @define ss `val.sessSummary`
  * @example {{{
  * df.select(customerId.asis, clientId.hex, hasEnded, justJoined)
@@ -26,17 +26,17 @@ object PbSS {
 
   /** Method to extract fields from the `lifeSwitchInfos` container. */
   def lifeSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.lifeSwitchInfos.$name")
+    new ArrayCol(s"val.sessSummary.lifeSwitchInfos.$name", name)
   }
 
   /** Method to extract fields from the `intvSwitchInfos` container. */
   def intvSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.intvSwitchInfos.$name")
+    new ArrayCol(s"val.sessSummary.intvSwitchInfos.$name", name)
   }
 
   /** Method to extract fields from the `joinSwitchInfos` container. */
   def joinSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.joinSwitchInfos.$name")
+    new ArrayCol(s"val.sessSummary.joinSwitchInfos.$name", name)
   }
 
   /** Method for extracting fields from `val.invariant`. */
@@ -78,20 +78,20 @@ object PbSS {
    * df.select(
    *  clientId.asis,
    *  clientId.signed, 
-   *  clientId.unsigned, 
+   *  clientId.nosign, 
    *  clientId.hex)
    * }}}  
   */ 
   def clientId = new IdArray("key.sessId.clientId.element", name = "clientId")
 
-  /** Create sessionCreationTime as an object with hex, signed, and unsigned
+  /** Create sessionCreationTime as an object with hex, signed, and nosign
    *  methods. Note that this is not the same as `sessionCreationTime` which
    *  has ms, sec, and timestamp methods. 
    *  @example{{{
    *  df.select(
    *    sessionCreationId.asis,
    *    sessionCreationId.hex,
-   *    sessionCreationId.unsigned
+   *    sessionCreationId.nosign
    *  )
    *  }}}
    */
@@ -100,8 +100,8 @@ object PbSS {
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
    * df.select(
-   *  sid5.signed, 
-   *  sid5.unsigned, 
+   *  sid5.asis, 
+   *  sid5.nosign, 
    *  sid5.hex)
    * }}}  
   */ 
@@ -111,20 +111,20 @@ object PbSS {
    *  `sessionCreationTime` $signed. 
    * @example{{{
    * df.select(
-   *  sid6.signed, 
-   *  sid6.unsigned, 
+   *  sid6.asis, 
+   *  sid6.nosign, 
    *  sid6.hex)
    * }}}  
   */ 
-  // def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
+  def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
   /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
    *  $signed. 
    *  @example{{{
    *  df.select(
+   *    sid5Ad.asis, 
    *    sid5Ad.hex, 
-   *    sid5Ad.signed, 
-   *    sid5Ad.unsigned
+   *    sid5Ad.nosign
    *  )
    *  }}}
    */
@@ -165,29 +165,6 @@ object PbSS {
   */ 
   def justJoined(): Column = col("val.sessSummary.justJoined")
 
-  /** Construct `hasJoined` from $ss using the `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
-   * @example{{{
-   * df.select(hasJoined)
-   * }}}
-  */ 
-  // def hasJoined(): Column = hasJoinedUDF(col("val.sessSummary")).alias("hasJoined")
-
-  /** Construct `isEBVS` (Exit Before Video Start) from $ss using the 
-   *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
-   * @example{{{
-   * df.select(isEBVS)
-   * }}}
-  */ 
-  // def isEBVS(): Column = EBVSUDF(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
-
-  /** Construct `isVSF` (Video Start Failure) from $ss using the
-   *  `PbSS-Core-Utils` UDF from Conviva3D UDF-Lib on Databricks. 
-   * @example{{{
-   * df.select(isVSF)
-   * }}}
-  */ 
-  // def isVSF(): Column = VSFUDF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
-
   /** Extract the `joinState` field as is from $ss
    * @example{{{
    * df.select(joinState)
@@ -208,9 +185,6 @@ object PbSS {
   }
   */
 
-  /** Extract the `joinTime` field as is. */
-  def joinTimeMs(): Column = col("val.sessSummary.joinTimeMs")
-
   /** Extract `lifePlayingTime` field as is from $ss. 
    * @example{{{
    * df.select(
@@ -230,15 +204,14 @@ object PbSS {
   */
   def lifeBufferingTimeMs(): Column = col("val.sessSummary.lifeBufferingTimeMs")
 
-  /** Create a field that flags if `joinTimeMs` is greater than zero,
-   *  otherwise gets values less than or equal zero. 
-   *  @example{{{
-   *  df.select(isJoinTime)
-   *  }}}
-   */
-  def isJoinTime(): Column = {
-    when(joinTimeMs > 0, 1).otherwise(joinTimeMs).alias("isJoinTime")
-  }
+  /** Extract `lifeNetworkBufferingTimeMs` field as is from $ss. 
+   * @example{{{
+   * df.select(
+   *   lifeNetworkBufferingTimeMs
+   * )
+   * }}}
+  */
+  def lifeNetworkBufferingTimeMs(): Column = col("val.sessSummary.lifeNetworkBufferingTimeMs")
 
   /** Create a field that flags if `lifePlayingTimeMs` is greater than zero,
    *  otherwise gets values less than or equal zero. 
@@ -251,6 +224,16 @@ object PbSS {
       .alias("isLifePlayingTime")
   }
 
+  /** Create a field that flags if `joinTimeMs` is greater than zero,
+   *  otherwise gets values less than or equal zero. 
+   *  @example{{{
+   *  df.select(isJoinTime)
+   *  }}}
+   */
+  def isJoinTime(): Column = {
+    when(joinTimeMs > 0, 1).otherwise(joinTimeMs).alias("isJoinTime")
+  }
+
   /** Create a field that flags if the session joined. 
    *  @example{{{
    *  df.select(isLifePlayingTime)
@@ -259,6 +242,9 @@ object PbSS {
   def isJoined(): Column = {
     when(joinTimeMs === -1, 0).otherwise(1).alias("isJoined")
   }
+
+  /** Extract the `joinTime` field as is. */
+  def joinTimeMs(): Column = col("val.sessSummary.joinTimeMs")
 
   /** Create a field that indicates if there was any play over lifetime of the
    *  session. 
@@ -330,13 +316,12 @@ object PbSS {
    * @example{{{
    * df.select(
    *   c3_csid.asis,
-   *   c3_csid.signed, 
    *   c3_csid.hex, 
-   *   c3_csid.unsigned
+   *   c3_csid.nosign
    * )
    * }}}
    */ 
-  def c3_csid = new IdCol("val.invariant.summarizedTags.c3.csid", name = "c3_csid")
+  def c3_csid = new IdCol("val.invariant.summarizedTags.c3.csid", "c3_csid")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")

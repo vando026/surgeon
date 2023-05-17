@@ -3,6 +3,7 @@
 </p>
 
 <h1 align="center"> conviva-surgeon</h1>
+
 A scala library with tools to operate on data generated from Conviva
 Heartbeats. The library is aimed at data scientists or engineers who run their scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but often tedious tasks of data conversion between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned/hexadecimal session Ids; cleaning or recoding fields; among others.
 
@@ -60,7 +61,7 @@ Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 ```scala 
 val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), names = List("CBSCom"))
 ```
-See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/1-Paths-to-datasets) for more details about functionality.
+See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
 
 Surgeon makes selecting fields easier. No more
 `col("val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs")`. Some fields are
@@ -69,23 +70,24 @@ example, since `lifeFirstRecvTime` is of `TimeMsCol` type, you can do
 
 ```scala 
 hourly_df.select(
-  lifeFirstRecvTime.stamp, // as a timestamp 
-  lifeFirstRecvTime.ms, // milliseconds since unix epoch
+  lifeFirstRecvTime // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.sec, // seconds since unix epoch
-  lifeFirstRecvTime.asis // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime.stamp, // as a timestamp 
 )
 ```
 
-Similarly, we could get the `clientId:clientSessionId` (sid5) as signed or unsigned
-integers or as hexadecimal.
+Similarly, we could get the `clientId:clientSessionId` (sid5) in signed (asis), unsigned (nosign)
+or  hexadecimal format.
 
 ```scala 
 hourly_df.select(
   sid5.hex, 
-  sid5.signed, 
-  sid5.unsigned, 
+  sid5.asis, 
+  sid5.nosign, 
 )
 ```
+
+See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-Selecting-fields-with-methods) for more details about this functionality.
 
 More documentation forthcoming. 
 

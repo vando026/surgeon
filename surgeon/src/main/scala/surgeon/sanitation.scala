@@ -43,7 +43,7 @@ object Sanitize {
   /** A class for extracting time-based columns in microseconds.
    * @param name The name for the field. 
   */
-  class TimeUsCol(field: String, name: String) extends Column(name) {
+  class TimeUsCol(field: String, name: String) extends Column(field) {
       /** Method to return field in milliseconds. */
       def ms() = convert_(this, 1.0/1000, s"${name}Ms")
       /** Method to return field in seconds. */
@@ -97,35 +97,36 @@ object Sanitize {
     /** Method to convert to hexadecimal format */
     def hex(): Column = toHexStringUDF(this).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def unsigned(): Column = toUnsignedUDF(this).alias(s"${name}Unsigned")
+    def nosign(): Column = toUnsignedUDF(this).alias(s"${name}NoSign")
   }
   
   class IdArray(field: String, name: String) extends Column(field) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = arrayToHex(this).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def unsigned(): Column = arrayToUnsigned(this).alias(s"${name}Unsigned")
+    def nosign(): Column = arrayToUnsigned(this).alias(s"${name}NoSign")
     /** Method concatenates fields unconverted. */
     def asis(): Column = concat_ws(":", this).alias(s"${name}")
   }
 
   /** Class for creating sid5 and sid6 fields. */
-  case class SID(name: String, clientId: IdArray, id: IdCol) {
+  case class SID(name: String, clientId: IdArray, id: IdCol*) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
-      concat_ws(":", clientId.hex, id.hex).alias(s"${name}Hex")
+      val cols = clientId.hex +: id.map(_.hex)
+      concat_ws(":", cols: _*).alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
-    def unsigned(): Column = {
-      concat_ws(":", clientId.unsigned, id.unsigned).alias(s"${name}Unsigned")
+    def nosign(): Column = {
+      val cols = clientId.nosign +: id.map(_.nosign)
+      concat_ws(":", cols: _*).alias(s"${name}NoSign")
     }
     /** Method to concatenate fields asis. */
-    def asis(): Column =  concat_ws(":", clientId, id).alias(s"${name}")
+    def asis(): Column =  concat_ws(":", clientId +: id:_*).alias(s"${name}")
   }
 
   /** Class with methods to operate on arrays. */
-  class ArrayCol(name: String) extends Column(name) {
-    val nm = name.split("\\.").last
+  class ArrayCol(field: String, name: String) extends Column(field) {
     /** Sum all the elements in the array. This methods first removes all Null
       *  values then does a sum reduce. */
     def sumInt(): Column = {
@@ -136,34 +137,34 @@ object Sanitize {
     /** Remove nulls, keep the same name. */
     def notNull(): Column = {
       filter(this, x => x.isNotNull)
-        .alias(s"${nm}")
+        .alias(s"${name}")
     }
     /** Are all elements in the array null. */   
     def allNull(): Column = {
       when(size(filter(this, x => x.isNotNull)) === 0, true)
-       .otherwise(false).alias(s"${nm}AllNull")
+       .otherwise(false).alias(s"${name}AllNull")
     }
     /** Return only distinct elements in array. Removes nulls. */
     def distinct(): Column = {
       array_distinct(filter(this, x => x.isNotNull))
-        .alias(s"${nm}Distinct")
+        .alias(s"${name}Distinct")
     }
     /** Return first non null element in array. */
     def first(): Column = {
-        filter(this, x => x.isNotNull)(0).alias(s"${nm}First")
+        filter(this, x => x.isNotNull)(0).alias(s"${name}First")
     }
     /** Return last element in array, with null elements removed. */
     def last(): Column = {
       this.apply(size(filter(this, x => x.isNotNull))
-        .minus(1)).alias(s"${nm}Last")
+        .minus(1)).alias(s"${name}Last")
     }
     /** Return minimum value in array. */
-    def min(): Column = array_min(this).alias(s"${nm}Min")
+    def min(): Column = array_min(this).alias(s"${name}Min")
     /** Return maximum value in array. */
-    def max(): Column = array_max(this).alias(s"${nm}Max")
+    def max(): Column = array_max(this).alias(s"${name}Max")
     /** Return true if the array contains a value. */
     def contains(value: String): Column = {
-      array_contains(this, value).alias(s"${nm}Match")
+      array_contains(this, value).alias(s"${name}Match")
     }
   }
 

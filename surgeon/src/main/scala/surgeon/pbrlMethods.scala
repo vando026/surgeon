@@ -27,14 +27,21 @@ object PbRl {
   //   event.getItem(name),
   // }
 
-  /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
+  /** Method for extracting fields from `payload.heartbeat.pbSdmEvents`. Fields
+   *  with periods are replaced with underscores by default.*/
+  def pbSdm(field: String): Column = {
+    col("payload.heartbeat.pbSdmEvents").getItem(field)
+      .alias(field.replaceAll("\\.", "_"))
+  }
+
+  /** Method for extracting fields from `payload.heartbeat.c3Tag`. Fields
    *  with periods are replaced with underscores by default.*/
   def c3Tag(field: String): Column = {
     col("payload.heartbeat.c3Tags").getItem(field)
       .alias(field.replaceAll("\\.", "_"))
   }
 
-  /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
+  /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields
    *  with periods are replaced with underscores by default.*/
   def clientTag(field: String): Column = {
     col("payload.heartbeat.clientTags").getItem(field)
@@ -43,7 +50,13 @@ object PbRl {
 
   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
   def cwsPlayer(name: String): ArrayCol = {
-      new ArrayCol(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${name}")
+      new ArrayCol(s"payload.heartbeat.pbSdmEvents.cwsPlayerMeasurementEvent.${name}", name)
+  }
+
+
+  /** Method to extract fields from the `cwsStateChangeEvent` container.*/
+  def cwsStateChangeNew(name: String): ArrayCol = {
+      new ArrayCol(s"payload.heartbeat.pbSdmEvents.cwsStateChangeEvent.newCwsState.${name}", name)
   }
 
   /** Extract the `customerId` column as is.
@@ -64,12 +77,11 @@ object PbRl {
    * @example{{{
    * df.select(
    *  clientId.asis,
-   *  clientId.signed, 
-   *  clientId.unsigned, 
+   *  clientId.nosign, 
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = new IdArray(field = "payload.heartbeat.clientId.element", name = "clientId")
+  def clientId = new IdArray("payload.heartbeat.clientId.element", "clientId")
 
   /** Create timeStamp $timestamp.
    *  @example{{{
@@ -80,25 +92,24 @@ object PbRl {
    *  )
    *  }}}
    */
-  def timeStamp = new TimeUsCol("header.timeStampUs", "timeStamp")
+  def timeStamp() = new TimeUsCol("header.timeStampUs", "timeStamp")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
    * df.select(
-   *  sid5.signed, 
-   *  sid5.unsigned, 
+   *  sid5.nosign, 
    *  sid5.hex)
    * }}}  
   */ 
-  // def sid5 = SID(name = "sid5", clientId, sessionId)
+  def sid5 = SID(name = "sid5", clientId, sessionId)
 
   /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
    *  $signed. 
    *  @example{{{
    *  df.select(
+   *    sid5Ad.asis, 
    *    sid5Ad.hex, 
-   *    sid5Ad.signed, 
-   *    sid5Ad.unsigned
+   *    sid5Ad.nosign
    *  )
    *  }}}
    */
@@ -108,9 +119,8 @@ object PbRl {
    * @example{{{
    * df.select(
    *   c3_csid.asis,
-   *   c3_csid.signed, 
    *   c3_csid.hex, 
-   *   c3_csid.unsigned
+   *   c3_csid.nosign
    * )
    * }}}
    */ 
@@ -135,6 +145,19 @@ object PbRl {
   }
 
   /** Extract the session time. */
-  def sessionTimeMs() = new ArrayCol("payload.heartbeat.pbSdmEvents.sessionTimeMs")
+  def sessionTimeMs() = new ArrayCol("payload.heartbeat.pbSdmEvents.sessionTimeMs", "sessionTimeMs")
+
+  /**
+    * Creates the sessionCreationTime object with $timestamp.
+    * @example {{{
+    * df.select(
+    *   sessionCreationTime,
+    *   sessionCreationTime.sec,
+    *   sessionCreationTime.stamp)
+    * }}}
+    */
+  def sessionCreationTime = 
+    new TimeMsCol("payload.heartbeat.sessionCreationTimeMs", "sessionCreationTime")
+
 
 }

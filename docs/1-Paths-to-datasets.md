@@ -1,8 +1,8 @@
-# Setting datasets paths
+# Setting paths to Databricks datasets
 
-Surgeon provides case classes for constructing Databricks paths to the rawlog
-and session summary datasets. For now, these classes are limited to paths on the
-`/mnt` directory on Databricks.
+Surgeon provides classes for constructing Databricks paths to the rawlog and
+session summary datasets (in parquet format). For now, these classes are
+limited to paths on the `/mnt`  Databricks directory.
 
 ```scala mdoc
 import org.apache.spark.sql.{SparkSession}
@@ -18,13 +18,11 @@ First import the `Paths` object that contains the classes:
 import conviva.surgeon.Paths._
 ```
 
-### Classes
-
-The idea is the each customer has hourly, daily, or monthly data. The prupose
+On Databricks, a customer will have hourly, daily, or monthly data. The prupose
 of the `Path` class is to contruct paths to these datasets. 
 
 There are currently three classes each with a `path` method that prints out the
-path as a string. These are: `Monthly`, `Daily`, and `Hourly`.
+path as a string. These classes are: `Monthly`, `Daily`, and `Hourly`.
 
 To construct the path to the parquet monthly session summary data, using
 February 2023 as an example, use the `Monthly` class: 
@@ -92,45 +90,59 @@ PathDB.daily
 PathDB.monthly
 PathDB.rawlog()
 ```
+The `hourly` and `rawlog` root paths default to `st=1`, so you can set the `st`
+flag using the relevant interger, provided it exists:
+
+
+```scala mdoc 
+val ss = Hourly(year = 2023, month = 2, day = 14, hours = List(2), root = PathDB.hourly(st=2))
+ss.toString
+```
 
 ### Customer methods
 
-Surgeon provides methods for selecting customer Ids or customer names through
+Surgeon provides methods for selecting customer ids or customer names through
 the `Cust` class. These methods work as follows (using the `Daily`
 class for demonstration).
 
 To construct the path for all customers.
 
 ```scala mdoc 
-Cust(Daily(12, 28))
+val c1 = Cust(Daily(12, 28))
+c1.toString
 ```
 To construct the path for one customer using the Id. 
 
 ```scala mdoc
-Cust(Daily(12, 28), ids = List(1960184999))
+val c2 = Cust(Daily(12, 28), ids = List(1960184999))
+c2.toString
 ```
 
 Using several customer Ids.
 
 ```scala mdoc
-Cust(Daily(12, 28), ids = List(1960184999, 1960180360))
+val c3 = Cust(Daily(12, 28), ids = List(1960184999, 1960180360))
+c3.toString
 ``` 
 Take the first n customer Ids
 
 ```scala 
-Cust(Daily(12, 28), take  = 3)
+val c4 = Cust(Daily(12, 28), take  = 3)
+c4.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={1960180360,1960180361,1960180388}"
 ```
 
 To select by customer name.
 
 ```scala 
-Cust(Daily(12, 28), names = List("Yahoo"))
+val c5 = Cust(Daily(12, 28), names = List("Yahoo"))
+c5.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772}"
 
 ``` 
 To select by customer names.
 ```scala 
-Cust(Daily(12, 28), names = List("Yahoo", "MLB"))
+val c6 = Cust(Daily(12, 28), names = List("Yahoo", "MLB"))
+c6.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772,1960180361}"
 ``` 
