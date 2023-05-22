@@ -19,7 +19,7 @@ class PathSuite extends munit.FunSuite {
   val pbssTestPath = "./src/test/data" 
 
   test("Customer data is expected") {
-    val custData = geoUtilCustomer(geopath = geopath)
+    val custData = customerNames(path = geopath)
     val t1 = custData
       .select(col("customerId"))
       .where(col("customerName") === "MSNBC")
@@ -28,7 +28,7 @@ class PathSuite extends munit.FunSuite {
   }
 
   test("customerNamToId is expected") {
-    val custData = geoUtilCustomer(geopath = geopath)
+    val custData = customerNames(path = geopath)
     val t1 = customerNameToId(List("MSNBC"), custData)(0).toInt
     val t2 = customerNameToId(List("MSNBC", "TV2"), custData)
       .map(_.toInt)
@@ -54,19 +54,28 @@ class PathSuite extends munit.FunSuite {
   test("Daily is expected") {
     val expect1 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
     val expect2 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={207488736}"
+    val expect3 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_{22,23}_08_00_to_2023_02_{23,24}_08_00"
+    val expect4 = s"${PathDB.daily}/y=2023/m=12/dt=d2023_12_31_08_00_to_2024_01_01_08_00"
     val t1 = Daily(2, 22, 2023).toString
     val t2 = Cust(Daily(2, 22, 2023), names = List("MSNBC"), geopath)
+    val t3 = Daily(2, List(22,23), 2023).toString
+    val t4 = Daily(12, 31, 2023).toString
     assertEquals(t1, expect1)
     assertEquals(t2, expect2)
+    assertEquals(t3, expect3)
+    assertEquals(t4, expect4)
   }
 
   test("Hourly is expected") {
     val expect1 = s"${PathDB.hourly()}/y=2023/m=02/d=04/dt=2023_02_04_23"
     val expect3 = s"${PathDB.hourly()}/y=2023/m=02/d=22/dt=2023_02_22_{23,24,25}"
+    val expect4 = s"${PathDB.hourly()}/y=2023/m=02/d={22,23}/dt=2023_02_{22,23}_{23,24,25}"
     val t1 = Hourly(2, 4, List(23), 2023).toString
     val t3 = Hourly(2, 22, List(23, 24, 25), 2023).toString
+    val t4 = Hourly(2, List(22, 23), List(23, 24, 25), 2023).toString
     assertEquals(t1, expect1)
     assertEquals(t3, expect3)
+    assertEquals(t4, expect4)
   }
   
   test("Hourly with customer is expected") {

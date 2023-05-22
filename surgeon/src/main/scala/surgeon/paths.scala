@@ -46,10 +46,20 @@ object Paths {
   }
 
   def fmt(s: Int) = f"${s}%02d"
-  def toString_(x: List[Int]) = {
+  def paste(x: List[Int]) = {
     val out = x.map(fmt(_)).mkString(",")
     if (x.length == 1) out else s"{$out}"
   }
+  // Set Int to List[Int] for generic methods
+  def mkIntList[A](i: A): List[Int] = {
+    val out =  i match {
+      case (i: Int) => List(i)
+      case (i: List[Int]) => i
+      case _ => throw new Exception("Must be either Int or List[Int]")
+    }
+    out
+  }
+
 
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
@@ -65,6 +75,7 @@ object Paths {
    *  Monthly(2023, 1).toString 
    *  }}}
    */ 
+
   case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
       extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
@@ -89,12 +100,28 @@ object Paths {
    *  List.range(1, 4).map(d => Daily(2023, month = 2, day = d).toString)
    *  }}}
    */ 
-  case class Daily(month: Int, day: Int, year: Int = 2023, root: String = PathDB.daily)
+  case class Daily[A](month: Int, days: A, year: Int = 2023, root: String = PathDB.daily)
       extends DataPath {
-    val (nyear, nmonth, nday) = if (month == 12 & day == 31) 
-      (year + 1, 1, 1) else (year, month, day + 1)
+    val days_ = mkIntList(days).sorted
+    val ndays_ = days_.map(_ + 1)
+    val (nyear, nmonth, ndays) = if (month == 12 & days_.last == 31) 
+      (year + 1, 1, ndays_.dropRight(1) :+ 1) else (year, month, ndays_.dropRight(1) :+ days_.last + 1)
+    if (month == 12 && days_.length > 1)
+      throw new Exception("Error if month = 12 and List[Int] contains day 31. Use (month=12, day=31) instead.")
     override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", 
-      f"dt=d${year}_${fmt(month)}_${fmt(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${fmt(nday)}_08_00")
+      f"dt=d${year}_${fmt(month)}_${paste(days_)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(ndays)}_08_00")
+        .mkString("/")
+  }
+
+  /** Trait for defining Hourly Paths to data. */ 
+  trait HourlyPath[A] {
+    val year: Int 
+    val month: Int
+    val days: A
+    val hours: A
+    val xroot: String
+    override def toString = List(xroot, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(mkIntList(days))}",
+      f"dt=${year}_${fmt(month)}_${paste(mkIntList(days))}_${paste(mkIntList(hours))}")
         .mkString("/")
   }
 
@@ -111,13 +138,17 @@ object Paths {
    *  @return 
    *  @example {{{
    *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).toString
+   *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
    *  }}}
    */ 
-  case class Hourly(month: Int, day: Int, hours: List[Int], year: Int = 2023, root: String = PathDB.hourly()) 
-      extends DataPath {
-    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${fmt(day)}",
-      f"dt=${year}_${fmt(month)}_${fmt(day)}_${toString_(hours)}")
-        .mkString("/")
+  case class Hourly[A](month: Int, days: A, hours: A, year: Int = 2023, root: String = PathDB.hourly()) 
+      extends DataPath with HourlyPath[A] {
+    override val xroot = root
+  }
+
+  case class HourlyRawLog[A](month: Int, days: A, hours: A, year: Int = 2023)
+      extends DataPath with HourlyPath[A] {
+    override val xroot: String = PathDB.rawlog()
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
@@ -137,10 +168,15 @@ object Paths {
      *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
      *  }}}
     */
-    def apply(obj: DataPath, names: List[String], geopath: String = PathDB.geoUtil): String = {
-      val cnames = customerNameToId(names, geoUtilCustomer(geopath = geopath))
+    def apply(obj: DataPath, names: List[String], path: String = PathDB.geoUtil): String = {
+      val cnames = customerNameToId(names, customerNames(path))
       stitch(obj, cnames.mkString(","))
     }
+
+    // def apply(obj: DataPath, name: String, path: String = PathDB.geoUtil): String = {
+    //   val cnames = customerNameToId(List(name), customerNames(path))
+    //   stitch(obj, cnames.mkString(","))
+    // }
 
     /** Method to get paths to data by customer IDs.
      *  @param obj A DataPath object. 
@@ -152,6 +188,10 @@ object Paths {
     def apply(obj: DataPath, ids: List[Int]) = {
       stitch(obj, ids.mkString(","))
     }
+
+    // def apply(obj: DataPath, id: Int) = {
+    //   stitch(obj, id.toString)
+    // }
 
     /** Method to get paths to data for the first n customer IDs.
      *  @param obj A DataPath object. 
@@ -174,5 +214,22 @@ object Paths {
   }
 }
 
-//
+/*
 // import com.databricks.dbutils_v1.DbfsUtils
+//
+//
+
+def paste[A](x: A): String = {
+    val out = x match {
+      case (x: List[Int]) =>   x.mkString(",")
+      case (x:  Int ) => x.toString
+      case (x: String) => x
+      case (x: String) => x.mkString(",")
+    }
+    out
+}
+
+println(listOfDuplicates[Int](3))  // List(3, 3, 3, 3)
+println(listOfDuplicates(List(2, 3)))  // List(La, La, La, La, La, La, La, La)
+println(listOfDuplicates(List("2", "5")))  // List(La, La, La, La, La, La, La, La)
+*/

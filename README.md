@@ -43,15 +43,24 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
-val path = Cust(PbSSHourly(2022, 12, 24, List.range(16, 20)), ids = List(1960184999))
+val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = List(1960184999))
 val hourly_df = spark.read.parquet(path)
   .select(
-    customerId, sessionId, sid5.hex, 
-    intvStartTime.stamp, lifeFirstRecvTime.stamp, 
-    viewerId, c3VideoIsAd, lifeFirstRecvTime.ms, 
-    hasEnded, hasJoined, justJoined, 
-    playingTime.ms, lifeFirstRecvTime.ms, 
-    endedStatus, shouldProcess, 
+    customerId, 
+    sessionId, 
+    sid5.hex, 
+    intvStartTime.stamp,
+    lifeFirstRecvTime.stamp, 
+    viewerId, 
+    c3VideoIsAd, 
+    lifeFirstRecvTime.ms, 
+    hasEnded, 
+    hasJoined, 
+    justJoined, 
+    playingTime.ms, 
+    lifeFirstRecvTime.ms, 
+    endedStatus, 
+    shouldProcess, 
     intvStartTime.sec
 )
 ```

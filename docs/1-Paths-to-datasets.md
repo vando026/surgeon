@@ -109,26 +109,22 @@ To construct the path for all customers.
 
 ```scala mdoc 
 val c1 = Cust(Daily(12, 28))
-c1.toString
 ```
 To construct the path for one customer using the Id. 
 
 ```scala mdoc
 val c2 = Cust(Daily(12, 28), ids = List(1960184999))
-c2.toString
 ```
 
 Using several customer Ids.
 
 ```scala mdoc
 val c3 = Cust(Daily(12, 28), ids = List(1960184999, 1960180360))
-c3.toString
 ``` 
 Take the first n customer Ids
 
 ```scala 
 val c4 = Cust(Daily(12, 28), take  = 3)
-c4.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={1960180360,1960180361,1960180388}"
 ```
 
@@ -136,13 +132,11 @@ To select by customer name.
 
 ```scala 
 val c5 = Cust(Daily(12, 28), names = List("Yahoo"))
-c5.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772}"
 
 ``` 
 To select by customer names.
 ```scala 
 val c6 = Cust(Daily(12, 28), names = List("Yahoo", "MLB"))
-c6.toString
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772,1960180361}"
 ``` 

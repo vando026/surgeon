@@ -34,6 +34,10 @@ object PbRl {
       .alias(field.replaceAll("\\.", "_"))
   }
 
+  // def genericEvents(name: String): ArrayCol = {
+  //   new ArrayCol("payload.heartbeat.pbSdmEvents.genericEvent", name)
+  // }
+
   /** Method for extracting fields from `payload.heartbeat.c3Tag`. Fields
    *  with periods are replaced with underscores by default.*/
   def c3Tag(field: String): Column = {

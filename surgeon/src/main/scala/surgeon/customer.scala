@@ -9,52 +9,53 @@ import org.apache.hadoop.fs._
 object Customer {
 
   /** Read customer data from GeoUtils. */
-  def geoUtilCustomer(
-      prefix: Boolean = false,
-      geopath: String = PathDB.geoUtil
+  def customerNames(
+      path: String = PathDB.geoUtil
     ): DataFrame = {
     val out = SparkSession.builder.getOrCreate
         .read
         .option("delimiter", "|")
         .option("inferSchema", "true")
-        .csv(geopath)
+        .csv(path)
         .toDF("customerId", "customerName")
-    if (prefix == false) { 
-      out.withColumn("customerName",
+        .withColumn("customerName",
             regexp_replace(col("customerName"), "c3.", ""))
-    } else {
-      out
-    }
+     out
   }
 
   /** Get the ID of the customer name. 
    *  @param ids The ids of the customer.
-   *  @param cdat A dataset derived from `geoUtilCustomer`.
+   *  @param cdat A dataset derived from `customerNames`.
    *  @example{{{
-   *  customerIdToName(List("c3.MLB")) // or
-   *  customerIdToName(List("MLB"))
+   *  customerIdToName(List(196900922, 196300090)) 
+   *  customerIdToName(196300090)
    *  }}}
    */
-  def customerIdToName(ids: List[Int], 
-      cdat: DataFrame = geoUtilCustomer(false)): Array[String] = {
-    cdat.where(col("customerId").isin(ids: _*))
+  def customerIdToName[A](ids: A,
+      cdat: DataFrame = customerNames()): Array[String] = {
+    cdat.where(col("customerId").isin(mkIntList(ids): _*))
       .select(col("customerName"))
       .collect().map(_.getString(0))
   }
   
   /** Get the ID of the customer name. 
    *  @param names The names of the customer.
-   *  @param cdat A dataset derived from `geoUtilCustomer`.
+   *  @param cdat A dataset derived from `customerNames`.
    *  @example{{{
-   *  customerNameToId(List("c3.MLB")) // or
-   *  customerNameToId(List("MLB"))
+   *  customerNameToId(List("MLB", "CBNS"))
+   *  customerNameToId(List("c3.MLB", "c3.CBNS"))
+   *  customerNameToId("MLB")
    *  }}}
    */
-  def customerNameToId(names: List[String], 
-      cdat: DataFrame = geoUtilCustomer(false)): Array[String] = {
-    val snames = names.map(_.replace("c3.", ""))
-    cdat
-      .select(col("customerId"))
+  def customerNameToId[A](names: A, 
+      cdat: DataFrame = customerNames()): Array[String] = {
+    val nms = names match {
+      case (names: String) => List(names)
+      case (names: List[String]) => names
+      case _ => throw new Exception("Must be either String or List[String]")
+    }
+    val snames = nms.map(_.replace("c3.", ""))
+    cdat.select(col("customerId"))
       .where(col("customerName").isin(snames:_*))
       .collect().map(_(0).toString)
   }
