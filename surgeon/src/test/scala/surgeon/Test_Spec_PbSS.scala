@@ -15,6 +15,7 @@ class PbSS_Suite extends munit.FunSuite {
   val pbssTestPath = "./src/test/data" 
   val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
   val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
+    .withColumn("clientAdId", lit(200500))
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -93,13 +94,6 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(tnames, expect)
   }
 
-  // test("ad session id should eq chosen session") {
-  //   val expect = "89057425"
-  //   val t1 = d8905.select(sessionId)
-  //     .collect()(0)(0).toString
-  //   assertEquals(t1, expect)
-  // }
-
   test("intvStartTimeSec should compute ms/sec") {
     val t1 = d8905.select(intvStartTime).first.getInt(0)
     val t2 = d8905.select(intvStartTime.ms).first.getLong(0)
@@ -159,13 +153,13 @@ class PbSS_Suite extends munit.FunSuite {
   // }
 
   test("sumTag video.isLive should eq expected") {
-    val t1 = d8905.select(sumTag("c3.video.isLive"))
+    val t1 = d8905.select(sumTags("c3.video.isLive"))
       .collect().map(_.getString(0))
     assertEquals(t1(0), "F")
   }
 
  test("sumTag c3.video.isAd should be expected") {
-   val t1 = d8905.select(sumTag("c3.video.isAd")) 
+   val t1 = d8905.select(sumTags("c3.video.isAd")) 
     .collect.map(_.getString(0))
    assertEquals(t1(0), "F")
  }
@@ -175,7 +169,6 @@ class PbSS_Suite extends munit.FunSuite {
     .collect.map(_.getInt(0))
    assertEquals(t1(0), 0)
  }
-
 
  test("lifeSwitchInfo.sessionTimeMsSum should eq expected ") {
   val t1 = d8905.select(lifeSwitch("sessionTimeMs").sumInt)

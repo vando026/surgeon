@@ -43,32 +43,32 @@ object Sanitize {
   /** A class for extracting time-based columns in microseconds.
    * @param name The name for the field. 
   */
-  class TimeUsCol(field: String, name: String) extends Column(field) {
+  class TimeUsCol(col: Column, name: String) extends Column(col.expr) {
       /** Method to return field in milliseconds. */
-      def ms() = convert_(this, 1.0/1000, s"${name}Ms")
+      def ms() = convert_(col, 1.0/1000, s"${name}Ms")
       /** Method to return field in seconds. */
-      def sec() = convert_(this, 1.0/(1000 * 1000), s"${name}Sec")
+      def sec() = convert_(col, 1.0/(1000 * 1000), s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(this, 1.0/(1000 * 1000), s"${name}Stamp")
+      def stamp() = stamp_(col, 1.0/(1000 * 1000), s"${name}Stamp")
     }
   
   /** A class for extracting time-based columns in milliseconds.
    * @param name The name of the field.
   */
-  class TimeMsCol(field: String, name: String) extends Column(field) {
+  class TimeMsCol(col: Column, name: String) extends Column(col.expr) {
       /** Method to return field in seconds. */
-      def sec() = convert_(this, 1.0/1000, s"${name}Sec")
+      def sec() = convert_(col, 1.0/1000, s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(this, 1.0/1000, s"${name}Stamp")
+      def stamp() = stamp_(col, 1.0/1000, s"${name}Stamp")
     }
 
 
   /** A class for extracting time-based columns in seconds.
    * @param name The name of the field.
   */
-  class TimeSecCol(field: String, name: String) extends Column(field) {
-      def ms() = convert_(this, 1000.0, s"${name}Ms")
-      def stamp() = stamp_(this, 1.0, s"${name}Stamp")
+  class TimeSecCol(col: Column, name: String) extends Column(col.expr) {
+      def ms() = convert_(col, 1000.0, s"${name}Ms")
+      def stamp() = stamp_(col, 1.0, s"${name}Stamp")
     }
 
   /** Convert value from signed to unsigned. */
@@ -93,20 +93,20 @@ object Sanitize {
    * @param field The input field
    * @param name The new name for input field
    */
-  class IdCol(field: String, name: String) extends Column(field) {
+  class IdCol(col: Column, name: String) extends Column(col.expr) {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = toHexStringUDF(this).alias(s"${name}Hex")
+    def hex(): Column = toHexStringUDF(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def nosign(): Column = toUnsignedUDF(this).alias(s"${name}NoSign")
+    def nosign(): Column = toUnsignedUDF(col).alias(s"${name}NoSign")
   }
   
-  class IdArray(field: String, name: String) extends Column(field) {
+  class IdArray(col: Column, name: String) extends Column(col.expr) {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = arrayToHex(this).alias(s"${name}Hex")
+    def hex(): Column = arrayToHex(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def nosign(): Column = arrayToUnsigned(this).alias(s"${name}NoSign")
+    def nosign(): Column = arrayToUnsigned(col).alias(s"${name}NoSign")
     /** Method concatenates fields unconverted. */
-    def asis(): Column = concat_ws(":", this).alias(s"${name}")
+    def asis(): Column = concat_ws(":", col).alias(s"${name}")
   }
 
   /** Class for creating sid5 and sid6 fields. */
@@ -126,45 +126,46 @@ object Sanitize {
   }
 
   /** Class with methods to operate on arrays. */
-  class ArrayCol(field: String, name: String) extends Column(field) {
+  class ArrayCol(col: Column, name: String) extends Column(col.expr) {
     /** Sum all the elements in the array. This methods first removes all Null
       *  values then does a sum reduce. */
     def sumInt(): Column = {
-      aggregate(filter(this, x => x.isNotNull),
+      aggregate(filter(col, x => x.isNotNull),
         lit(0), (x, y) => x.cast("int")  + y.cast("int"))
         .alias(s"${name}Sum")
     }
     /** Remove nulls, keep the same name. */
     def notNull(): Column = {
-      filter(this, x => x.isNotNull)
+      filter(col, x => x.isNotNull)
         .alias(s"${name}")
     }
     /** Are all elements in the array null. */   
     def allNull(): Column = {
-      when(size(filter(this, x => x.isNotNull)) === 0, true)
+      import org.apache.spark.sql.{functions => F}
+      F.when(size(filter(col, x => x.isNotNull)) === 0, true)
        .otherwise(false).alias(s"${name}AllNull")
     }
     /** Return only distinct elements in array. Removes nulls. */
     def distinct(): Column = {
-      array_distinct(filter(this, x => x.isNotNull))
+      array_distinct(filter(col, x => x.isNotNull))
         .alias(s"${name}Distinct")
     }
     /** Return first non null element in array. */
     def first(): Column = {
-        filter(this, x => x.isNotNull)(0).alias(s"${name}First")
+        filter(col, x => x.isNotNull)(0).alias(s"${name}First")
     }
     /** Return last element in array, with null elements removed. */
     def last(): Column = {
-      this.apply(size(filter(this, x => x.isNotNull))
+      col.apply(size(filter(col, x => x.isNotNull))
         .minus(1)).alias(s"${name}Last")
     }
     /** Return minimum value in array. */
-    def min(): Column = array_min(this).alias(s"${name}Min")
+    def min(): Column = array_min(col).alias(s"${name}Min")
     /** Return maximum value in array. */
-    def max(): Column = array_max(this).alias(s"${name}Max")
+    def max(): Column = array_max(col).alias(s"${name}Max")
     /** Return true if the array contains a value. */
     def contains(value: String): Column = {
-      array_contains(this, value).alias(s"${name}Match")
+      array_contains(col, value).alias(s"${name}Match")
     }
   }
 

@@ -26,17 +26,17 @@ object PbSS {
 
   /** Method to extract fields from the `lifeSwitchInfos` container. */
   def lifeSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.lifeSwitchInfos.$name", name)
+    new ArrayCol(col(s"val.sessSummary.lifeSwitchInfos.$name"), name)
   }
 
   /** Method to extract fields from the `intvSwitchInfos` container. */
   def intvSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.intvSwitchInfos.$name", name)
+    new ArrayCol(col(s"val.sessSummary.intvSwitchInfos.$name"), name)
   }
 
   /** Method to extract fields from the `joinSwitchInfos` container. */
   def joinSwitch(name: String): ArrayCol = {
-    new ArrayCol(s"val.sessSummary.joinSwitchInfos.$name", name)
+    new ArrayCol(col(s"val.sessSummary.joinSwitchInfos.$name"), name)
   }
 
   /** Method for extracting fields from `val.invariant`. */
@@ -46,7 +46,7 @@ object PbSS {
 
   /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
    *  with periods are replaced with underscores by default.*/
-  def sumTag(field: String): Column = {
+  def sumTags(field: String): Column = {
     col("val.invariant.summarizedTags").getItem(field)
       .alias(field.replaceAll("\\.", "_"))
   }
@@ -73,7 +73,7 @@ object PbSS {
    * df.select(sessionId.asis)
    * }}}
   */ 
-  def sessionId() = new IdCol("key.sessId.clientSessionId", "sessionId") 
+  def sessionId() = new IdCol(col("key.sessId.clientSessionId"), "sessionId") 
 
   /** Create the `clientId` column as is or $signed. 
    * @example{{{
@@ -84,7 +84,7 @@ object PbSS {
    *  clientId.hex)
    * }}}  
   */ 
-  def clientId = new IdArray("key.sessId.clientId.element", name = "clientId")
+  def clientId = new IdArray(col("key.sessId.clientId.element").alias("clientId"), name = "clientId")
 
   /** Create sessionCreationTime as an object with hex, signed, and nosign
    *  methods. Note that this is not the same as `sessionCreationTime` which
@@ -97,7 +97,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def sessionCreationId = new IdCol("val.invariant.sessionCreationTimeMs", "sessionCreationId")
+  def sessionCreationId = new IdCol(invTag("sessionCreationTimeMs"), "sessionCreationId")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
@@ -130,49 +130,49 @@ object PbSS {
    *  )
    *  }}}
    */
-  // def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
   /** Extract the `shouldProcess` field as is.
    * @example{{{
    * df.select(shouldProcess)
    * }}}
   */ 
-  def shouldProcess(): Column = col("val.sessSummary.shouldProcess")
+  def shouldProcess(): Column = sessSum("shouldProcess")
 
   /** Extract the `hasEnded` field as is. 
    * @example{{{
    * df.select(hadEnded)
    * }}}
   */ 
-  def hasEnded(): Column = col("val.sessSummary.hasEnded")
+  def hasEnded(): Column = sessSum("hasEnded")
 
   /** Extract the `justEnded` field as is.
    * @example{{{
    * df.select(justEnded)
    * }}}
   */ 
-  def justEnded(): Column = col("val.sessSummary.justEnded")
+  def justEnded(): Column = sessSum("justEnded")
 
   /** Extract the `endedStatus` field as is.
    * @example{{{
    * df.select(endedStatus)
    * }}}
   */ 
-  def endedStatus(): Column = col("val.sessSummary.endedStatus")
+  def endedStatus(): Column = sessSum("endedStatus")
 
   /** Extract the `justJoined` field as is from $ss. 
    * @example{{{
    * df.select(justJoined)
    * }}}
   */ 
-  def justJoined(): Column = col("val.sessSummary.justJoined")
+  def justJoined(): Column = sessSum("justJoined")
 
   /** Extract the `joinState` field as is from $ss
    * @example{{{
    * df.select(joinState)
    * }}}
   */ 
-  def joinState(): Column = col("val.sessSummary.joinState")
+  def joinState(): Column = sessSum("joinState")
 
   /** Create a column with valid joinTimes (in milliseconds) if the session is a valid join.
    *  The logic is:
@@ -302,9 +302,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def adTech = new AdTech(
-    col("val.invariant.summarizedTags")
-      .getItem("c3.ad.technology").alias("c3_ad_tech"))
+  def adTech = new AdTech(sumTags("c3.ad.technology").alias("c3_ad_tech"))
 
   /** Recode `c3 Video is Ad` field. */
   class c3isAd(col: Column) extends Column(col.expr) {
@@ -326,7 +324,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def isAd = new c3isAd(col("val.invariant.summarizedTags").getItem("c3.video.isAd").alias("c3_isAd"))
+  def c3isAd = new c3isAd(sumTags("c3.video.isAd").alias("c3_isAd"))
 
   /** Extract fields from `AdContentMetadata` with methods. */
   case class AdContentMetadata(field: String, name: String) extends Column(field) {
@@ -350,6 +348,7 @@ object PbSS {
    * }}}
    */ 
   def c3_csid = new IdCol(sumTags("c3.csid"), "c3_csid")
+  def clientAdId = new IdCol(sumTags("c3.csid"), "c3_csid")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")
@@ -362,7 +361,7 @@ object PbSS {
     *   intvStartTime.stamp)
     * }}}
     */
-  def intvStartTime = new TimeSecCol("val.sessSummary.intvStartTimeSec", "intvStartTime")
+  def intvStartTime = new TimeSecCol(sessSum("intvStartTimeSec"), "intvStartTime")
 
   /**
     * Parse the lifeFirstRecvTime column $timestamp.
@@ -374,7 +373,7 @@ object PbSS {
     * }}}
     */
     def lifeFirstRecvTime = 
-      new TimeMsCol("val.sessSummary.lifeFirstRecvTimeMs", "lifeFirstRecvTime")
+      new TimeMsCol(sessSum("lifeFirstRecvTimeMs"), "lifeFirstRecvTime")
 
   /**
     * Parse the firstRecvTime column $timestamp
@@ -385,7 +384,7 @@ object PbSS {
     *   firstRecvTime.stamp)
     * }}}
     */
-  def firstRecvTime = new TimeMsCol("key.firstRecvTimeMs", "firstRecvTime")
+  def firstRecvTime = new TimeMsCol(col("key.firstRecvTimeMs"), "firstRecvTime")
 
   /**
     * Parse the lastRecvTime column $timestamp.
@@ -396,7 +395,7 @@ object PbSS {
     *   lastRecvTime.stamp)
     * }}}
     */
-  def lastRecvTime = new TimeMsCol("val.sessSummary.lastRecvTimeMs", "lastRecvTime")
+  def lastRecvTime = new TimeMsCol(sessSum("lastRecvTimeMs"), "lastRecvTime")
 
   /**
     * Creates the sessionCreationTime object with $timestamp.
@@ -408,7 +407,7 @@ object PbSS {
     * }}}
     */
   def sessionCreationTime = 
-    new TimeMsCol("val.invariant.sessionCreationTimeMs", "sessionCreationTime")
+    new TimeMsCol(invTag("sessionCreationTimeMs"), "sessionCreationTime")
 
   /**
     * Creates the sessionTimeMs field.
@@ -416,22 +415,16 @@ object PbSS {
     * df.select(sessionTimeMs)
     * }}}
     */
-  def sessionTimeMs(): Column = col("val.sessSummary.sessionTimeMs")
+  def sessionTimeMs(): Column = sessSum("sessionTimeMs")
 
   /** Extract the `intvMaxEncodedFps` field. */
-  def intvMaxEncodedFps(): Column = {
-    col("val.sessSummary.d3SessSummary.intvMaxEncodedFps")
-  }
+  def intvMaxEncodedFps(): Column = d3SessSum("intvMaxEncodedFps")
   
   /** Extract the `lifeFramesEncoded` field. */
-  def lifeEncodedFrames(): Column = {
-    col("val.sessSummary.lifeEncodedFrames")
-  }
+  def lifeEncodedFrames(): Column = sessSum("lifeEncodedFrames") 
 
   /** Extract the `lifeFramesRendered` field. */
-  def lifeRenderedFrames(): Column = {
-    col("val.sessSummary.lifeRenderedFrames")
-  }
+  def lifeRenderedFrames(): Column = sessSum("lifeRenderedFrames") 
 
 }
 

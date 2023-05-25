@@ -155,7 +155,7 @@ object Paths {
     override val xroot = root
   }
 
-  case class HourlyRawLog[A](month: Int, days: A, hours: A, year: Int = 2023)
+  case class HourlyRaw[A](month: Int, days: A, hours: A, year: Int = 2023)
       extends DataPath with HourlyPath[A] {
     override val xroot: String = PathDB.rawlog()
   }
