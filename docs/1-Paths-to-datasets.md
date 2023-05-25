@@ -2,7 +2,7 @@
 
 Surgeon provides classes for constructing Databricks paths to the Rawlog and
 Session Summary datasets (in parquet format). For now, these classes are
-limited to paths on the `/mnt`  Databricks directory.
+limited to constructing paths for data on the `/mnt`  Databricks directory.
 
 ```scala mdoc
 import org.apache.spark.sql.{SparkSession}

@@ -40,7 +40,7 @@ object PbSS {
   }
 
   /** Method for extracting fields from `val.invariant`. */
-  def invTag(field: String): Column = {
+  def invTags(field: String): Column = {
     col(s"val.invariant.${field}").alias(field)
   }
 
@@ -97,7 +97,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def sessionCreationId = new IdCol(invTag("sessionCreationTimeMs"), "sessionCreationId")
+  def sessionCreationId = new IdCol(invTags("sessionCreationTimeMs"), "sessionCreationId")
 
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
@@ -407,7 +407,7 @@ object PbSS {
     * }}}
     */
   def sessionCreationTime = 
-    new TimeMsCol(invTag("sessionCreationTimeMs"), "sessionCreationTime")
+    new TimeMsCol(invTags("sessionCreationTimeMs"), "sessionCreationTime")
 
   /**
     * Creates the sessionTimeMs field.

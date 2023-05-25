@@ -43,7 +43,7 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
-val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = List(1960184999))
+val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
 val hourly_df = spark.read.parquet(path)
   .select(
     customerId, 
@@ -68,7 +68,7 @@ Surgeon makes constructing the paths to the data easier.
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), names = List("CBSCom"))
+val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), names = "CBSCom")
 ```
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
 
