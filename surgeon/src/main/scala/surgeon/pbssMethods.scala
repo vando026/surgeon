@@ -44,13 +44,15 @@ object PbSS {
     col(s"val.invariant.${field}").alias(field)
   }
 
-  /** Method for extracting fields from `val.invariant.summarizedTags`. */
+  /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
+   *  with periods are replaced with underscores by default.*/
   def sumTag(field: String): Column = {
-    col("val.invariant.summarizedTags").getItem(field).alias(field)
+    col("val.invariant.summarizedTags").getItem(field)
+      .alias(field.replaceAll("\\.", "_"))
   }
 
   /** Method for extracting fields from `val.sessSummary.d3SessSummary`. */
-  def d3SS(field: String): Column = {
+  def d3SessSum(field: String): Column = {
     col(s"val.sessSummary.d3SessSummary.${field}").alias(field)
   }
 
@@ -76,8 +78,8 @@ object PbSS {
   /** Create the `clientId` column as is or $signed. 
    * @example{{{
    * df.select(
+   *  clientId,
    *  clientId.asis,
-   *  clientId.signed, 
    *  clientId.nosign, 
    *  clientId.hex)
    * }}}  
@@ -128,7 +130,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
+  // def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
   /** Extract the `shouldProcess` field as is.
    * @example{{{
@@ -278,27 +280,53 @@ object PbSS {
   }
 
   /** Extract `Ad Technology` field with methods. */
-  case class AdTech(field: Column, name: String) {
-    def get(): Column = field
+  class AdTech(col: Column) extends Column(col.expr) {
+    import org.apache.spark.sql.{Column, functions => F}
+    // def check = this("val.sessSummary.joinTimeMs")
     def recode(): Column = {
-      when(lower(field).rlike("server|ssai|sever"), "server")
-        .when(lower(field).rlike("client|csai"), "client")
+      // val c1 = F.when(col === "client", 1)
+       F.when(lower(col).rlike("client|csai"), "client")
+        .when(lower(col).rlike("server|ssai"), "server")
         .otherwise("unknown")
-      .alias(s"${name}RC")
+        .alias("c3_ad_tech_rc")
     }
   }
+
   /** Create a c3 `Ad Technology` object with an `asis` and `recode` method. The
    *  `recode` method standardizes the field values into server, client, or
    *  unknown.
    *  @example{{{
    *  df.select(
-   *    c3AdTechnology.get, 
-   *    c3AdTechnology.recode
+   *    adTech, 
+   *    adTech.recode
    *  )
    *  }}}
    */
-  def c3AdTechnology = AdTech(
-    field = sumTag("c3.ad.Technology"), name = "c3AdTechnology")
+  def adTech = new AdTech(
+    col("val.invariant.summarizedTags")
+      .getItem("c3.ad.technology").alias("c3_ad_tech"))
+
+  /** Recode `c3 Video is Ad` field. */
+  class c3isAd(col: Column) extends Column(col.expr) {
+    import org.apache.spark.sql.{Column, functions => F}
+    def recode(): Column = {
+      F.when(lower(col).isin("true", "t"), true)
+      .when(lower(col).isin("false", "f"), false)
+      .otherwise(null)
+      .alias("c3_isAd_rc")
+    }
+  }
+  /** Create a c3 `isAd` object with an `asis` and `recode` method. The
+   *  `recode` method standardizes the field values into true, false, or
+   *  null.
+   *  @example{{{
+   *  df.select(
+   *    isAd, 
+   *    isAd.recode
+   *  )
+   *  }}}
+   */
+  def isAd = new c3isAd(col("val.invariant.summarizedTags").getItem("c3.video.isAd").alias("c3_isAd"))
 
   /** Extract fields from `AdContentMetadata` with methods. */
   case class AdContentMetadata(field: String, name: String) extends Column(field) {
@@ -321,7 +349,7 @@ object PbSS {
    * )
    * }}}
    */ 
-  def c3_csid = new IdCol("val.invariant.summarizedTags.c3.csid", "c3_csid")
+  def c3_csid = new IdCol(sumTags("c3.csid"), "c3_csid")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")

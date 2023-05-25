@@ -49,12 +49,7 @@ object Customer {
    */
   def customerNameToId[A](names: A, 
       cdat: DataFrame = customerNames()): Array[String] = {
-    val nms = names match {
-      case (names: String) => List(names)
-      case (names: List[String]) => names
-      case _ => throw new Exception("Must be either String or List[String]")
-    }
-    val snames = nms.map(_.replace("c3.", ""))
+    val snames = mkStrList(names).map(_.replace("c3.", ""))
     cdat.select(col("customerId"))
       .where(col("customerName").isin(snames:_*))
       .collect().map(_(0).toString)

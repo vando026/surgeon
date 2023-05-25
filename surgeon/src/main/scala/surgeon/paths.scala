@@ -45,6 +45,7 @@ object Paths {
     val geoUtil = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   }
 
+  // utility methods
   def fmt(s: Int) = f"${s}%02d"
   def paste(x: List[Int]) = {
     val out = x.map(fmt(_)).mkString(",")
@@ -56,6 +57,14 @@ object Paths {
       case (i: Int) => List(i)
       case (i: List[Int]) => i
       case _ => throw new Exception("Must be either Int or List[Int]")
+    }
+    out
+  }
+  def mkStrList[A](i: A): List[String] = {
+    val out =  i match {
+      case (i: String) => List(i)
+      case (i: List[String]) => i
+      case _ => throw new Exception("Must be either String or List[String]")
     }
     out
   }
@@ -107,7 +116,7 @@ object Paths {
     val (nyear, nmonth, ndays) = if (month == 12 & days_.last == 31) 
       (year + 1, 1, ndays_.dropRight(1) :+ 1) else (year, month, ndays_.dropRight(1) :+ days_.last + 1)
     if (month == 12 && days_.length > 1)
-      throw new Exception("Error if month = 12 and List[Int] contains day 31. Use (month=12, day=31) instead.")
+      throw new Exception("No  month = 12 and List[Int] contains day 31; use (month=12, day=31) instead.")
     override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${paste(days_)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(ndays)}_08_00")
         .mkString("/")
@@ -163,30 +172,27 @@ object Paths {
 
     /** Method to get data path using customer names.
      *  @param obj A DataPath object. 
-     *  @param names The customer names with `c3.` prefix removed. 
+     *  @param names Customer name as String or names as List[String], with `c3.` prefix removed. 
      *  @example{{{
      *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
+     *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply(obj: DataPath, names: List[String], path: String = PathDB.geoUtil): String = {
-      val cnames = customerNameToId(names, customerNames(path))
+    def apply[A](obj: DataPath, names: A, path: String = PathDB.geoUtil): String = {
+      val cnames = customerNameToId(mkStrList(names), customerNames(path))
       stitch(obj, cnames.mkString(","))
     }
 
-    // def apply(obj: DataPath, name: String, path: String = PathDB.geoUtil): String = {
-    //   val cnames = customerNameToId(List(name), customerNames(path))
-    //   stitch(obj, cnames.mkString(","))
-    // }
-
     /** Method to get paths to data by customer IDs.
      *  @param obj A DataPath object. 
-     *  @param ids List of customer Ids. 
+     *  @param ids customer Id as Int or customer Ids as List[Int]
      *  @example{{{
-     *  Cust(Monthly(2023, 2), ids = List(1960180360))
+     *  Cust(Monthly(2023, 2), ids = List(1960180360, 1960183601))
+     *  Cust(Monthly(2023, 2), ids = 1960180360)
      *  }}}
     */
-    def apply(obj: DataPath, ids: List[Int]) = {
-      stitch(obj, ids.mkString(","))
+    def apply[A](obj: DataPath, ids: A) = {
+      stitch(obj, mkIntList(ids).mkString(","))
     }
 
     // def apply(obj: DataPath, id: Int) = {

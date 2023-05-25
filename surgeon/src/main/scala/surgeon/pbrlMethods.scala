@@ -45,6 +45,10 @@ object PbRl {
       .alias(field.replaceAll("\\.", "_"))
   }
 
+  def sumTags(field: String): Column = {
+    col("payload.heartbeat")
+  }
+
   /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields
    *  with periods are replaced with underscores by default.*/
   def clientTag(field: String): Column = {
