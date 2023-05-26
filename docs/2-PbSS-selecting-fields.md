@@ -27,16 +27,16 @@ val path = Cust(Hourly(month = 5, days = 25, hours = 18), take = 1)
 val dat = spark.read.parquet(path)
 
 val dat2 = dat.select(
-  sessSum("playerState"), // val.sessSummary
-  d3SessSum("lifePausedTimeMs"), // val.sessSummary.d3SessSummary
-  joinSwitch("playingTimeMs"), // val.sessSummary.joinSwitchInfos
-  lifeSwitch("sessionTimeMs"), // val.sessSummary.lifeSwitchInfos
-  intvSwitch("networkBufferingTimeMs"), // val.sessSummary.intvSwitchInfos
-  invTags"sessionCreationTimeMs"), // val.invariant
-  sumTags("c3.video.isAd"), // val.invariant.summarizedTags
+  sessSum("playerState"), 
+  d3SessSum("lifePausedTimeMs"),
+  joinSwitch("playingTimeMs"),
+  lifeSwitch("sessionTimeMs"),
+  intvSwitch("networkBufferingTimeMs"), 
+  invTag("sessionCreationTimeMs"), 
+  sumTags("c3.video.isAd"), 
 )
 ```
-
+You can, for example, use any string name that is in the container `val.sessSummary`, similarly for the other containers. 
 The long version of this would be:
 
 ``` scala 
@@ -50,3 +50,35 @@ val dat3 = dat.select(
   col("val.invariant.summarizedTags").getItem("c3.video.isAd"),
 )
 ```
+
+### Id methods
+
+Surgeon provides several methods for constructing and formatting Ids, as
+described in the comments below. `clientId`, `sessionId`, `sid5`, and `sid6` all have
+a signed, nosign (unsigned), or hexadecimal versions. 
+
+```scala 
+val idat = dat.select(
+  customerId,
+  clientId,         // signed
+  clientId.nosign,  // unsigned
+  clientId.hex,     // hexadecimal
+  clientAdId,       // AdId (c3.csid) signed
+  clientId.nosign,  // AdId (c3.csid) unsigned
+  clientId.hex,     // AdId (c3.csid) hexadecimal
+  sessionId,        // signed
+  sessionId.nosign, // unsigned
+  sessionId.hex,    // hexadecimal
+  sid5.asis,        // clientId:sessionId signed
+  sid5.nosign,      // clientId:sessionId unsigned
+  sid5.hex,         // clientId:sessionId hexadecimal
+  sid5Ad.asis,      // clientAdId:sessionId signed
+  sid5Ad.nosign,    // clientAdId:sessionId unsigned
+  sid5Ad.hex,       // clientAdId:sessionId hexadecimal
+  sid6.asis,        // clientAdId:sessionId:sessionCreationTime signed
+  sid6.nosign,      // clientAdId:sessionId:sessionCreationTime unsigned
+  sid6.hex          // clientAdId:sessionId:sessionCreationTime hexadecimal
+)
+```
+
+
