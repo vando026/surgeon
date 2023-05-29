@@ -48,18 +48,17 @@ val hourly_df = spark.read.parquet(path)
     sid5.hex, 
     intvStartTime.stamp,
     lifeFirstRecvTime.stamp, 
-    viewerId, 
-    c3VideoIsAd, 
-    lifeFirstRecvTime.ms, 
+    sumTags("c3.viewer.id"),
+    sumTags("c3.video.isAd"),
+    lifeFirstRecvTime, 
     hasEnded, 
-    hasJoined, 
     justJoined, 
-    playingTime.ms, 
-    lifeFirstRecvTime.ms, 
+    sessSum("lifePlayingTimeMs"), 
+    lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
-    intvStartTime.sec
-)
+    intvStartTime
+  )
 ```
 
 ### Path construction

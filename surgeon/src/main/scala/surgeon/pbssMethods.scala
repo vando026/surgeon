@@ -44,6 +44,12 @@ object PbSS {
     col(s"val.invariant.${field}").alias(field)
   }
 
+  /** Method for extracting fields from `val.invariant.c3Tags`. */
+  def c3Tags(field: String): Column = {
+    col("val.invariant.c3Tags").getField(field).alias(field)
+  }
+
+
   /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
    *  with periods are replaced with underscores by default.*/
   def sumTags(field: String): Column = {

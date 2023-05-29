@@ -186,6 +186,27 @@ class PbSS_Suite extends munit.FunSuite {
  }
 
  // for documentation
+
+ test("README example should work") {
+ val dat2 = dat.select(
+    customerId, 
+    sessionId, 
+    sid5.hex, 
+    intvStartTime.stamp,
+    lifeFirstRecvTime.stamp, 
+    sumTags("c3.viewer.id"),
+    sumTags("c3.video.isAd"),
+    lifeFirstRecvTime, 
+    hasEnded, 
+    justJoined, 
+    sessSum("lifePlayingTimeMs"), 
+    lifeFirstRecvTime, 
+    endedStatus, 
+    shouldProcess, 
+    intvStartTime
+  )
+ }
+
  test("select containers cols should run without issues") {
   val dat2 = dat.select(
     sessSum("playerState"), 
@@ -245,5 +266,9 @@ class PbSS_Suite extends munit.FunSuite {
   intvStartTime.stamp
   )
  }
+
+
+
+
 
 }
