@@ -59,10 +59,10 @@ object Customer {
    *  @param path The path to the GCS files on Databricks.
    *  @example{{{
    *  val path = Monthly(year = 2023, month = 1).toPath 
-   *  getCustomerIds(path)
+   *  customerIds(path)
    *  }}}
   */
-  def getCustomerIds(path: String): Array[String] = {
+  def customerIds(path: String): Array[Int] = {
     val ss = SparkSession.builder
       .getOrCreate.sparkContext.hadoopConfiguration
     val dbfs = FileSystem.get(ss)
@@ -71,9 +71,26 @@ object Customer {
       .filter(!_.contains("_SUCCESS"))
       .sorted.drop(1) // drop1 drops cust=0 after sort
     val pattern = "dbfs.*/cust=([0-9]+)$".r
-    paths.map(f => { val pattern(h) = f; h })
+    val out = paths.map(f => { val pattern(h) = f; h })
+    out.map(_.toInt)
   }
 
+  /* Get customer Ids that are in both paths. 
+   * @param path1 The first path
+   * @param path2 The second path
+   * @example{{{
+   * customersInBothPaths(
+   *   HourlyRaw(2023, 5, 20, 10).toString, 
+   *   Hourly(2023, 5, 20, 10).toString
+   * )
+   * }}}
+  */
+
+  def customersInBothPaths(path1: String, path2: String): Array[Int] = {
+    val cid1 = customerIds(path1)
+    val cid2 = customerIds(path2)
+      cid1.intersect(cid2)
+  }
 
 }
 

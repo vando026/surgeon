@@ -348,7 +348,7 @@ object PbSS {
    * }}}
    */ 
   def c3_csid = new IdCol(sumTags("c3.csid"), "c3_csid")
-  def clientAdId = new IdCol(sumTags("c3.csid"), "c3_csid")
+  def sessionAdId = new IdCol(sumTags("c3.csid"), "sessionAdId")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
   def exitDuringPreRoll(): Column = col("val.sessSummary.exitDuringPreRoll")

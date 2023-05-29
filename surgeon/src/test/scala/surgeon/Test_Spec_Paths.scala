@@ -37,7 +37,7 @@ class PathSuite extends munit.FunSuite {
   }
 
   // test("Customer take n is expected") {
-  //   val t1 = getCustomerIds(Monthly(2023, 2).path).take(3).length
+  //   val t1 = customerIds(Monthly(2023, 2).path).take(3).length
   //   assertEquals(t1, 3)
   // }
 

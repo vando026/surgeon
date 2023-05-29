@@ -56,7 +56,8 @@ object Paths {
     val out =  i match {
       case (i: Int) => List(i)
       case (i: List[Int]) => i
-      case _ => throw new Exception("Must be either Int or List[Int]")
+      case (i: Array[Int]) => i.toList
+      case _ => throw new Exception("Must be either Int, Array[Int], List[Int]")
     }
     out
   }
@@ -64,7 +65,8 @@ object Paths {
     val out =  i match {
       case (i: String) => List(i)
       case (i: List[String]) => i
-      case _ => throw new Exception("Must be either String or List[String]")
+      case (i: Array[String]) => i.toList
+      case _ => throw new Exception("Must be either String, Array[String], List[String]")
     }
     out
   }
@@ -207,7 +209,7 @@ object Paths {
      *  }}}
     */
     def apply(obj: DataPath, take: Int) = {
-      val cids = getCustomerIds(obj.toString).take(take)
+      val cids = customerIds(obj.toString).take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
 

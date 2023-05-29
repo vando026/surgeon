@@ -114,7 +114,7 @@ object PbRl {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, clientAdId)
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
 
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
@@ -125,7 +125,7 @@ object PbRl {
    * )
    * }}}
    */ 
-  def clientAdId = new IdCol(clientTag("c3.csid"), name = "clientAdId")
+  def sessionAdId = new IdCol(clientTag("c3.csid"), name = "sessionAdId")
   def c3_csid = new IdCol(clientTag("c3.csid"), name = "c3_csid")
 
   /** Extract the `seqNumber` field as is.

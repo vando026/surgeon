@@ -165,7 +165,7 @@ class PbSS_Suite extends munit.FunSuite {
  }
 
  test("invTag publicIP should be expected") {
-   val t1 = d8905.select(invTag("publicIp")) 
+   val t1 = d8905.select(invTags("publicIp")) 
     .collect.map(_.getInt(0))
    assertEquals(t1(0), 0)
  }
@@ -185,7 +185,65 @@ class PbSS_Suite extends munit.FunSuite {
   assertEquals(t1.first.getInt(0), 1742812)
  }
 
+ // for documentation
+ test("select containers cols should run without issues") {
+  val dat2 = dat.select(
+    sessSum("playerState"), 
+    d3SessSum("lifePausedTimeMs"),
+    joinSwitch("playingTimeMs"),
+    lifeSwitch("sessionTimeMs"),
+    intvSwitch("networkBufferingTimeMs"), 
+    invTags("sessionCreationTimeMs"), 
+    sumTags("c3.video.isAd"), 
+  )
+ }
 
 
+ test("select Ids should run without issues") {
+  val dat2 = dat.select(
+    customerId,
+    clientId,             // returns as is, signed array
+    clientId.asis,        // returns as signed String
+    clientId.nosign,      // returns unsigned String
+    clientId.hex,         // returns hexadecimal String
+    sessionId,            // signed
+    sessionId.nosign,     // unsigned 
+    sessionId.hex,        // hexadecimal String
+    sessionAdId,          // (c3.csid) signed array
+    sessionAdId.nosign,   // (c3.csid) unsigned
+    sessionAdId.hex,      // (c3.csid) unsigned
+    sid5.asis,            // clientId:sessionId signed String
+    sid5.nosign,          // clientId:sessionId unsigned String
+    sid5.hex,             // clientId:sessionId hexadecimal String
+    sid5Ad.asis,          // clientAdId:sessionId signed String
+    sid5Ad.nosign,        // clientAdId:sessionId unsigned String
+    sid5Ad.hex,           // clientAdId:sessionId hexadecimal String
+    sid6.asis,            // clientAdId:sessionId:sessionCreationTime signed String
+    sid6.nosign,          // clientAdId:sessionId:sessionCreationTime unsigned String
+    sid6.hex              // clientAdId:sessionId:sessionCreationTime hexadecimal String
+  )
+ }
+
+
+
+ test("select time cols and methods should run without issues") {
+  val dat2 = dat.select(
+  lifeFirstRecvTime, // as is, ms since unix epoch
+  lifeFirstRecvTime.sec, // converts ms to seconds since unix epoch
+  lifeFirstRecvTime.stamp, // converts ms since unix epoc to timestamp
+  lifeFirstRecvTime, 
+  lifeFirstRecvTime.sec,  
+  lifeFirstRecvTime.stamp,
+  lastRecvTime, 
+  lastRecvTime.sec,  
+  lastRecvTime.stamp,
+  sessionCreationTime,
+  sessionCreationTime.sec,
+  sessionCreationTime.stamp,
+  intvStartTime, // as is, seconds since unix epoch
+  intvStartTime.ms, // converts seconds to ms since unix epoch
+  intvStartTime.stamp
+  )
+ }
 
 }
