@@ -4,10 +4,7 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 
-A scala library with tools to operate on data generated from Conviva
-Heartbeats. The library is aimed at data scientists or engineers who run their scripts on Databricks. Surgeon is designed to reduce the verbose startup code needed to read the rawlog or session summary data. It also simplifies basic but often tedious tasks of data conversion between timestamps, seconds, and milliseconds; manipulating arrays; constructing signed/unsigned/hexadecimal session Ids; cleaning or recoding fields; among others.
-
-For example, surgeon reduces this mess:
+A Scala library with tools to operate on Session Summary and RawLog data. Surgeon is designed to reduce the verbose startup code needed to read in the data and simplifies working with time columns (e.g., converting `lifeFirstRecvTime` to timestamp, seconds, and milliseconds), arrays, constructing signed/unsigned/hexadecimal session Ids, cleaning or recoding fields, among other tasks. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
@@ -64,29 +61,40 @@ val hourly_df = spark.read.parquet(path)
     intvStartTime.sec
 )
 ```
-Surgeon makes constructing the paths to the data easier. 
-Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
+
+### Path construction
+
+Surgeon makes constructing the paths to the data easier, as shown in the first
+line of the code above. Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
 val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), names = "CBSCom")
 ```
+
+Only want to select three customers for a given hour, then do:
+
+```scala 
+val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), take = 3)
+```
+
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
 
-Surgeon makes selecting fields easier. No more
-`col("val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs")`. Some fields are
-objects with methods, which makes out of the box data manipulation easier. For
-example, since `lifeFirstRecvTime` is of `TimeMsCol` type, you can do 
+### Column methods
+
+Surgeon makes it easier to work with columns by providing methods.  For
+example, `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
+of class `TimeMsCol` with `stamp` and `sec` methods. 
 
 ```scala 
 hourly_df.select(
   lifeFirstRecvTime // its original form, milliseconds since unix epoch
-  lifeFirstRecvTime.sec, // seconds since unix epoch
-  lifeFirstRecvTime.stamp, // as a timestamp 
+  lifeFirstRecvTime.sec, // converted to seconds since unix epoch
+  lifeFirstRecvTime.stamp, // as a timestamp (HH:mm:ss)
 )
 ```
 
-Similarly, we could get the `clientId:clientSessionId` (sid5) in signed (asis), unsigned (nosign)
-or  hexadecimal format.
+Columns that represent Ids have asis (signed), nosign (unsigned), or  hex (hexadecimal) methods. For example, to
+construct a sid5 column ("clientId:sessionId") with either format, do:
 
 ```scala 
 hourly_df.select(
@@ -96,7 +104,8 @@ hourly_df.select(
 )
 ```
 
-See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-Selecting-fields-with-methods) for more details about this functionality.
+See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-Selecting-fields-with-methods) for more details about this functionality.
+
 
 More documentation forthcoming. 
 
