@@ -4,7 +4,7 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 
-A Scala library with tools to operate on Session Summary and RawLog data. Surgeon is designed to reduce the verbose startup code needed to read in the data and simplifies working with time columns (e.g., converting `lifeFirstRecvTime` to timestamp, seconds, and milliseconds), arrays, constructing signed/unsigned/hexadecimal session Ids, cleaning or recoding fields, among other tasks. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
+A Scala library with tools to operate on Session Summary and RawLog data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
@@ -81,7 +81,7 @@ See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-
 
 ### Column methods
 
-Surgeon makes it easier to work with columns by providing methods.  For
+Surgeon provides methods to make it easier to work with columns.  For
 example, `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
 of class `TimeMsCol` with `stamp` and `sec` methods. 
 
