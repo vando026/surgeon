@@ -84,11 +84,10 @@ See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-
 
 Surgeon provides methods to make it easier to select and work with columns.  For
 example, the `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
-of class `TimeMsCol` with `stamp` and `sec` methods. You can select it using its
-simple name with your preferred method:
+class `TimeMsCol` with `stamp` and `sec` methods. You can select it using its
+simple name with or without a method:
 
 ```scala 
-import conviva.surgeon.PbSS._
 hourly_df.select(
   lifeFirstRecvTime // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.sec, // converted to seconds since unix epoch
@@ -96,8 +95,8 @@ hourly_df.select(
 )
 ```
 
-Surgeon makes it easier to work with Ids. Often, an `sid5` column is constructed from the `clientId` and `sessionId` columns.Both these columns are inconsistently formatted across datasets. Surgeon constructs a `sid5` column for you, and gives you a method for formating the values asis (signed), as unsigned (nosign), or as hexadecimal (hex). For example, to
-construct a sid5 column ("clientId:sessionId") with either format, do:
+Surgeon makes it easier to work with Ids. Often, a `sid5` column is constructed from the `clientId` and `sessionId` columns.Both  columns are inconsistently formatted across datasets on Databricks. Surgeon constructs a `sid5` column for you with methods to format the values as is (`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`). For example, to
+construct a sid5 column (`clientId:sessionId`) with either format, do:
 
 ```scala 
 hourly_df.select(
@@ -107,8 +106,16 @@ hourly_df.select(
 )
 ```
 
-The same methods can be used with `clientId` or `sessionId` only, and you can
-even construct an `sid6` column with `sessionCreationTimeMs`.
+The same methods can be used with `clientId` or `sessionId` only (which are of
+class `IdCol`), and you can even construct an `sid6` column with `sessionCreationTimeMs`:
+
+```scala 
+hourly_df.select(
+  sid6.asis, 
+  sid6.hex, 
+  sid6.nosign, 
+)
+```
 
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and [PbRl wiki] (https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
 
@@ -122,8 +129,24 @@ customer Ids and names, get names from Ids, and get Ids from names.
 ```scala  
 import conviva.surgeon.Customer._
 val cdat = customerNames(path = "./surgeon/src/test/data/cust_dat.txt")
+cdat.show()
+// +----------+------------+
+// |customerId|customerName|
+// +----------+------------+
+// | 207488736|       MSNBC|
+// | 744085924|        PMNN|
+// |1960180360|         TV2|
+// | 978960980|        BASC|
+// +----------+------------+
+//
 customerIdToName(207488736, cdat)
+// res2: Array[String] = Array("MSNBC")
 customerIdToName(List(207488736, 744085924), cdat)
+// res3: Array[String] = Array("MSNBC", "PMNN")
+customerNameToId("TV2", cdat)
+// res4: Array[Int] = Array(1960180360)
+customerNameToId(List("TV2", "BASC"), cdat)
+// res5: Array[Int] = Array(1960180360, 978960980)
 ```
 
 
