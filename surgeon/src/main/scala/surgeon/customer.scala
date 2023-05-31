@@ -48,11 +48,11 @@ object Customer {
    *  }}}
    */
   def customerNameToId[A](names: A, 
-      cdat: DataFrame = customerNames()): Array[String] = {
+      cdat: DataFrame = customerNames()): Array[Int] = {
     val snames = mkStrList(names).map(_.replace("c3.", ""))
     cdat.select(col("customerId"))
       .where(col("customerName").isin(snames:_*))
-      .collect().map(_(0).toString)
+      .collect().map(_(0).toString.toInt)
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 

@@ -1,7 +1,7 @@
 ## Parquet Session Summary  (PbSS)
 
-Surgeon tries to simply the selection of columns or fields when reading a
-dataset for the first time. To demonstrate, import surgeon's `PbSS`  object and
+Surgeon simplifies the selection of columns when reading a
+dataset for the first time. To demonstrate, first import surgeon's `PbSS`  object and
 other `Spark` necessities, set the file path, and read the data. 
 
 ```scala  

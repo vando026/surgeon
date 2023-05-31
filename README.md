@@ -4,7 +4,7 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 
-A Scala library with tools to operate on Session Summary and RawLog data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
+A Scala library with tools to operate on parquet Session Summary (PbSS) and RawLog (PbRl) data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
@@ -27,7 +27,6 @@ select key.sessId.customerId customerId
       , hasEnded(val.sessSummary) ended
       , hasJoined(val.sessSummary) joined
       , justJoined(val.sessSummary) justJoined
-      , intvPlayingTimeMs(val.sessSummary) playingTimeMs 
       , lifePlayingTimeMs(val.sessSummary) lifePlayingTimeMs
       , val.sessSummary.endedStatus endedStatus
       , val.sessSummary.shouldProcess
@@ -40,6 +39,8 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
+import conviva.surgeon.Paths._
+import conviva.surgeon.PbSS._
 val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
 val hourly_df = spark.read.parquet(path)
   .select(
@@ -53,7 +54,8 @@ val hourly_df = spark.read.parquet(path)
     lifeFirstRecvTime, 
     hasEnded, 
     justJoined, 
-    sessSum("lifePlayingTimeMs"), 
+    sessSum("lifeP
+    layingTimeMs"), 
     lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
@@ -63,28 +65,30 @@ val hourly_df = spark.read.parquet(path)
 
 ### Path construction
 
-Surgeon makes constructing the paths to the data easier, as shown in the first
-line of the code above. Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
+Surgeon makes constructing the paths to the data easier, as shown in the demo
+code above. Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), names = "CBSCom")
+val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "CBSCom")
 ```
 
 Only want to select three customers for a given hour, then do:
 
 ```scala 
-val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), take = 3)
+val path = Cust(Hourly(2022, 12, 24, 18)), take = 3)
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
 
 ### Column methods
 
-Surgeon provides methods to make it easier to work with columns.  For
-example, `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
-of class `TimeMsCol` with `stamp` and `sec` methods. 
+Surgeon provides methods to make it easier to select and work with columns.  For
+example, the `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
+of class `TimeMsCol` with `stamp` and `sec` methods. You can select it using its
+simple name with your preferred method:
 
 ```scala 
+import conviva.surgeon.PbSS._
 hourly_df.select(
   lifeFirstRecvTime // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.sec, // converted to seconds since unix epoch
@@ -92,18 +96,38 @@ hourly_df.select(
 )
 ```
 
-Columns that represent Ids have asis (signed), nosign (unsigned), or  hex (hexadecimal) methods. For example, to
+Surgeon makes it easier to work with Ids. Often, an `sid5` column is constructed from the `clientId` and `sessionId` columns.Both these columns are inconsistently formatted across datasets. Surgeon constructs a `sid5` column for you, and gives you a method for formating the values asis (signed), as unsigned (nosign), or as hexadecimal (hex). For example, to
 construct a sid5 column ("clientId:sessionId") with either format, do:
 
 ```scala 
 hourly_df.select(
-  sid5.hex, 
   sid5.asis, 
+  sid5.hex, 
   sid5.nosign, 
 )
 ```
 
-See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-Selecting-fields-with-methods) for more details about this functionality.
+The same methods can be used with `clientId` or `sessionId` only, and you can
+even construct an `sid6` column with `sessionCreationTimeMs`.
+
+See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and [PbRl wiki] (https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+
+### Customer methods
+
+Surgeon provides some convenient methods for working with Customer data. An
+example of this functionality was shown in the conversion of the customer name
+to Id in the demo code above. You can use these methods to read in a file with
+customer Ids and names, get names from Ids, and get Ids from names. 
+
+```scala  
+import conviva.surgeon.Customer._
+val cdat = customerNames(path = "./surgeon/src/test/data/cust_dat.txt")
+customerIdToName(207488736, cdat)
+customerIdToName(List(207488736, 744085924), cdat)
+```
+
+
+See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
 
 
 More documentation forthcoming. 

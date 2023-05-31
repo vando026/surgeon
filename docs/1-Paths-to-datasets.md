@@ -17,12 +17,11 @@ First import the `Paths` object that contains the classes:
 import conviva.surgeon.Paths._
 ```
 
-On Databricks, a customer will have hourly, daily, or monthly data. The purpose
-of the `Path` class is to contruct paths to these datasets. There are currently
-three classes: `Monthly`, `Daily`, and `Hourly`, each with a `toString` method.
+On Databricks, a customer will have hourly, daily, or monthly production data.
+To construct paths to the data, the `Path` object provides three clasess,
+called `Monthly`, `Daily`, and `Hourly`, with a `toString` method.
 
-To construct the path to the PbSS data, using
-February 2023 as an example, use the `Monthly` class: 
+For the PbSS data, and February 2023 as an example, use the `Monthly` class: 
 
 ```scala mdoc
 val monthly = Monthly(year = 2023, month = 2)
@@ -39,16 +38,16 @@ daily2.toString
 ```
 
 The first example is for February 16, 2023; the second example is for the
-16th and 17th day of that month. The year defaults to the current year, so you can
-omit it as long as the parameters are in the order of month then day. The day
-parameter can take an Int or List[Int].
+16th and 17th day of that month.  Therefore, the day
+parameter can take an Int or List[Int]. The year defaults to the current year, so you can
+omit it as long as the parameters are in the order of month then day.
 
 ```scala mdoc
 val daily3 = Daily(2, List(16, 17))
 daily3.toString
 ```
 
-For the parquet hourly session summary data, use the `Hourly` class. 
+For the PbSS hourly data, use the `Hourly` class:
 
 ```scala mdoc 
 val hourly = Hourly(year = 2023, month = 2, days = 14, hours = 2)
@@ -70,7 +69,7 @@ pbraw.toString
 ```
 
 You can also change the root path to the data.  For example, instead of using
-the shorter `HourlyRaw`, we could use the `PathDB.rawlog` path. See below for
+`HourlyRaw`, you could use the `root` parameter with the `PathDB.rawlog` path. See below for
 more details on `PathDB`.
 
 ```scala mdoc 
@@ -80,7 +79,7 @@ pbraw2.toString
 
 ### Paths object
 
-The classes above use the `PathDB` object, which stores the root paths to
+The classes above use the `PathDB` object, which holds the root paths to
 the various datasets.
 
 ```scala mdoc 
