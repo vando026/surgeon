@@ -54,8 +54,7 @@ val hourly_df = spark.read.parquet(path)
     lifeFirstRecvTime, 
     hasEnded, 
     justJoined, 
-    sessSum("lifeP
-    layingTimeMs"), 
+    sessSum("lifePlayingTimeMs"), 
     lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
