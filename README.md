@@ -94,7 +94,8 @@ hourly_df.select(
 )
 ```
 
-Surgeon makes it easier to work with Ids. Often, a `sid5` column is constructed from the `clientId` and `sessionId` columns.Both  columns are inconsistently formatted across datasets on Databricks. Surgeon constructs a `sid5` column for you with methods to format the values as is (`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`). For example, to
+Surgeon makes it easier to work with Ids. Often, a `sid5` column is constructed from the `clientId` and `sessionId` columns. 
+ Both  columns are inconsistently formatted across session summary and rawlog datasets. Surgeon constructs a `sid5` column for you with methods to format the values as is (`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`). For example, to
 construct a sid5 column (`clientId:sessionId`) with either format, do:
 
 ```scala 
@@ -116,7 +117,8 @@ hourly_df.select(
 )
 ```
 
-See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and [PbRl wiki] (https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
+[PbRl wiki] (https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
 
 ### Customer methods
 
