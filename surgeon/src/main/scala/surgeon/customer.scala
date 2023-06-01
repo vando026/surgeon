@@ -75,6 +75,32 @@ object Customer {
     out.map(_.toInt)
   }
 
+  case class CustomerIds() {
+    import org.apache.spark.sql.{DataFrame, SparkSession}
+    import org.apache.hadoop.fs._
+    def get(path: String): Array[Int] = {
+      val ss = SparkSession.builder
+        .getOrCreate.sparkContext.hadoopConfiguration
+      val dbfs = FileSystem.get(ss)
+      val paths = dbfs.listStatus(new Path(path))
+        .map(_.getPath.toString)
+        .filter(!_.contains("_SUCCESS"))
+        .sorted.drop(1) // drop1 drops cust=0 after sort
+      val pattern = "dbfs.*/cust=([0-9]+)$".r
+      val out = paths.map(f => { val pattern(h) = f; h })
+      out.map(_.toInt)
+    }
+  }
+  object CustomerIds {
+    def apply(path: String): List[Int] = {
+      CustomerIds().get(path).toList
+    }
+    def apply(paths: List[String]): List[Int] = {
+      paths.map(CustomerIds().get(_)).flatten.toList
+    }
+  }
+
+
   /* Get customer Ids that are in both paths. 
    * @param path1 The first path
    * @param path2 The second path

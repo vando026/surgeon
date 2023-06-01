@@ -115,10 +115,13 @@ object Paths {
       extends DataPath {
     val days_ = mkIntList(days).sorted
     val ndays_ = days_.map(_ + 1)
+
     val (nyear, nmonth, ndays) = if (month == 12 & days_.last == 31) 
       (year + 1, 1, ndays_.dropRight(1) :+ 1) else (year, month, ndays_.dropRight(1) :+ days_.last + 1)
+
     if (month == 12 && days_.length > 1)
-      throw new Exception("No  month = 12 and List[Int] contains day 31; use (month=12, day=31) instead.")
+      throw new Exception("If month = 12 then day = List[Int] cannot contain 31; use Daily(month=12, days=31) instead.")
+
     override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", 
       f"dt=d${year}_${fmt(month)}_${paste(days_)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(ndays)}_08_00")
         .mkString("/")

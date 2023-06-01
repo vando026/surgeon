@@ -1,7 +1,7 @@
-# Setting paths to Databricks datasets
+## Introduction and import
 
 Surgeon provides classes for constructing Databricks paths to the parquet Rawlog (PbRl) and
-Session Summary (PbSS) datasets. For now, these classes are limited to the `/mnt`  Databricks directory.
+Session Summary (PbSS) datasets. For now, I demonstrate path construction to data on  the `/mnt`  directory of Databricks.
 
 ```scala mdoc
 import org.apache.spark.sql.{SparkSession}
@@ -10,25 +10,28 @@ val spark = SparkSession.builder
   .getOrCreate
 ```
 
-### Import
-First import the `Paths` object that contains the classes:
+Import the `Paths` object. 
 
 ```scala mdoc 
 import conviva.surgeon.Paths._
 ```
 
+## DataPath class
+
 On Databricks, a customer will have hourly, daily, or monthly production data.
 To construct paths to the data, the `Path` object provides three clasess,
-called `Monthly`, `Daily`, and `Hourly`, with a `toString` method.
+called `Monthly`, `Daily`, and `Hourly`, which extend the `DataPath` trait. Each class comes with a `toString` method.
 
-For the PbSS data, and February 2023 as an example, use the `Monthly` class: 
+### Monthly 
+For monthly PbSS data use the `Monthly` class which have year and month parameters.   So for February 2023:
 
 ```scala mdoc
 val monthly = Monthly(year = 2023, month = 2)
 monthly.toString
 ```
 
-For the PbSS daily data, use the `Daily` class. 
+### Daily
+For the daily PbSS data, use the `Daily` class. 
 
 ```scala mdoc 
 val daily = Daily(year = 2023, month = 2, days = 16)
@@ -37,15 +40,17 @@ val daily2 = Daily(year = 2023, month = 2, days = List(16, 17))
 daily2.toString
 ```
 
-The first example is for February 16, 2023; the second example is for the
-16th and 17th day of that month.  Therefore, the day
-parameter can take an Int or List[Int]. The year defaults to the current year, so you can
-omit it as long as the parameters are in the order of month then day.
+The first example is for February 16, 2023; the second example is for the 16th
+and 17th day of that month.  Therefore, the day parameter can take an Int or
+List[Int]. The year defaults to the current year, so you can omit it as long as
+the parameters are in the order of month then day.
 
 ```scala mdoc
 val daily3 = Daily(2, List(16, 17))
 daily3.toString
 ```
+
+### Hourly
 
 For the PbSS hourly data, use the `Hourly` class:
 
@@ -61,6 +66,7 @@ Again, the year argument defaults to the current year, which you can omit so
 long as the parameters are in order of month, day(s), and hour(s). The day and hour parameters
 can be an Int or List[Int] so that you can select multiple days or hours. 
 
+### Hourly RawLog
 For the PbRl data, you can do:
 
 ```scala mdoc 
@@ -77,10 +83,9 @@ val pbraw2 = Hourly(year = 2023, month = 2, days = 14, hours = List(2, 3), root 
 pbraw2.toString
 ```
 
-### Paths object
+## File paths
 
-The classes above use the `PathDB` object, which holds the root paths to
-the various datasets.
+The classes above use the `PathDB` object to construct paths to the various datasets.
 
 ```scala mdoc 
 PathDB.prodArchive
@@ -98,7 +103,7 @@ val ss = Hourly(year = 2023, month = 2, days = 14, hours = List(2), root = PathD
 ss.toString
 ```
 
-### Customer methods
+## Customer methods
 
 Surgeon provides methods for selecting customer ids or customer names through
 the `Cust` class. This class also comes with a convenient `take` method. These methods work as follows (using the `Daily` class for demonstration).
