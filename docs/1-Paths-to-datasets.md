@@ -20,7 +20,7 @@ import conviva.surgeon.Paths._
 
 On Databricks, a customer will have hourly, daily, or monthly production data.
 To construct paths to the data, the `Path` object provides three clasess,
-called `Monthly`, `Daily`, and `Hourly`, which extend the `DataPath` trait. Each class comes with a `toString` method.
+called `Monthly`, `Daily`, and `Hourly`, which extend the `DataPath` trait. Each class comes with a `toString` and a `toList` method.
 
 ### Monthly 
 For monthly PbSS data use the `Monthly` class which have year and month parameters.   So for February 2023:
@@ -38,6 +38,7 @@ val daily = Daily(year = 2023, month = 2, days = 16)
 daily.toString
 val daily2 = Daily(year = 2023, month = 2, days = List(16, 17))
 daily2.toString
+daily2.toList
 ```
 
 The first example is for February 16, 2023; the second example is for the 16th
@@ -61,6 +62,7 @@ val hourly2 = Hourly(month = 2, days = 14, hours = List.range(2, 10))
 hourly2.toString
 val hourly3 = Hourly(month = 2, days = List(14, 15), hours = 2)
 hourly3.toString
+hourly3.toList
 ```
 Again, the year argument defaults to the current year, which you can omit so
 long as the parameters are in order of month, day(s), and hour(s). The day and hour parameters

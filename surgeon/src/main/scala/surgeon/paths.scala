@@ -71,7 +71,6 @@ object Paths {
     out
   }
 
-
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
   trait DataPath
@@ -113,18 +112,50 @@ object Paths {
    */ 
   case class Daily[A](month: Int, days: A, year: Int = 2023, root: String = PathDB.daily)
       extends DataPath {
+
+    /* Method to check if day is last day of month. */
+    private def lastDay(month: Int, days: List[Int]): Boolean = {
+      if (
+        (days.exists(d => d > 31) || days.exists(d => d < 1)) ||
+        (days.exists(d => d > 29) & month == 2))
+          throw new Exception("Invalid day of month.")
+      val m31 = List(1, 3, 5, 7, 8, 10, 12)
+      val m30 = List(4, 6, 9, 11)
+      (m31.contains(month) & days.contains(31)) ||
+      (m30.contains(month) & days.contains(30)) ||
+      month == 2 & days.exists(d => List(28, 29).contains(d))
+    }
+
+    private def stitch(day: List[Int], nyear: Int, nmonth: Int, nday: List[Int]): String = {
+          List(root, s"y=${year}", f"m=${fmt(month)}", 
+          f"dt=d${year}_${fmt(month)}_${paste(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(nday)}_08_00")
+          .mkString("/")
+    }
+
     val days_ = mkIntList(days).sorted
-    val ndays_ = days_.map(_ + 1)
+    override def toString = {
+      val (nyear, nmonth, ndays) = month match {
+        case m if (lastDay(m, days_) & days_.length > 1) => 
+          throw new Exception("List[Int] cannot include last day of month, use .toList instead.")
+        case m if (m != 12 & lastDay(m, days_) & days_.length == 1) => (year, month + 1, List(1))
+        case m if (m == 12 & lastDay(m, days_) & days_.length == 1) => (year + 1, 1, List(1))
+        case _ => (year, month, days_.map(_ + 1))
+      }
+      stitch(days_, nyear, nmonth, ndays)
+    }
 
-    val (nyear, nmonth, ndays) = if (month == 12 & days_.last == 31) 
-      (year + 1, 1, ndays_.dropRight(1) :+ 1) else (year, month, ndays_.dropRight(1) :+ days_.last + 1)
+    def toList = {
+      def getNext(day: Int): String = { 
+        val (nyear, nmonth, nday) = day match {
+          case d if (lastDay(month, List(d))) => (year, month + 1, 1)
+          case d if (month == 12 & lastDay(month, List(d))) => (year + 1, 1, 1)
+          case _ => (year, month, day + 1)
+        }
+        stitch(List(day), nyear, nmonth, List(nday))
+      }
+      for (d <- days_) yield getNext(d)
+    }
 
-    if (month == 12 && days_.length > 1)
-      throw new Exception("If month = 12 then day = List[Int] cannot contain 31; use Daily(month=12, days=31) instead.")
-
-    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}", 
-      f"dt=d${year}_${fmt(month)}_${paste(days_)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(ndays)}_08_00")
-        .mkString("/")
   }
 
   /** Trait for defining Hourly Paths to data. */ 
@@ -134,9 +165,23 @@ object Paths {
     val days: A
     val hours: A
     val xroot: String
-    override def toString = List(xroot, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(mkIntList(days))}",
-      f"dt=${year}_${fmt(month)}_${paste(mkIntList(days))}_${paste(mkIntList(hours))}")
+
+    def stitch(days: List[Int], hours: List[Int]): String = {
+      List(xroot, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
+        f"dt=${year}_${fmt(month)}_${paste(days)}_${paste(hours)}")
         .mkString("/")
+    }
+    val days_ = mkIntList(days)
+    val hours_ = mkIntList(hours)
+
+    if (days_.exists(d => d > 31) || days_.exists(d => d < 1) ||
+      (days_.exists(d => d > 29) & month == 2)) 
+        throw new Exception("Invalid day of month.")
+    if (hours_.exists(d => d > 23) || hours_.exists(d => d < 0))
+        throw new Exception("Invalid hour of day.")
+
+    override def toString = stitch(days_, hours_)
+    def toList = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
   }
 
   /** Class with methods to construct paths to hourly parquet data on
@@ -224,23 +269,3 @@ object Paths {
     def apply(obj: DataPath) = stitch(obj, "*")
   }
 }
-
-/*
-// import com.databricks.dbutils_v1.DbfsUtils
-//
-//
-
-def paste[A](x: A): String = {
-    val out = x match {
-      case (x: List[Int]) =>   x.mkString(",")
-      case (x:  Int ) => x.toString
-      case (x: String) => x
-      case (x: String) => x.mkString(",")
-    }
-    out
-}
-
-println(listOfDuplicates[Int](3))  // List(3, 3, 3, 3)
-println(listOfDuplicates(List(2, 3)))  // List(La, La, La, La, La, La, La, La)
-println(listOfDuplicates(List("2", "5")))  // List(La, La, La, La, La, La, La, La)
-*/
