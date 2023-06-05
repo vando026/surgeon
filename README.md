@@ -154,7 +154,7 @@ customerNameToId(List("TV2", "BASC"), cdat)
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
 
 
-More documentation forthcoming. 
+Please see the [Wiki home page]() for installation instructions. 
 
 <!-- Please see the wiki page for descriptions of surgeon's features. --> 
 
