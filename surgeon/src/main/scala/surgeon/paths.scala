@@ -88,7 +88,7 @@ object Paths {
     }
 
     def checkHours(hours: List[Int]) {
-      if (hours.exists(h => h > 23) || hours.exists(h => h < 0))
+      if (hours.exists(h => h > 23) || hours.exists(h => h < 1))
         throw new Exception("Invalid hour of day.")
     }
 
