@@ -58,26 +58,12 @@ object Customer {
   /** Get the customer IDs associated with a file path on Databricks. 
    *  @param path The path to the GCS files on Databricks.
    *  @example{{{
-   *  val path = Monthly(year = 2023, month = 1).toPath 
+   *  val path = Daily(year = 2023, month = 1, day = 20)
    *  customerIds(path)
    *  }}}
   */
-  def customerIds(path: String): Array[Int] = {
-    val ss = SparkSession.builder
-      .getOrCreate.sparkContext.hadoopConfiguration
-    val dbfs = FileSystem.get(ss)
-    val paths = dbfs.listStatus(new Path(path))
-      .map(_.getPath.toString)
-      .filter(!_.contains("_SUCCESS"))
-      .sorted.drop(1) // drop1 drops cust=0 after sort
-    val pattern = "dbfs.*/cust=([0-9]+)$".r
-    val out = paths.map(f => { val pattern(h) = f; h })
-    out.map(_.toInt)
-  }
 
-  case class CustomerIds() {
-    import org.apache.spark.sql.{DataFrame, SparkSession}
-    import org.apache.hadoop.fs._
+  case class customerIds() {
     def get(path: String): Array[Int] = {
       val ss = SparkSession.builder
         .getOrCreate.sparkContext.hadoopConfiguration
@@ -91,12 +77,12 @@ object Customer {
       out.map(_.toInt)
     }
   }
-  object CustomerIds {
+  object customerIds {
     def apply(path: String): List[Int] = {
-      CustomerIds().get(path).toList
+      customerIds().get(path).toList
     }
     def apply(paths: List[String]): List[Int] = {
-      paths.map(CustomerIds().get(_)).flatten.toList
+      paths.map(customerIds().get(_)).flatten.toSet.toList
     }
   }
 
@@ -112,7 +98,7 @@ object Customer {
    * }}}
   */
 
-  def customersInBothPaths(path1: String, path2: String): Array[Int] = {
+  def customersInBothPaths(path1: String, path2: String): List[Int] = {
     val cid1 = customerIds(path1)
     val cid2 = customerIds(path2)
       cid1.intersect(cid2)

@@ -89,7 +89,7 @@ class PathSuite extends munit.FunSuite {
     assertEquals(t4, expect4)
     assertEquals(t5.toString, expect5)
     assertEquals(t5.toList.length, 4)
-    assertEquals(t5.toList(0), expect6)
+    assertEquals(t5.toList.apply(0), expect6)
     intercept[java.lang.Exception]{Hourly(2, 30, List(22), 2023).toString}
     intercept[java.lang.Exception]{Hourly(3, 2, List(24), 2023).toString}
     intercept[java.lang.Exception]{Hourly(3, 2, 24, 2023).toString}

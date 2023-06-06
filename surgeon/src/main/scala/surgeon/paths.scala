@@ -73,7 +73,9 @@ object Paths {
 
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
-  trait DataPath
+  trait DataPath {
+    def toList: List[String]
+  }
 
   /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
    *  @param year $year
@@ -92,6 +94,7 @@ object Paths {
     override def toString = List(root, s"y=${year}", f"m=${fmt(month)}",
       f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
         .mkString("/")
+    override def toList = List(toString())
   }
   /** Class with methods to construct paths to daily PbSS parquet data on
    *  Databricks. If parameter names are omitted, then the order is month, day,
@@ -107,7 +110,7 @@ object Paths {
    *  Daily(month = 1, day = 12)
    *  Daily(1, 12).toString
    *  // Get customer data over 3 days
-   *  List.range(1, 4).map(d => Daily(2023, month = 2, day = d).toString)
+   *  Daily(2023, month = 2, day = List.range(1, 4)))
    *  }}}
    */ 
   case class Daily[A](month: Int, days: A, year: Int = 2023, root: String = PathDB.daily)
@@ -144,7 +147,7 @@ object Paths {
       stitch(days_, nyear, nmonth, ndays)
     }
 
-    def toList = {
+    override def toList = {
       def getNext(day: Int): String = { 
         val (nyear, nmonth, nday) = day match {
           case d if (lastDay(month, List(d))) => (year, month + 1, 1)
@@ -159,7 +162,7 @@ object Paths {
   }
 
   /** Trait for defining Hourly Paths to data. */ 
-  trait HourlyPath[A] {
+  trait HourlyPath[A] extends DataPath {
     val year: Int 
     val month: Int
     val days: A
@@ -180,8 +183,8 @@ object Paths {
     if (hours_.exists(d => d > 23) || hours_.exists(d => d < 0))
         throw new Exception("Invalid hour of day.")
 
-    override def toString = stitch(days_, hours_)
-    def toList = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
+    override def toString(): String = stitch(days_, hours_)
+    override def toList(): List[String] = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
   }
 
   /** Class with methods to construct paths to hourly parquet data on
@@ -201,12 +204,12 @@ object Paths {
    *  }}}
    */ 
   case class Hourly[A](month: Int, days: A, hours: A, year: Int = 2023, root: String = PathDB.hourly()) 
-      extends DataPath with HourlyPath[A] {
+      extends HourlyPath[A] {
     override val xroot = root
   }
 
   case class HourlyRaw[A](month: Int, days: A, hours: A, year: Int = 2023)
-      extends DataPath with HourlyPath[A] {
+      extends HourlyPath[A] {
     override val xroot: String = PathDB.rawlog()
   }
 
@@ -257,7 +260,7 @@ object Paths {
      *  }}}
     */
     def apply(obj: DataPath, take: Int) = {
-      val cids = customerIds(obj.toString).take(take)
+      val cids = customerIds(obj.toList).take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
 
