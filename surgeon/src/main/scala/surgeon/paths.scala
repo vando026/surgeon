@@ -74,7 +74,32 @@ object Paths {
   /** Trait with methods to format strings paths on the Databricks `/mnt`
    *  directory. */
   trait DataPath {
+    val year: Int 
+    val month: Int
+    val root: String
     def toList: List[String]
+
+    def checkDays(month: Int, days: List[Int]) {
+      if (
+        (month > 12 || month < 1) ||
+        (days.exists(d => d > 31) || days.exists(d => d < 1)) ||
+        (days.exists(d => d > 29) & month == 2))
+          throw new Exception("Invalid day or month.")
+    }
+
+    def checkHours(hours: List[Int]) {
+      if (hours.exists(h => h > 23) || hours.exists(h => h < 0))
+        throw new Exception("Invalid hour of day.")
+    }
+
+    def stitch(
+        root: String, year: Int, month: Int, day: List[Int],
+        nyear: Int, nmonth: Int, nday: List[Int], sign: String = "d"):
+      String = {
+        List(root, s"y=${year}", f"m=${fmt(month)}", 
+        f"dt=${sign}${year}_${fmt(month)}_${paste(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(nday)}_08_00")
+        .mkString("/")
+    }
   }
 
   /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
@@ -91,9 +116,8 @@ object Paths {
   case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
       extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
-    override def toString = List(root, s"y=${year}", f"m=${fmt(month)}",
-      f"dt=c${year}_${fmt(month)}_01_08_00_to_${nyear}_${fmt(nmonth)}_01_08_00")
-        .mkString("/")
+    checkDays(month, List(1))
+    override def toString = stitch(root, year, month, List(1), nyear, nmonth, List(1), sign = "c")
     override def toList = List(toString())
   }
   /** Class with methods to construct paths to daily PbSS parquet data on
@@ -116,12 +140,11 @@ object Paths {
   case class Daily[A](month: Int, days: A, year: Int = 2023, root: String = PathDB.daily)
       extends DataPath {
 
+    val days_ = mkIntList(days).sorted
+    checkDays(month, days_)
+
     /* Method to check if day is last day of month. */
     private def lastDay(month: Int, days: List[Int]): Boolean = {
-      if (
-        (days.exists(d => d > 31) || days.exists(d => d < 1)) ||
-        (days.exists(d => d > 29) & month == 2))
-          throw new Exception("Invalid day of month.")
       val m31 = List(1, 3, 5, 7, 8, 10, 12)
       val m30 = List(4, 6, 9, 11)
       (m31.contains(month) & days.contains(31)) ||
@@ -129,13 +152,6 @@ object Paths {
       month == 2 & days.exists(d => List(28, 29).contains(d))
     }
 
-    private def stitch(day: List[Int], nyear: Int, nmonth: Int, nday: List[Int]): String = {
-          List(root, s"y=${year}", f"m=${fmt(month)}", 
-          f"dt=d${year}_${fmt(month)}_${paste(day)}_08_00_to_${nyear}_${fmt(nmonth)}_${paste(nday)}_08_00")
-          .mkString("/")
-    }
-
-    val days_ = mkIntList(days).sorted
     override def toString = {
       val (nyear, nmonth, ndays) = month match {
         case m if (lastDay(m, days_) & days_.length > 1) => 
@@ -144,44 +160,38 @@ object Paths {
         case m if (m == 12 & lastDay(m, days_) & days_.length == 1) => (year + 1, 1, List(1))
         case _ => (year, month, days_.map(_ + 1))
       }
-      stitch(days_, nyear, nmonth, ndays)
+      stitch(root, year, month, days_, nyear, nmonth, ndays)
     }
 
     override def toList = {
-      def getNext(day: Int): String = { 
+      def singlePath(day: Int): String = { 
         val (nyear, nmonth, nday) = day match {
           case d if (lastDay(month, List(d))) => (year, month + 1, 1)
           case d if (month == 12 & lastDay(month, List(d))) => (year + 1, 1, 1)
           case _ => (year, month, day + 1)
         }
-        stitch(List(day), nyear, nmonth, List(nday))
+        stitch(root, year, month, List(day), nyear, nmonth, List(nday))
       }
-      for (d <- days_) yield getNext(d)
+      for (d <- days_) yield singlePath(d)
     }
 
   }
 
   /** Trait for defining Hourly Paths to data. */ 
   trait HourlyPath[A] extends DataPath {
-    val year: Int 
-    val month: Int
     val days: A
     val hours: A
-    val xroot: String
 
-    def stitch(days: List[Int], hours: List[Int]): String = {
-      List(xroot, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
+     def stitch(days: List[Int], hours: List[Int]): String = {
+      List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
         f"dt=${year}_${fmt(month)}_${paste(days)}_${paste(hours)}")
         .mkString("/")
     }
     val days_ = mkIntList(days)
     val hours_ = mkIntList(hours)
 
-    if (days_.exists(d => d > 31) || days_.exists(d => d < 1) ||
-      (days_.exists(d => d > 29) & month == 2)) 
-        throw new Exception("Invalid day of month.")
-    if (hours_.exists(d => d > 23) || hours_.exists(d => d < 0))
-        throw new Exception("Invalid hour of day.")
+    checkDays(month, days_)
+    checkHours(hours_)
 
     override def toString(): String = stitch(days_, hours_)
     override def toList(): List[String] = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
@@ -205,22 +215,21 @@ object Paths {
    */ 
   case class Hourly[A](month: Int, days: A, hours: A, year: Int = 2023, root: String = PathDB.hourly()) 
       extends HourlyPath[A] {
-    override val xroot = root
   }
 
   case class HourlyRaw[A](month: Int, days: A, hours: A, year: Int = 2023)
       extends HourlyPath[A] {
-    override val xroot: String = PathDB.rawlog()
+    override val root: String = PathDB.rawlog()
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  case class Cust(obj: DataPath)
+  case class Cust[A](obj: DataPath)
 
   object Cust {
 
-    private def stitch(obj: DataPath, cnames: String) = 
+    private def stitch[A](obj: DataPath, cnames: String) = 
       s"${obj.toString}/cust={${cnames}}"
 
     /** Method to get data path using customer names.
@@ -259,7 +268,7 @@ object Paths {
      * Cust(Monthly(2023, 2), take = 10)
      *  }}}
     */
-    def apply(obj: DataPath, take: Int) = {
+    def apply[A](obj: DataPath, take: Int) = {
       val cids = customerIds(obj.toList).take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
@@ -269,6 +278,6 @@ object Paths {
     * Cust(Monthly(2023, 2))
     * }}}
     */
-    def apply(obj: DataPath) = stitch(obj, "*")
+    def apply[A](obj: DataPath) = stitch(obj, "*")
   }
 }
