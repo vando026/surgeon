@@ -1,7 +1,7 @@
 package conviva.surgeon
 
 import conviva.surgeon.Sanitize._
-import org.apache.spark.sql.functions.{lower, col, when}
+import org.apache.spark.sql.functions.{lower, col, when, lit}
 import org.apache.spark.sql.{Column}
 // import conviva.surgeon.Metrics._
   
@@ -432,5 +432,9 @@ object PbSS {
   /** Extract the `lifeFramesRendered` field. */
   def lifeRenderedFrames(): Column = sessSum("lifeRenderedFrames") 
 
+  def CIRR(): Column = {
+     (sessSum("lifeNetworkBufferingTimeMs") /
+      (sessSum("lifeBufferingTimeMs").plus(sessSum("lifePlayingTimeMs"))) * lit(100))
+  }
 }
 

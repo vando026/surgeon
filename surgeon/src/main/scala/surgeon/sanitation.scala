@@ -1,12 +1,7 @@
 package conviva.surgeon
 
-import org.apache.spark.sql.functions.{
-  col, udf, array_join, transform, lower, 
-  concat_ws, conv, from_unixtime, when, lit,
-  aggregate, filter, size, array_min, array_max, 
-  array_distinct, array_position, array_contains
-}
 import org.apache.spark.sql.{Column}
+import org.apache.spark.sql.{functions => F}
 
 /** An object with traits and case classes to create objects named
  *  after fields that have their own methods.
@@ -21,7 +16,7 @@ object Sanitize {
    *  Typically `Ms` or `Sec`.
    */
   def convert_(field: Column, scale: Double, suffix: String): Column = {
-    (field * lit(scale)).cast("Long").alias(suffix)
+    (field * F.lit(scale)).cast("Long").alias(suffix)
   }
 
   /** Convert Unix epoch time to readable time stamp.
@@ -32,13 +27,15 @@ object Sanitize {
    *  Typically `Ms` or `Sec`.
    */
   def stamp_(field: Column, scale: Double, suffix: String): Column = {
-    from_unixtime(field * lit(scale)).alias(suffix)
+    F.from_unixtime(field * F.lit(scale)).alias(suffix)
   }
 
-  /* Method to extract last component of name.
-   * @param name The name for the field. 
-  */ 
-  def getName(name: String) = name.split("\\.").last
+  // trait TimeStamp {
+  //   def stamp: Column
+  //   val name: String
+  //   def hour() = F.hour(stamp()).alias(s"${name}Hour")
+  //   def day() = F.dayofmonth(stamp()).alias(s"${name}Day")
+  // }
 
   /** A class for extracting time-based columns in microseconds.
    * @param name The name for the field. 
@@ -60,6 +57,8 @@ object Sanitize {
       def sec() = convert_(col, 1.0/1000, s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
       def stamp() = stamp_(col, 1.0/1000, s"${name}Stamp")
+      def stampHour() = F.hour(stamp()).alias(s"${name}Hour")
+      def stampDay() = F.dayofmonth(stamp()).alias(s"${name}Day")
     }
 
 
@@ -74,19 +73,19 @@ object Sanitize {
   /** Convert value from signed to unsigned. */
   def toUnsigned(x: Int): BigInt =  (BigInt(x >>> 1) << 1) + (x & 1)
   /** UDF to convert signed BigInt to Unsigned BigInt */
-  def toUnsignedUDF = udf[BigInt, Int](toUnsigned)
+  def toUnsignedUDF = F.udf[BigInt, Int](toUnsigned)
   /** Convert all elements in array to unsigned. */
   def arrayToUnsigned(col: Column): Column = {
-    array_join(transform(col, toUnsignedUDF(_)), ":")
+    F.array_join(F.transform(col, toUnsignedUDF(_)), ":")
   }
 
   /** Convert integer value to hexadecimal format. */
   def toHexString_(x: Int): String = x.toHexString
   /** UDF to convert Int to hexadecimal format. */
-  def toHexStringUDF = udf[String, Int](toHexString_)
+  def toHexStringUDF = F.udf[String, Int](toHexString_)
   /** Convert all elements in an array to hexadecimal format. */
   def arrayToHex(col: Column): Column = {
-    array_join(transform(col, toHexStringUDF(_)), ":")
+    F.array_join(F.transform(col, toHexStringUDF(_)), ":")
   }
 
   /** Class to extract and convert IDs from non-array fields.
@@ -106,7 +105,7 @@ object Sanitize {
     /** Method to convert to unsigned format */
     def nosign(): Column = arrayToUnsigned(col).alias(s"${name}NoSign")
     /** Method concatenates fields unconverted. */
-    def asis(): Column = concat_ws(":", col).alias(s"${name}")
+    def asis(): Column = F.concat_ws(":", col).alias(s"${name}")
   }
 
   /** Class for creating sid5 and sid6 fields. */
@@ -114,15 +113,15 @@ object Sanitize {
     /** Method to convert to hexadecimal format */
     def hex(): Column = {
       val cols = clientId.hex +: id.map(_.hex)
-      concat_ws(":", cols: _*).alias(s"${name}Hex")
+      F.concat_ws(":", cols: _*).alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
     def nosign(): Column = {
       val cols = clientId.nosign +: id.map(_.nosign)
-      concat_ws(":", cols: _*).alias(s"${name}NoSign")
+      F.concat_ws(":", cols: _*).alias(s"${name}NoSign")
     }
     /** Method to concatenate fields asis. */
-    def asis(): Column =  concat_ws(":", clientId +: id:_*).alias(s"${name}")
+    def asis(): Column =  F.concat_ws(":", clientId +: id:_*).alias(s"${name}")
   }
 
   /** Class with methods to operate on arrays. */
@@ -130,42 +129,42 @@ object Sanitize {
     /** Sum all the elements in the array. This methods first removes all Null
       *  values then does a sum reduce. */
     def sumInt(): Column = {
-      aggregate(filter(col, x => x.isNotNull),
-        lit(0), (x, y) => x.cast("int")  + y.cast("int"))
+      F.aggregate(F.filter(col, x => x.isNotNull),
+        F.lit(0), (x, y) => x.cast("int")  + y.cast("int"))
         .alias(s"${name}Sum")
     }
     /** Remove nulls, keep the same name. */
-    def notNull(): Column = {
-      filter(col, x => x.isNotNull)
+    def dropNull(): Column = {
+      F.filter(col, x => x.isNotNull)
         .alias(s"${name}")
     }
     /** Are all elements in the array null. */   
     def allNull(): Column = {
       import org.apache.spark.sql.{functions => F}
-      F.when(size(filter(col, x => x.isNotNull)) === 0, true)
+      F.when(F.size(F.filter(col, x => x.isNotNull)) === 0, true)
        .otherwise(false).alias(s"${name}AllNull")
     }
     /** Return only distinct elements in array. Removes nulls. */
     def distinct(): Column = {
-      array_distinct(filter(col, x => x.isNotNull))
+      F.array_distinct(F.filter(col, x => x.isNotNull))
         .alias(s"${name}Distinct")
     }
     /** Return first non null element in array. */
     def first(): Column = {
-        filter(col, x => x.isNotNull)(0).alias(s"${name}First")
+        F.filter(col, x => x.isNotNull)(0).alias(s"${name}First")
     }
     /** Return last element in array, with null elements removed. */
     def last(): Column = {
-      col.apply(size(filter(col, x => x.isNotNull))
+      col.apply(F.size(F.filter(col, x => x.isNotNull))
         .minus(1)).alias(s"${name}Last")
     }
     /** Return minimum value in array. */
-    def min(): Column = array_min(col).alias(s"${name}Min")
+    def min(): Column = F.array_min(col).alias(s"${name}Min")
     /** Return maximum value in array. */
-    def max(): Column = array_max(col).alias(s"${name}Max")
-    /** Return true if the array contains a value. */
-    def contains(value: String): Column = {
-      array_contains(col, value).alias(s"${name}Match")
+    def max(): Column = F.array_max(col).alias(s"${name}Max")
+    /** Return true if element in array contains value. */
+    def has(value: Any): Column = {
+      F.array_contains(col, value).alias(s"${name}HasVal")
     }
   }
 

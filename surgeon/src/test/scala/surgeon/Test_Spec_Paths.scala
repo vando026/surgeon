@@ -28,11 +28,10 @@ class PathSuite extends munit.FunSuite {
 
   test("customerNamToId is expected") {
     val custData = customerNames(path = geopath)
-    val t1 = customerNameToId(List("MSNBC"), custData)(0).toInt
+    val t1 = customerNameToId(List("MSNBC"), custData)(0)
     val t2 = customerNameToId(List("MSNBC", "TV2"), custData)
-      .map(_.toInt)
     assertEquals(t1, 207488736)
-    assertEquals(t2.toSeq, Seq(207488736, 1960180360))
+    assertEquals(t2, List(207488736, 1960180360))
   }
 
   // test("Customer take n is expected") {

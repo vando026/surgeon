@@ -33,14 +33,6 @@ object Paths {
     val monthly = prodArchive + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
     def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
-    /** Path to TLB 1-hour analytics. */
-    def tlb1hour(snap: String, st: Int = 0): String = {
-      s""" 
-       | $dbUserShare/tlb/analytics-1hr/
-       | parquet/tlb_offlineJob-assesmbly_$snap/
-       | pbss/hourly/st=${st}/
-      """.stripMargin
-    }
     /** Path to Geo_Utils folder on Databricks. */
     val geoUtil = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
   }
@@ -88,7 +80,7 @@ object Paths {
     }
 
     def checkHours(hours: List[Int]) {
-      if (hours.exists(h => h > 23) || hours.exists(h => h < 1))
+      if (hours.exists(h => h > 23) || hours.exists(h => h < 0))
         throw new Exception("Invalid hour of day.")
     }
 
@@ -213,11 +205,11 @@ object Paths {
    *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
    *  }}}
    */ 
-  case class Hourly[A](month: Int, days: A, hours: A, year: Int = 2023, root: String = PathDB.hourly()) 
+  case class Hourly[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, root: String = PathDB.hourly()) 
       extends HourlyPath[A] {
   }
 
-  case class HourlyRaw[A](month: Int, days: A, hours: A, year: Int = 2023)
+  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023)
       extends HourlyPath[A] {
     override val root: String = PathDB.rawlog()
   }
@@ -225,11 +217,11 @@ object Paths {
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
   */
-  case class Cust[A](obj: DataPath)
+  case class Cust()
 
   object Cust {
 
-    private def stitch[A](obj: DataPath, cnames: String) = 
+    private def stitch(obj: DataPath, cnames: String) = 
       s"${obj.toString}/cust={${cnames}}"
 
     /** Method to get data path using customer names.
@@ -257,10 +249,6 @@ object Paths {
       stitch(obj, mkIntList(ids).mkString(","))
     }
 
-    // def apply(obj: DataPath, id: Int) = {
-    //   stitch(obj, id.toString)
-    // }
-
     /** Method to get paths to data for the first n customer IDs.
      *  @param obj A DataPath object. 
      *  @param take The number of customer Ids to take. 
@@ -268,7 +256,7 @@ object Paths {
      * Cust(Monthly(2023, 2), take = 10)
      *  }}}
     */
-    def apply[A](obj: DataPath, take: Int) = {
+    def apply(obj: DataPath, take: Int) = {
       val cids = customerIds(obj.toList).take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
@@ -278,6 +266,6 @@ object Paths {
     * Cust(Monthly(2023, 2))
     * }}}
     */
-    def apply[A](obj: DataPath) = stitch(obj, "*")
+    def apply(obj: DataPath) = stitch(obj, "*")
   }
 }

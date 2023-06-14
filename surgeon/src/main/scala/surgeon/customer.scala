@@ -8,13 +8,17 @@ import org.apache.hadoop.fs._
 
 object Customer {
 
-  /** Read customer data from GeoUtils. */
+  /** Read customer data from a file.
+   * @path Path to the customer file.
+   * @delim The delimiter. Default is "|"
+  */
   def customerNames(
-      path: String = PathDB.geoUtil
-    ): DataFrame = {
+      path: String = PathDB.geoUtil,
+      delim: String = "|"): 
+    DataFrame = {
     val out = SparkSession.builder.getOrCreate
         .read
-        .option("delimiter", "|")
+        .option("delimiter", delim)
         .option("inferSchema", "true")
         .csv(path)
         .toDF("customerId", "customerName")
@@ -48,11 +52,11 @@ object Customer {
    *  }}}
    */
   def customerNameToId[A](names: A, 
-      cdat: DataFrame = customerNames()): Array[Int] = {
+      cdat: DataFrame = customerNames()): List[Int] = {
     val snames = mkStrList(names).map(_.replace("c3.", ""))
     cdat.select(col("customerId"))
       .where(col("customerName").isin(snames:_*))
-      .collect().map(_(0).toString.toInt)
+      .collect().map(_(0).toString.toInt).toList
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 
