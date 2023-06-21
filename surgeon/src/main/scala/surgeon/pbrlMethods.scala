@@ -60,6 +60,11 @@ object PbRl {
       new ArrayCol(col(s"$pbsdm.cwsStateChangeEvent.newCwsState.$name"), s"$name")
   }
 
+  /** Method to extract seek timeline from CWS. */ 
+  def cwsSeekEvent(): Column = {
+    col("payload.heartbeat.pbSdmEvents.cwsSeekEvent")
+  }
+
   /** Extract the `customerId` column as is.
    * @example{{{
    * df.select(customerId)
@@ -159,5 +164,38 @@ object PbRl {
     * }}}
     */
   def sessionCreationTime = new TimeMsCol(payload("sessionCreationTimeMs"), "sessionCreationTime")
+
+}
+
+object Timeline {
+
+  import org.apache.spark.sql.{DataFrame}
+  import org.apache.spark.sql.{functions => F}
+  import conviva.surgeon.PbRl._
+  import org.apache.spark.sql.expressions.Window
+
+  case class PlayerState(dat: DataFrame, id: Column) {
+
+    val playerData = dat.select(
+        id, seqNumber, 
+        timeStamp.stamp,
+        sessionCreationTime,
+        F.explode(F.arrays_zip(
+          sessionTimeMs, 
+          cwsStateChangeNew("playingState"), 
+          pbSdm("cwsSeekEvent").getItem("actionType").alias("actionType"),
+        )).alias("dict")
+      )
+      .withColumn("time", col("dict").getItem("sessionTimeMs"))
+      .withColumn("eventTimeStamp", F.from_unixtime( (col("sessionCreationTimeMs") + col("time")) / 1000))
+      .withColumn("state", col("dict").getItem("playingState"))
+      .withColumn("seek", col("dict").getItem("actionType"))
+      .drop("dict", "sessionCreationTimeMs")
+      .orderBy("sessionId", "eventTimeStamp")
+  }
+
+    // Calculate player state changes in the timeline: player timeline
+  val dw = Window.partitionBy("sessionId").orderBy(F.asc("eventTimeMs"))
+  val sw = dw.rowsBetween(Window.unboundedPreceding, Window.currentRow)
 
 }

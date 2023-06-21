@@ -46,7 +46,8 @@ object PbSS {
 
   /** Method for extracting fields from `val.invariant.c3Tags`. */
   def c3Tags(field: String): Column = {
-    col("val.invariant.c3Tags").getField(field).alias(field)
+    col("val.invariant.c3Tags").getField(field)
+      .alias(field.replaceAll("\\.", "_"))
   }
 
 
@@ -126,7 +127,7 @@ object PbSS {
   */ 
   def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
 
-  /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
+  /** Creates an Ad SID5 object which concatenates `clientId` and `c3csid`
    *  $signed. 
    *  @example{{{
    *  df.select(
@@ -136,7 +137,7 @@ object PbSS {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3csid)
 
   /** Extract the `shouldProcess` field as is.
    * @example{{{
@@ -290,11 +291,10 @@ object PbSS {
     import org.apache.spark.sql.{Column, functions => F}
     // def check = this("val.sessSummary.joinTimeMs")
     def recode(): Column = {
-      // val c1 = F.when(col === "client", 1)
        F.when(lower(col).rlike("client|csai"), "client")
         .when(lower(col).rlike("server|ssai"), "server")
         .otherwise("unknown")
-        .alias("c3_ad_tech_rc")
+        .alias("c3_adTech_rc")
     }
   }
 
@@ -303,12 +303,12 @@ object PbSS {
    *  unknown.
    *  @example{{{
    *  df.select(
-   *    adTech, 
-   *    adTech.recode
+   *    c3adTech, 
+   *    c3adTech.recode
    *  )
    *  }}}
    */
-  def adTech = new AdTech(sumTags("c3.ad.technology").alias("c3_ad_tech"))
+  def c3adTech = new AdTech(sumTags("c3.ad.technology").alias("c3_adTech"))
 
   /** Recode `c3 Video is Ad` field. */
   class c3isAd(col: Column) extends Column(col.expr) {
@@ -325,8 +325,8 @@ object PbSS {
    *  null.
    *  @example{{{
    *  df.select(
-   *    isAd, 
-   *    isAd.recode
+   *    c3isAd, 
+   *    c3isAd.recode
    *  )
    *  }}}
    */
@@ -347,13 +347,13 @@ object PbSS {
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
    * df.select(
-   *   c3_csid.asis,
-   *   c3_csid.hex, 
-   *   c3_csid.nosign
+   *   c3csid.asis,
+   *   c3csid.hex, 
+   *   c3csid.nosign
    * )
    * }}}
    */ 
-  def c3_csid = new IdCol(sumTags("c3.csid"), "c3_csid")
+  def c3csid = new IdCol(sumTags("c3.csid"), "c3_csid")
   def sessionAdId = new IdCol(sumTags("c3.csid"), "sessionAdId")
 
   /** Extracts the field `exitDuringPreRoll` as is from $ss. */ 
@@ -432,9 +432,12 @@ object PbSS {
   /** Extract the `lifeFramesRendered` field. */
   def lifeRenderedFrames(): Column = sessSum("lifeRenderedFrames") 
 
+  /** Calculate Connection Induced Rebuffering Ratio (CIRR). */ 
   def CIRR(): Column = {
      (sessSum("lifeNetworkBufferingTimeMs") /
-      (sessSum("lifeBufferingTimeMs").plus(sessSum("lifePlayingTimeMs"))) * lit(100))
+     (sessSum("lifeBufferingTimeMs").plus(sessSum("lifePlayingTimeMs"))) * lit(100))
+      .alias("CIRR")
+      
   }
 }
 

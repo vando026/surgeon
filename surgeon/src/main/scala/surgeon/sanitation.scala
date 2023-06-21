@@ -92,7 +92,7 @@ object Sanitize {
    * @param field The input field
    * @param name The new name for input field
    */
-  class IdCol(col: Column, name: String) extends Column(col.expr) {
+  class IdCol(col: Column, name: String) extends Column(col.alias(name).expr) {
     /** Method to convert to hexadecimal format */
     def hex(): Column = toHexStringUDF(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */

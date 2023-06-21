@@ -25,6 +25,8 @@ val cdat = customerNames(path = "./surgeon/src/test/data/cust_dat.txt")
 cdat.show()
 ```
 
+### Convert customer Id to name
+
 To quickly convert a customer Id to name, you can use the `customerIdToName`
 method. The method takes an Int or List[Int] as the first argument and the
 customer data as the second. 
@@ -34,14 +36,17 @@ customer data as the second.
 customerIdToName(207488736, cdat)
 customerIdToName(List(207488736, 744085924), cdat)
 ```
+### Convert customer name to Id
 
-Inversely, you can get a customer name from an Id from the customer data. 
+Conversely, you can get a customer name from an Id from the customer data. 
 
 ```scala mdoc 
 // can be String or List[String]
 customerNameToId("TV2", cdat)
 customerNameToId(List("TV2", "BASC"), cdat)
 ```
+
+### Customer Ids on Databricks path
 
 Another useful method is to get all the customer Ids from a data path on
 Databricks. You can do so using the `customerIds` method, which takes a path
@@ -52,6 +57,8 @@ for PbSS data.
 val path = Hourly(month = 5, days = 22, hours = 18)
 customerIds(path.toString)
 ```
+
+### Shared customer Ids on PbSS and PbRl paths
 
 Sometimes, you wish to work with both PbRl and PbSS data for a given Hour or
 Day. But not all customers in PbSS appear in PbRl. You can use the

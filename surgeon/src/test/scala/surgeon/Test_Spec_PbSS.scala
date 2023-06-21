@@ -87,7 +87,7 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("Select should include all ID field names") {
-    val expect = "customerId:clientId:clientSessionId:sid5:sid5NoSign:sid5Hex"
+    val expect = "customerId:clientId:sessionId:sid5:sid5NoSign:sid5Hex"
     val tnames = d8905
       .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.nosign, sid5.hex)
         .columns.mkString(":")
