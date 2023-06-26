@@ -65,8 +65,9 @@ object Customer {
    *  @example{{{
    *  val path = Daily(year = 2023, month = 1, day = 20)
    *  customerIds(path)
-   *  val paths = Hourly(month = 6, days = 2, hours = List(2, 3)).toList
-   *  customerIds(paths)
+   *  customerIds(path.toString)
+   *  val paths = Hourly(month = 6, days = 2, hours = List(2, 3))
+   *  customerIds(paths.toList)
    *  }}}
   */
   case class customerIds() {
@@ -90,6 +91,9 @@ object Customer {
     def apply(paths: List[String]): List[Int] = {
       paths.map(customerIds().get(_)).flatten.toSet.toList
     }
+    def apply(path: DataPath): List[Int] = {
+      customerIds().get(path.toString)
+    }
   }
 
 
@@ -108,15 +112,17 @@ object Customer {
    * )
    * }}}
   */
- case class customersInBothPaths(path1: String, path2: String) {
+ case class customersInBothPaths() {
+   def get(path1: String, path2: String): List[Int] = {
     customerIds(path1).intersect(customerIds(path2))
+   }
   }
   object customersInBothPaths {
     def apply(path1: DataPath, path2: DataPath): List[Int] = {
-      customersInBothPaths(path1.toString, path2.toString)
+      customersInBothPaths().get(path1.toString, path2.toString)
     }
     def apply(path1: String, path2: String): List[Int] = {
-      customersInBothPaths(path1, path2)
+      customersInBothPaths().get(path1, path2)
     }
   }
 
