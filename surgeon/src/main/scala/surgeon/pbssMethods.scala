@@ -68,6 +68,12 @@ object PbSS {
     col(s"val.sessSummary.${field}").alias(field)
   }
 
+  /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
+  def geoInfo(field: String): GeoCol = {
+    val gcol = col(s"val.invariant.geoInfo.$field")
+    new GeoCol(gcol, field)
+  }
+
   /** Extract the `customerId` column as is.
    * @example{{{
    * df.select(customerId.asis)

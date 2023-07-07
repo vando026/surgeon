@@ -19,8 +19,9 @@ package conviva.surgeon
 object PbRl {
 
   import conviva.surgeon.Sanitize._
-  import org.apache.spark.sql.functions.{lower, col, when}
+  import org.apache.spark.sql.functions.{lower, col, when, typedLit}
   import org.apache.spark.sql.{Column}
+  import conviva.surgeon.GeoInfo._
   
   val pbsdm = "payload.heartbeat.pbSdmEvents"
 
