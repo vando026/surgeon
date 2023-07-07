@@ -8,56 +8,33 @@ import org.apache.hadoop.fs._
 
 object Customer {
 
-  /** Read customer data from a file.
-   * @path Path to the customer file.
-   * @delim The delimiter. Default is "|"
-  */
-  def customerNames(
-      path: String = s"${PathDB.geoUtil}/cust_dat.txt",
-      delim: String = "|"): 
-    DataFrame = {
-    val out = SparkSession.builder.getOrCreate
-        .read
-        .option("delimiter", delim)
-        .option("inferSchema", "true")
-        .csv(path)
-        .toDF("customerId", "customerName")
-        .withColumn("customerName",
-            regexp_replace(col("customerName"), "c3.", ""))
-     out
-  }
+  /** Read the `/FileStore/Geo_Utils/c3ServiceConfig*.xml` from Databricks, which
+   *  contains customer names and ids. */
+  def customerNames(): Map[Int, String] = getGeoData("resource")
 
   /** Get the ID of the customer name. 
    *  @param ids The ids of the customer.
-   *  @param cdat A dataset derived from `customerNames`.
+   *  @param cmap A map derived from `customerNames`.
    *  @example{{{
-   *  customerIdToName(List(196900922, 196300090), cdat = customerNames()) 
+   *  customerIdToName(List(196900922, 196300090), cmap = customerNames()) 
    *  customerIdToName(List(196900922, 196300090)) 
    *  customerIdToName(196300090)
    *  }}}
    */
-  def customerIdToName[A](ids: A, cdat: DataFrame = customerNames()): 
-      List[String] = {
-    cdat.where(col("customerId").isin(mkIntList(ids): _*))
-      .select(col("customerName"))
-      .collect().map(_.getString(0)).toList
+  def customerIdToName[A](ids: A, cmap: Map[Int, String] = customerNames()): List[String] = {
+    mkIntList(ids).map(cmap(_))
   }
   
   /** Get the ID of the customer name. 
    *  @param names The names of the customer.
-   *  @param cdat A dataset derived from `customerNames`.
+   *  @param cmap A map derived from `customerNames`.
    *  @example{{{
-   *  customerNameToId(List("MLB", "CBNS"), cdat = customerNames())
    *  customerNameToId(List("c3.MLB", "c3.CBNS"))
-   *  customerNameToId("MLB")
+   *  customerNameToId("c3.MLB")
    *  }}}
    */
-  def customerNameToId[A](names: A, cdat: DataFrame = customerNames()): 
-      List[Int] = {
-    val snames = mkStrList(names).map(_.replace("c3.", ""))
-    cdat.select(col("customerId"))
-      .where(col("customerName").isin(snames:_*))
-      .collect().map(_(0).toString.toInt).toList
+  def customerNameToId[A](names: A, cmap: Map[Int, String] = customerNames()): List[Int] = {
+    mkStrList(names).map(i => cmap.filter(_._2 == i)).map(_.keys).flatten
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 

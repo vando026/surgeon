@@ -172,12 +172,6 @@ object PbRl {
     */
   def sessionCreationTime = new TimeMsCol(payload("sessionCreationTimeMs"), "sessionCreationTime")
 
-  /* Extract geoCity with labels. */
-  // def geoCity = new City(geoInfo("city"))
-
-  /* Extract geoContinent with labels. */
-  // def geoContinent = new Continent(geoInfo("continent"))
-
 }
 /*
   def EventTimeStamp(data: DataFrame): DataFrame {

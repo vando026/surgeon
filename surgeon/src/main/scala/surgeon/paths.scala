@@ -232,9 +232,9 @@ object Paths {
      *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply[A](obj: DataPath, names: A, path: String = s"${PathDB.geoUtil}/cust_dat.txt"):
+    def apply[A](obj: DataPath, names: A, cmap: Map[Int, String] = customerNames()):
         String = {
-      val cnames = customerNameToId(mkStrList(names), customerNames(path))
+      val cnames = customerNameToId(mkStrList(names), cmap)
       stitch(obj, cnames.mkString(","))
     }
 
