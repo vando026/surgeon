@@ -1,9 +1,9 @@
 package conviva.surgeon
 
 import conviva.surgeon.Sanitize._
-import org.apache.spark.sql.functions.{lower, col, when, lit}
+import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
 import org.apache.spark.sql.{Column}
-// import conviva.surgeon.Metrics._
+import conviva.surgeon.GeoInfo._
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -74,6 +74,17 @@ object PbSS {
    * }}}
   */ 
   def customerId(): Column = col("key.sessId.customerId")
+
+  /** Extract the `customerId` column as is.
+   * @example{{{
+   * df.select(customerName)
+   * }}}
+  */ 
+  def customerName(): Column = {
+    val gMap = getGeoData("resource")
+    val gLit: Column = typedLit(gMap) 
+    gLit(customerId).alias(s"customerName")
+  }
 
   /** Extract the `clientSessionId` column as is.
    * @example{{{
