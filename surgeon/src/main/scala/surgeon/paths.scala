@@ -34,7 +34,7 @@ object Paths {
     /** Path to the parquet heartbeat (raw log) files. */
     def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
     /** Path to Geo_Utils folder on Databricks. */
-    val geoUtil = "dbfs:/FileStore/Geo_Utils/cust_dat.txt"
+    val geoUtil = "dbfs:/FileStore/Geo_Utils"
   }
 
   // utility methods
@@ -232,7 +232,8 @@ object Paths {
      *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply[A](obj: DataPath, names: A, path: String = PathDB.geoUtil): String = {
+    def apply[A](obj: DataPath, names: A, path: String = s"${PathDB.geoUtil}/cust_dat.txt"):
+        String = {
       val cnames = customerNameToId(mkStrList(names), customerNames(path))
       stitch(obj, cnames.mkString(","))
     }

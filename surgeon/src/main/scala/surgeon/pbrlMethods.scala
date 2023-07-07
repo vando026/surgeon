@@ -38,8 +38,14 @@ object PbRl {
 
   /** Method for extracting fields from `payload.heartbeat.c3Tag`. Fields
    *  with periods are replaced with underscores by default.*/
-  def c3Tag(field: String): Column = {
+  def c3Tags(field: String): Column = {
     payload("c3Tags").getItem(field).alias(field.replaceAll("\\.", "_"))
+  }
+
+  /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
+  def geoInfo(field: String): GeoCol = {
+    val gcol = col(s"payload.heartbeat.geoInfo.$field")
+    new GeoCol(gcol, field)
   }
 
   // def sumTags(field: String): Column = {
@@ -48,7 +54,7 @@ object PbRl {
 
   /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields
    *  with periods are replaced with underscores by default.*/
-  def clientTag(field: String): Column = {
+  def clientTags(field: String): Column = {
     payload("clientTags").getItem(field).alias(field.replaceAll("\\.", "_"))
   }
 
@@ -131,8 +137,8 @@ object PbRl {
    * )
    * }}}
    */ 
-  def sessionAdId = new IdCol(clientTag("c3.csid"), name = "sessionAdId")
-  def c3_csid = new IdCol(clientTag("c3.csid"), name = "c3_csid")
+  def sessionAdId = new IdCol(clientTags("c3.csid"), name = "sessionAdId")
+  def c3_csid = new IdCol(clientTags("c3.csid"), name = "c3_csid")
 
   /** Extract the `seqNumber` field as is.
    * @example{{{
@@ -166,6 +172,11 @@ object PbRl {
     */
   def sessionCreationTime = new TimeMsCol(payload("sessionCreationTimeMs"), "sessionCreationTime")
 
+  /* Extract geoCity with labels. */
+  // def geoCity = new City(geoInfo("city"))
+
+  /* Extract geoContinent with labels. */
+  // def geoContinent = new Continent(geoInfo("continent"))
 
 }
 /*

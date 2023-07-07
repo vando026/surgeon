@@ -2,6 +2,7 @@ package conviva.surgeon
 
 import org.apache.spark.sql.{Column}
 import org.apache.spark.sql.{functions => F}
+import conviva.surgeon.GeoInfo._
 
 /** An object with traits and case classes to create objects named
  *  after fields that have their own methods.
@@ -167,6 +168,18 @@ object Sanitize {
       F.array_contains(col, value).alias(s"${name}HasVal")
     }
   }
+
+  class GeoCol(col: Column, field: String) extends Column(col.expr) {
+    def label(): Column  = {
+      val gMap = getGeoData(field)
+      val gLit: Column = F.typedLit(gMap) 
+      gLit(col).alias(s"${field}Label")
+    }
+  }
+
+  // class Continent(col: Column) extends Column(col.expr) {
+  //   def label(): Column = setLabel("continent", col)
+  // }
 
 
 }

@@ -1,7 +1,7 @@
 package conviva.surgeon
 
 import conviva.surgeon.Paths._
-import conviva.surgeon.Heart._
+import conviva.surgeon.GeoInfo._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
 import org.apache.hadoop.fs._
@@ -13,7 +13,7 @@ object Customer {
    * @delim The delimiter. Default is "|"
   */
   def customerNames(
-      path: String = PathDB.geoUtil,
+      path: String = s"${PathDB.geoUtil}/cust_dat.txt",
       delim: String = "|"): 
     DataFrame = {
     val out = SparkSession.builder.getOrCreate

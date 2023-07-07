@@ -27,8 +27,8 @@ methods are:
 ```scala
 dat.select(
   pbSdm("cwsSeekEvent"),             // root: payload.heartbeat.pbSdmEvents
-  c3Tag("c3.client.osf"),            // root: payload.heartbeat.c3Tags
-  clientTag("serviceName"),          // root: payload.heartbeat.clientTag
+  c3Tags("c3.client.osf"),           // root: payload.heartbeat.c3Tags
+  clientTags("serviceName"),         // root: payload.heartbeat.clientTag
   cwsPlayer("playerState"),          // root: payload.heartbeat.cwsPlayerMeasurementEvent
   cwsStateChangeNew("playingState")  // root: payload.heartbeat.cwsStateChangeEvent.newCwsState
   )
