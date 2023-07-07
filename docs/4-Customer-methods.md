@@ -7,22 +7,24 @@ val spark = SparkSession.builder
 
 ### Customer names data
 
-The `customerNames` method reads in a .csv file with `customerId` and
-`customerName` columns. The method takes a path argument to the .csv dataset.
-The default path is to the `Geo_Utils/cust_dat.txt` on Databricks. 
+The `customerNames` method reads in a
+`/FileStore/Geo_Utils/c3ServiceConfig*.xml` file from Databricks, and converts
+it to a `Map[Int, String]` with the customer Ids and names, respectively. 
 
+For this demonstration, I use toy customer data. 
 
 ```scala mdoc
-import conviva.surgeon.Paths._
-PathDB.geoUtil
-```
-
-For this demonstration, I use a local path for toy customer data. 
-
-```scala mdoc 
 import conviva.surgeon.Customer._
-val cdat = customerNames(path = "./surgeon/src/test/data/cust_dat.txt")
-cdat.show()
+// Reads in the file from Databricks
+// customerNames()
+// For this demo, I used the toy data below
+val cdat: Map[Int, String] = Map(
+  207488736 -> "c3.MSNBC",
+  744085924 -> "c3.PMNN",
+  1960180360 -> "c3.TV2",
+  978960980 -> "c3.BASC"
+)
+
 ```
 
 ### Convert customer Id to name

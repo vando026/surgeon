@@ -1,5 +1,5 @@
 scalaVersion := "2.12.17"
-version := "0.0.4.7"
+version := "0.0.5"
 name := "surgeon"
 organization := "conviva"
 

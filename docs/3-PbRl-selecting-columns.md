@@ -34,6 +34,20 @@ dat.select(
   )
 ```
 
+
+### Geo methods
+Surgeon provides a method to extract geoInfo data and provides a convenient
+method called `label` to assign labels to the numeric coded fields. 
+
+```scala 
+dat.select(
+  geoInfo("city"),          // extracts the city numeric values
+  geoInfo("city").label,    // extracts the city names
+  geoInfo("continent"),
+  geoInfo("continent").label,
+)
+```
+
 ### Shorthand methods
 
 There are several methods that make the selection of frequently used columns as simple as
@@ -42,6 +56,7 @@ possible:
 ```scala
 dat.select(
   customerId,
+  customerName,
   sessionId,
   clientId,
   timeStamp,

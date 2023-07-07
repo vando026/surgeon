@@ -64,11 +64,11 @@ val hourly_df = spark.read.parquet(path)
 
 ### Path construction
 
-Surgeon makes constructing the paths to the data easier, as shown in the demo
-code above. Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
+Surgeon makes constructing the paths to the data easier. Can't remember the
+9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "CBSCom")
+val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
 ```
 
 Only want to select three customers for a given hour, then do:
@@ -117,6 +117,16 @@ hourly_df.select(
 )
 ```
 
+You can also get the names of the `customerId` using `customerName`.
+
+```scala 
+hourly_df.select(
+  customerId,
+  customerName
+)
+```
+
+
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
 [PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
 
@@ -129,17 +139,8 @@ customer Ids and names, get names from Ids, and get Ids from names.
 
 ```scala  
 import conviva.surgeon.Customer._
-val cdat = customerNames(path = "./surgeon/src/test/data/cust_dat.txt")
-cdat.show()
-// +----------+------------+
-// |customerId|customerName|
-// +----------+------------+
-// | 207488736|       MSNBC|
-// | 744085924|        PMNN|
-// |1960180360|         TV2|
-// | 978960980|        BASC|
-// +----------+------------+
-//
+val cdat = customerNames()
+// cdat: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
 customerIdToName(207488736, cdat)
 // res2: Array[String] = Array("MSNBC")
 customerIdToName(List(207488736, 744085924), cdat)
@@ -149,7 +150,6 @@ customerNameToId("TV2", cdat)
 customerNameToId(List("TV2", "BASC"), cdat)
 // res5: Array[Int] = Array(1960180360, 978960980)
 ```
-
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
 
