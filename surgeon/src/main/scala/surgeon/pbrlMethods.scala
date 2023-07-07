@@ -79,6 +79,17 @@ object PbRl {
   */ 
   def customerId(): Column = payload("customerId")
 
+  /** Extract the `customerId` column as is.
+   * @example{{{
+   * df.select(customerName)
+   * }}}
+  */ 
+  def customerName(): Column = {
+    val gMap = getGeoData("resource")
+    val gLit: Column = typedLit(gMap) 
+    gLit(customerId).alias(s"customerName")
+  }
+
   /** Extract the `clientSessionId` column as is.
    * @example{{{
    * df.select(sessionId.asis)
