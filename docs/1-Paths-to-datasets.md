@@ -136,12 +136,12 @@ val c4 = Cust(Daily(12, 28), take  = 3)
 To select by customer name.
 
 ```scala 
-val c5 = Cust(Daily(12, 28), names = "Yahoo")
+val c5 = Cust(Daily(12, 28), names = "c3.Yahoo")
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772}"
 
 ``` 
 To select by customer names.
 ```scala 
-val c6 = Cust(Daily(12, 28), names = List("Yahoo", "MLB"))
+val c6 = Cust(Daily(12, 28), names = List("c3.Yahoo", "c3.MLB"))
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772,1960180361}"
 ``` 

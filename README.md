@@ -117,7 +117,7 @@ hourly_df.select(
 )
 ```
 
-You can also get the names of the `customerId` using `customerName`.
+You can also extract the `customerId`, and even better, you can get the customer names using `customerName`.
 
 ```scala 
 hourly_df.select(
@@ -142,13 +142,13 @@ import conviva.surgeon.Customer._
 val cdat = customerNames()
 // cdat: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
 customerIdToName(207488736, cdat)
-// res2: Array[String] = Array("MSNBC")
+// res2: List[String] = List("c3.MSNBC")
 customerIdToName(List(207488736, 744085924), cdat)
-// res3: Array[String] = Array("MSNBC", "PMNN")
+// res3: List[String] = List("c3.MSNBC", "c3.PMNN")
 customerNameToId("TV2", cdat)
-// res4: Array[Int] = Array(1960180360)
-customerNameToId(List("TV2", "BASC"), cdat)
-// res5: Array[Int] = Array(1960180360, 978960980)
+// res4: List[Int] = List(1960180360)
+customerNameToId(List("c3.TV2", "c3.BASC"), cdat)
+// res5: List[Int] = List(1960180360, 978960980)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
