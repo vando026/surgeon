@@ -82,7 +82,7 @@ hourly_df.select(
 )
 ```
 
-The same methods can be used with `clientId` or `sessionId` only (which are of
+The same methods can be used with `clientId` or `sessionId` individually (which are of
 class `IdCol`), and you can even construct an `sid6` column (of class `SID`)
 with `sessionCreationTimeMs`:
 
@@ -94,7 +94,7 @@ hourly_df.select(
 )
 ```
 
-You can also extract the `customerId`, and even better, you can get the customer names using `customerName`.
+You can select the customer columns using `customerId` and customer names using `customerName`.
 
 ```scala 
 hourly_df.select(
@@ -128,7 +128,7 @@ hourly_df.select(
 #### GeoInfo class 
 
 Surgeon makes it easy to work with `Geo` columns. You can select `GeoInfo`
-columns from `val.invariant.geoInfo` (of class `geoInfo`) like so:
+columns from `val.invariant.geoInfo` (of class `GeoInfo`) like so:
 
 ```scala 
 hourly_df.select(
@@ -139,7 +139,7 @@ hourly_df.select(
 ```
 
 It is hard to decipher what these codes are, so Surgeon makes it easy by
-providing a `label` method map the codes to names: 
+providing a `label` method to map the codes to names: 
 
 
 ```scala 
@@ -183,6 +183,7 @@ Surgeon makes constructing the paths to the data easier (of class `DataPath`). Y
 arguments for the `Monthly`, `Daily` or `Hourly` classes. 
 
 ```scala 
+import conviva.surgeon.Paths._
 val path = Hourly(2022, month = 12, days = 24, hours = 18)
 val path2 = Hourly(2022, 12, 24, List(18, 19, 20))
 ```

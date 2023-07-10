@@ -30,7 +30,7 @@ columns from containers (arrays, maps, structs). These methods eliminate the
 need for typing out long path names to the columns. The available container
 methods are: 
 
-``` scala mdoc
+```scala mdoc
 dat.select(
   sessSum("playerState"), 
   d3SessSum("lifePausedTimeMs"),
@@ -43,7 +43,7 @@ dat.select(
 ```
 Any valid  string name can be used, provided the column exists. The container names are abbreviations of the root paths to the column names, as shown below:
 
-``` scala mdoc 
+```scala mdoc 
 dat.select(
   col("val.sessSummary.playerState"),
   col("val.sessSummary.d3SessSummary.lifePausedTimeMs"),
@@ -60,7 +60,7 @@ dat.select(
 There are several methods that make the selection of frequently used columns as simple as
 possible: 
 
-```scala
+```scala mdoc
 dat.select(
   customerId, 
   clientId,
@@ -109,29 +109,27 @@ handles the formatting. The `SID` class handles the concatenations of columns, f
 `clientSessionId` and `sessionId`, and assigns a name based on
 the format selected. 
 
-```scala 
+```scala mdoc
 dat.select(
   customerId,
-  clientId,         // returns as is, signed array
-  clientId.asis.    // returns as signed String
-  clientId.nosign,  // returns unsigned String
-  clientId.hex,     // returns hexadecimal String
-  clientAdId,       // AdId (c3.csid) signed array
-  clientAdId.asis,  // AdId (c3.csid) signed String
-  clientId.nosign,  // AdId (c3.csid) unsigned String
-  clientId.hex,     // AdId (c3.csid) hexadecimal String
-  sessionId,        // signed
-  sessionId.nosign, // unsigned
-  sessionId.hex,    // hexadecimal
-  sid5.asis,        // clientId:sessionId signed String
-  sid5.nosign,      // clientId:sessionId unsigned String
-  sid5.hex,         // clientId:sessionId hexadecimal String
-  sid5Ad.asis,      // clientAdId:sessionId signed String
-  sid5Ad.nosign,    // clientAdId:sessionId unsigned String
-  sid5Ad.hex,       // clientAdId:sessionId hexadecimal String
-  sid6.asis,        // clientAdId:sessionId:sessionCreationTime signed String
-  sid6.nosign,      // clientAdId:sessionId:sessionCreationTime unsigned String
-  sid6.hex          // clientAdId:sessionId:sessionCreationTime hexadecimal String
+  clientId,           // returns as is, signed array
+  clientId.nosign,    // returns unsigned String
+  clientId.hex,       // returns hexadecimal String
+  sessionAdId,        // AdId (c3.csid) signed array
+  sessionAdId.nosign, // AdId (c3.csid) unsigned String
+  sessionAdId.hex,    // AdId (c3.csid) hexadecimal String
+  sessionId,          // signed
+  sessionId.nosign,   // unsigned
+  sessionId.hex,      // hexadecimal
+  sid5.asis,          // clientId:sessionId signed String
+  sid5.nosign,        // clientId:sessionId unsigned String
+  sid5.hex,           // clientId:sessionId hexadecimal String
+  sid5Ad.asis,        // clientAdId:sessionId signed String
+  sid5Ad.nosign,      // clientAdId:sessionId unsigned String
+  sid5Ad.hex,         // clientAdId:sessionId hexadecimal String
+  sid6.asis,          // clientAdId:sessionId:sessionCreationTime signed String
+  sid6.nosign,        // clientAdId:sessionId:sessionCreationTime unsigned String
+  sid6.hex            // clientAdId:sessionId:sessionCreationTime hexadecimal String
 )
 ```
 ### Time methods
@@ -141,7 +139,7 @@ The `TimeMsCol` or `TimeSecCol` classes extends the base class of a column (`Col
 add `toMs()`, `toSec()` or `stamp()` methods to existing column methods (i.e., 
 `alias`, `when`, etc). The list below shows the available `Time*Col` columns with methods.
  
-```scala
+```scala mdoc
 dat.select(
   lifeFirstRecvTime,       // as is, ms since unix epoch
   lifeFirstRecvTime.toSec,   // converts ms to seconds since unix epoch
@@ -175,7 +173,7 @@ dat.select(
   lifeSwitch("framesPlayingTimeMs").last,     // returns last value of array
   lifeSwitch("framesPlayingTimeMs").min,      // returns min value of array
   lifeSwitch("framesPlayingTimeMs").max,      // returns max value of array
-)
+).show
 ```
 
 The `ArrayCol` classess are thus far limited to the `lifeSwitch`, `joinSwitch`, and
@@ -188,16 +186,16 @@ string argument to the containers (i.e., something other than
 Surgeon also provides several methods for selecting Ad related fields.
 
 
-```scala 
+```scala mdoc
 dat.select(
-  clientAdId,      // short for sumTags("c3.csid")
-  c3_csid,         // same as clientAdId
-  c3isAd,          // short for sumTags("c3.video.isAd') 
-  c3isAd.recode,   // recode labels as either true, false, or null
-  adTech,          // field that identifies if ad tech is server or client side
-  adTech.recode,   // recode the labels into either server, client, or unknown
+  sessionAdId,         // short for sumTags("c3.csid")
+  c3csid,              // same as clientAdId
+  c3isAd,              // short for sumTags("c3.video.isAd') 
+  c3isAd.recode,       // recode labels as either true, false, or null
+  c3adTech,            // field that identifies if ad tech is server or client side
+  c3adTech.recode,     // recode the labels into either server, client, or unknown
   exitDuringPreRoll, 
-  adContentMetadata, // get the container for adContentMetaData
+  adContentMetadata,   // get the container for adContentMetaData
   adContentMetadata.adRequested, // get specific fields by name
   adContentMetadata.preRollStatus,
   adContentMetadata.hasSSAI,
@@ -210,24 +208,29 @@ dat.select(
 
 You can select `GeoInfo` columns and their labels from `val.invariant.geoInfo` (of class `geoInfo`) like so:
 
-```scala 
-hourly_df.select(
-  geoInfo("city")        // Int: the city codes
-  geoInfo("country")     // Int: the country codes
-  geoInfo("continent")   // Int: the continent codes
-)
-```
-
-To do the labels
-
-It is hard to decipher what these codes are, so Surgeon makes it easy by
-providing a `label` method map the codes to names: 
-
 
 ```scala 
 hourly_df.select(
-  geoInfo("city").label        // String: the city names
-  geoInfo("country").label     // String: the country names
-  geoInfo("continent").label   // String: the continent names
+  geoInfo("city")      // Int: the city codes
+  geoInfo("country")   // Int: the country codes
 )
 ```
+To see the labels rather than the numeric codes, you can do:
+
+```scala 
+hourly_df.select(
+  geoInfo("city").label      // Int: the city codes
+  geoInfo("country").label   // Int: the country codes
+)
+```
+
+You can provide your own map of codes for the `geoInfo` values. Make sure to
+pass it to `Some`. 
+
+```scala mdoc
+dat.select(
+  geoInfo("city", Some(Map(289024 -> "Epernay"))),    // Int: the city codes
+  geoInfo("country", Some(Map(165 -> "Norway")))     // Int: the country codes
+)
+```
+

@@ -18,7 +18,7 @@ import conviva.surgeon.GeoInfo._
  * @define signed as a signed, nosign, or hexadecimal string
  * @define ss `val.sessSummary`
  * @example {{{
- * df.select(customerId.asis, clientId.hex, hasEnded, justJoined)
+ * df.select(customerId, clientId.hex, hasEnded, justJoined)
  * }}}
  */
 
@@ -103,7 +103,6 @@ object PbSS {
    * @example{{{
    * df.select(
    *  clientId,
-   *  clientId.asis,
    *  clientId.nosign, 
    *  clientId.hex)
    * }}}  

@@ -1,3 +1,12 @@
+```scala mdoc
+import org.apache.spark.sql.{SparkSession}
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+val spark = SparkSession.builder
+  .master("local[*]")
+  .getOrCreate
+```
+
 ## Parquet RawLog (PbRl)
 
 Surgeon tries to simply the selection of columns or fields when reading a dataset for the
@@ -14,7 +23,6 @@ import conviva.surgeon.PbRl._
 val path = Cust(HourlyRaw(month = 5, days = 25, hours = 18), take = 1)
 val dat = spark.read.parquet(path)
 ```
-
 
 ### Container methods
 
