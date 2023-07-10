@@ -44,9 +44,10 @@ object PbRl {
   }
 
   /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
-  def geoInfo(field: String): GeoCol = {
+  def geoInfo(field: String, geomap: Option[Map[Int, String]] = None): GeoCol = {
     val gcol = col(s"payload.heartbeat.geoInfo.$field")
-    new GeoCol(gcol, field, getGeoData(field))
+    val gMap = geomap.getOrElse(getGeoData(field))
+    new GeoCol(gcol, field, gMap)
   }
 
   /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields

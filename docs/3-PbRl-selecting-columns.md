@@ -1,3 +1,9 @@
+## Parquet RawLog (PbRl)
+
+Surgeon tries to simply the selection of columns or fields when reading a dataset for the
+first time. To demonstrate,  first import surgeon's `PbRl`  object and other `Spark` necessities,
+set the file path, and read the data. 
+
 ```scala mdoc
 import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
@@ -7,73 +13,48 @@ val spark = SparkSession.builder
   .getOrCreate
 ```
 
-## Parquet RawLog (PbRl)
-
-Surgeon tries to simply the selection of columns or fields when reading a dataset for the
-first time. To demonstrate,  first import surgeon's `PbRl`  object and other `Spark` necessities,
-set the file path, and read the data. 
-
-```scala  
-import org.apache.spark.sql._
-import org.apache.spark.sql.functions._
-import conviva.surgeon.Paths._
+```scala mdoc
 import conviva.surgeon.PbRl._
-
-// Make path and read data
-val path = Cust(HourlyRaw(month = 5, days = 25, hours = 18), take = 1)
-val dat = spark.read.parquet(path)
+// Read test data
+val pbrlTestPath = "./surgeon/src/test/data" 
+// Select only one client session Id for demo
+val dat = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly1.parquet").cache
+  .where(sessionId === 701891892)
 ```
 
 ### Container methods
 
-Surgeon provides several methods which make it easier to select columns or
-columns from containers (arrays, maps, structs). These methods eliminate the
+Surgeon makes it select columns from containers (arrays, maps, structs). This  eliminates the
 need for typing out long path names to the columns. The available container
 methods are: 
 
 
-```scala
+```scala mdoc
 dat.select(
   pbSdm("cwsSeekEvent"),             // root: payload.heartbeat.pbSdmEvents
   c3Tags("c3.client.osf"),           // root: payload.heartbeat.c3Tags
   clientTags("serviceName"),         // root: payload.heartbeat.clientTag
   cwsPlayer("playerState"),          // root: payload.heartbeat.cwsPlayerMeasurementEvent
   cwsStateChangeNew("playingState")  // root: payload.heartbeat.cwsStateChangeEvent.newCwsState
-  )
+  ).show(false)
 ```
-
-
-### Geo methods
-Surgeon provides a method to extract geoInfo data and provides a convenient
-method called `label` to assign labels to the numeric coded fields. 
-
-```scala 
-dat.select(
-  geoInfo("city"),          // extracts the city numeric values
-  geoInfo("city").label,    // extracts the city names
-  geoInfo("continent"),
-  geoInfo("continent").label,
-)
-```
-
 ### Shorthand methods
 
 There are several methods that make the selection of frequently used columns as simple as
 possible: 
 
-```scala
+```scala mdoc
 dat.select(
   customerId,
-  customerName,
   sessionId,
   clientId,
   timeStamp,
-  clientAdId, 
+  sessionAdId, 
   seqNumber,
   dftot,
   dfcnt,
   sessionTimeMs,
-  )
+).show(false)
 ```
 
 ### Id methods
@@ -85,7 +66,7 @@ handles the formatting. The `SID` class handles the concatenations of columns, f
 the format selected. 
 
 
-```scala 
+```scala mdoc
 dat.select(
   customerId,
   sessionId,
@@ -100,27 +81,41 @@ dat.select(
   clientId.hex,
   sid5.asis,
   sid5Ad.asis,
-  clientAdId, 
-  )
+  sessionAdId, 
+).show(false)
 ```
 
 ### Time methods
 
-Surgeon provides `TimeSecCol`, `TimeMsCol`, and `TimeUsCol` classes with methods to work with time-related columns.
+Surgeon provides `TimeSecCol`, `TimeMsCol`, and `TimeUsCol` classes with methods to work with Unix Epoch time columns.
 These classes extends the base class of a column (`Column(expr)`) to
 add `toMs()`, `toSec()` or `stamp()` methods to existing column methods (i.e., 
 `alias`, `when`, etc). The list below shows the available `Time*Col` columns with methods.
 
-```scala 
+```scala mdoc
 dat.select(
-  timeStamp,                // as is, microseconds (us) since unix epoch
-  timeStamp.ms,             // converts to ms since unix epoch
-  timeStamp.sec,            // converts to seconds since unix epoch
-  timeStamp.stamp,          // converts to timestamp (HH:mm:ss)
+  timeStamp,                  // as is, microseconds (us) since unix epoch
+  timeStamp.toMs,             // converts to ms since unix epoch
+  timeStamp.toSec,            // converts to seconds since unix epoch
+  timeStamp.stamp,            // converts to timestamp (HH:mm:ss)
   sessionCreationTime,
-  sessionCreationTime.sec,
+  sessionCreationTime.toSec,
   sessionCreationTime.stamp,
-  )
+).show(false)
 ```
 
+### Geo methods
+Surgeon provides a method to extract geoInfo data and provides a convenient
+method called `label` to assign labels to the numeric coded fields. 
+
+```scala mdoc
+val cityMap = Some(Map(289024 -> "Epernay"))
+val countryMap = Some(Map(165 -> "Norway"))
+dat.select(
+  geoInfo("city", cityMap),    
+  geoInfo("country", countryMap),
+  geoInfo("city", cityMap).label,
+  geoInfo("country", countryMap).label
+).show
+```
 

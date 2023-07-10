@@ -88,7 +88,7 @@ dat.select(
   sessionTimeMs,
   intvMaxEncodedFps,
   exitDuringPreRoll
-)
+).show
 ```
 
 The `isConsistent` column is based on Oleg White's code: 
@@ -112,10 +112,11 @@ the format selected.
 ```scala mdoc
 dat.select(
   customerId,
-  clientId,           // returns as is, signed array
+  clientId,           // returns as is, signed Array
+  clientId.asis,      // returs signed String
   clientId.nosign,    // returns unsigned String
   clientId.hex,       // returns hexadecimal String
-  sessionAdId,        // AdId (c3.csid) signed array
+  sessionAdId,        // AdId (c3.csid) signed Array
   sessionAdId.nosign, // AdId (c3.csid) unsigned String
   sessionAdId.hex,    // AdId (c3.csid) hexadecimal String
   sessionId,          // signed
@@ -130,8 +131,9 @@ dat.select(
   sid6.asis,          // clientAdId:sessionId:sessionCreationTime signed String
   sid6.nosign,        // clientAdId:sessionId:sessionCreationTime unsigned String
   sid6.hex            // clientAdId:sessionId:sessionCreationTime hexadecimal String
-)
+).show(false)
 ```
+
 ### Time methods
 
 Surgeon provides a `TimeMsCol` with methods to work with time-related columns.
@@ -156,24 +158,24 @@ dat.select(
   intvStartTime,           // as is, seconds since unix epoch
   intvStartTime.toMs,        // converts seconds to ms since unix epoch
   intvStartTime.stamp
-)
+).show
 ```
 
 ### Array methods
 Surgeon provides an `ArrayCol` class with methods to work on array based
 columns. The methods are shown below:
 
-```scala
+```scala mdoc
 dat.select(
   lifeSwitch("framesPlayingTimeMs").sumInt,   // sum all non-null values in an array, returns Int
-  lifeSwitch("framesPlayingTimeMs").notNull,  // returns array of non-null values
+  lifeSwitch("framesPlayingTimeMs").dropNull, // returns array of non-null values
   lifeSwitch("framesPlayingTimeMs").allNull,  // checks if all values in array are null, returns boolean
   lifeSwitch("framesPlayingTimeMs").distinct, // returns array of distinct values
   lifeSwitch("framesPlayingTimeMs").first,    // returns first value of array
   lifeSwitch("framesPlayingTimeMs").last,     // returns last value of array
   lifeSwitch("framesPlayingTimeMs").min,      // returns min value of array
   lifeSwitch("framesPlayingTimeMs").max,      // returns max value of array
-).show
+).show(false)
 ```
 
 The `ArrayCol` classess are thus far limited to the `lifeSwitch`, `joinSwitch`, and
@@ -201,7 +203,7 @@ dat.select(
   adContentMetadata.hasSSAI,
   adContentMetadata.hasCSAI, 
   adContentMetadata.preRollStartTime
-)
+).show(false)
 ```
 
 ### GeoInfo methods
@@ -228,9 +230,13 @@ You can provide your own map of codes for the `geoInfo` values. Make sure to
 pass it to `Some`. 
 
 ```scala mdoc
+val cityMap = Some(Map(289024 -> "Epernay"))
+val countryMap = Some(Map(165 -> "Norway"))
 dat.select(
-  geoInfo("city", Some(Map(289024 -> "Epernay"))),    // Int: the city codes
-  geoInfo("country", Some(Map(165 -> "Norway")))     // Int: the country codes
-)
+  geoInfo("city", cityMap),    
+  geoInfo("country", countryMap),
+  geoInfo("city", cityMap).label,
+  geoInfo("country", countryMap).label
+).show
 ```
 

@@ -349,16 +349,15 @@ object PbSS {
   def c3isAd = new c3isAd(sumTags("c3.video.isAd").alias("c3_isAd"))
 
   /** Extract fields from `AdContentMetadata` with methods. */
-  case class AdContentMetadata(field: String, name: String) extends Column(field) {
-    def adRequested(): Column = this.getItem("adRequested").alias("adRequested")
-    def preRollStatus(): Column = this.getItem("preRollStatus").alias("preRollStatus")
-    def hasSSAI(): Column = this.getItem("hasSSAI").alias("hasSSAI")
-    def hasCSAI(): Column = this.getItem("hasCSAI").alias("hasCSAI")
-    def preRollStartTime = this.getItem("preRollStartTimeMs")
+  case class AdContentMetadata(col: Column) extends Column(col.expr) {
+    def adRequested(): Column = col.getItem("adRequested").alias("adRequested")
+    def preRollStatus(): Column = col.getItem("preRollStatus").alias("preRollStatus")
+    def hasSSAI(): Column = col.getItem("hasSSAI").alias("hasSSAI")
+    def hasCSAI(): Column = col.getItem("hasCSAI").alias("hasCSAI")
+    def preRollStartTime = col.getItem("preRollStartTimeMs").alias("preRollStartTimeMs")
   }
   /** Get field for AdContentMetadata. */
-  def adContentMetadata = AdContentMetadata(
-     "val.sessSummary.AdContentMetadata", "adContentMetadata")
+  def adContentMetadata = AdContentMetadata(col("val.sessSummary.AdContentMetadata"))
 
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
