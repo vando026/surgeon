@@ -100,7 +100,7 @@ dat.select(
 
 Surgeon provides `TimeSecCol`, `TimeMsCol`, and `TimeUsCol` classes with methods to work with time-related columns.
 These classes extends the base class of a column (`Column(expr)`) to
-add `ms()`, `sec()` or `stamp()` methods to existing column methods (i.e., 
+add `toMs()`, `toSec()` or `stamp()` methods to existing column methods (i.e., 
 `alias`, `when`, etc). The list below shows the available `Time*Col` columns with methods.
 
 ```scala 

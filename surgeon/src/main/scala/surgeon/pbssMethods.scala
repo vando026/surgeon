@@ -50,7 +50,6 @@ object PbSS {
       .alias(field.replaceAll("\\.", "_"))
   }
 
-
   /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
    *  with periods are replaced with underscores by default.*/
   def sumTags(field: String): Column = {
@@ -69,9 +68,10 @@ object PbSS {
   }
 
   /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
-  def geoInfo(field: String): GeoCol = {
+  def geoInfo(field: String, geomap: Option[Map[Int, String]] = None): GeoCol = {
     val gcol = col(s"val.invariant.geoInfo.$field")
-    new GeoCol(gcol, field)
+    val gMap = geomap.getOrElse(getGeoData(field))
+    new GeoCol(gcol, field, gMap)
   }
 
   /** Extract the `customerId` column as is.

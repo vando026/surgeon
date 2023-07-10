@@ -1,12 +1,12 @@
 package conviva.surgeon
 
-import org.apache.spark.sql.{SparkSession, DataFrame, Column}
-import org.apache.spark.sql.functions._
-import conviva.surgeon.PbSS._
-import conviva.surgeon.Sanitize._
-
-
 class PbSS_Suite extends munit.FunSuite {
+
+  import org.apache.spark.sql.{SparkSession, DataFrame, Column}
+  import org.apache.spark.sql.functions._
+  import conviva.surgeon.PbSS._
+  import conviva.surgeon.Sanitize._
+  import conviva.surgeon.GeoInfo._
 
   val spark = SparkSession
       .builder()
@@ -22,7 +22,7 @@ class PbSS_Suite extends munit.FunSuite {
     expectMs: Long): Unit = {
     val expectSec: Long = (expectMs * (1.0/1000)).toLong
     val t1 = dat.select(field).first.getLong(0)
-    val t2 = dat.select(field.sec).first.getLong(0)
+    val t2 = dat.select(field.toSec).first.getLong(0)
     assertEquals(t1, expectMs)
     assertEquals(t2, expectSec)
   }
@@ -96,7 +96,7 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("intvStartTimeSec should compute ms/sec") {
     val t1 = d8905.select(intvStartTime).first.getInt(0)
-    val t2 = d8905.select(intvStartTime.ms).first.getLong(0)
+    val t2 = d8905.select(intvStartTime.toMs).first.getLong(0)
     assertEquals(t1, 1675764000)
     assertEquals(t2, 1675764000L * 1000)
   }
@@ -104,7 +104,7 @@ class PbSS_Suite extends munit.FunSuite {
   test("Select should include intvStartTime fields") {
     val expect = "intvStartTimeSec:intvStartTimeMs:intvStartTimeStamp"
     val tnames = d8905
-      .select(intvStartTime, intvStartTime.ms, intvStartTime.stamp)
+      .select(intvStartTime, intvStartTime.toMs, intvStartTime.stamp)
       .columns.mkString(":")
     assertEquals(tnames, expect)
   }
@@ -180,10 +180,21 @@ class PbSS_Suite extends munit.FunSuite {
   assertEquals(t1.first.getInt(0), 1742812)
  }
 
- test("lifeSwitchInfo.playingTimeMsFirst should eq expected ") {
-  val t1 = d8905.select(lifeSwitch("playingTimeMs").first)
-  assertEquals(t1.first.getInt(0), 1742812)
- }
+  test("lifeSwitchInfo.playingTimeMsFirst should eq expected ") {
+   val t1 = d8905.select(lifeSwitch("playingTimeMs").first)
+   assertEquals(t1.first.getInt(0), 1742812)
+  }
+
+  test("geoInfo select and label should work as expected") {
+    val gcol = geoInfo("city", Some(Map(289024 -> "Epernay")))
+    val gcol2 = geoInfo("country", Some(Map(165 -> "Norway")))
+    val t1 = d8905.select(gcol, gcol.label())
+    val t2 = d8905.select(gcol2, gcol2.label())
+    assertEquals(t1.select("city").first.getInt(0), 289024)
+    assertEquals(t1.select("cityLabel").first.getString(0), "Epernay")
+    assertEquals(t2.select("country").first.getShort(0).toInt, 165)
+    assertEquals(t2.select("countryLabel").first.getString(0), "Norway")
+  }
 
  // for documentation
 
@@ -199,7 +210,7 @@ class PbSS_Suite extends munit.FunSuite {
     lifeFirstRecvTime, 
     hasEnded, 
     justJoined, 
-    sessSum("lifePlayingTimeMs"), 
+    lifePlayingTimeMs, 
     lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
@@ -216,6 +227,7 @@ class PbSS_Suite extends munit.FunSuite {
     intvSwitch("networkBufferingTimeMs"), 
     invTags("sessionCreationTimeMs"), 
     sumTags("c3.video.isAd"), 
+    geoInfo("city", Some(Map(1 -> "Test"))),
   )
  }
 
@@ -250,25 +262,22 @@ class PbSS_Suite extends munit.FunSuite {
  test("select time cols and methods should run without issues") {
   val dat2 = dat.select(
   lifeFirstRecvTime, // as is, ms since unix epoch
-  lifeFirstRecvTime.sec, // converts ms to seconds since unix epoch
+  lifeFirstRecvTime.toSec, // converts ms to seconds since unix epoch
   lifeFirstRecvTime.stamp, // converts ms since unix epoc to timestamp
   lifeFirstRecvTime, 
-  lifeFirstRecvTime.sec,  
+  lifeFirstRecvTime.toSec,  
   lifeFirstRecvTime.stamp,
   lastRecvTime, 
-  lastRecvTime.sec,  
+  lastRecvTime.toSec,  
   lastRecvTime.stamp,
   sessionCreationTime,
-  sessionCreationTime.sec,
+  sessionCreationTime.toSec,
   sessionCreationTime.stamp,
   intvStartTime, // as is, seconds since unix epoch
-  intvStartTime.ms, // converts seconds to ms since unix epoch
+  intvStartTime.toMs, // converts seconds to ms since unix epoch
   intvStartTime.stamp
   )
  }
-
-
-
 
 
 }

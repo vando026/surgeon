@@ -25,7 +25,6 @@ select key.sessId.customerId customerId
       , val.invariant.c3Tags["c3.video.isAd"] videoIsAd
       , val.sessSummary.lifeFirstRecvTimeMs startTime 
       , hasEnded(val.sessSummary) ended
-      , hasJoined(val.sessSummary) joined
       , justJoined(val.sessSummary) justJoined
       , lifePlayingTimeMs(val.sessSummary) lifePlayingTimeMs
       , val.sessSummary.endedStatus endedStatus
@@ -39,8 +38,6 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
 val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
 val hourly_df = spark.read.parquet(path)
   .select(
@@ -54,7 +51,7 @@ val hourly_df = spark.read.parquet(path)
     lifeFirstRecvTime, 
     hasEnded, 
     justJoined, 
-    sessSum("lifePlayingTimeMs"), 
+    lifePlayingTimeMs,
     lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
@@ -62,52 +59,32 @@ val hourly_df = spark.read.parquet(path)
   )
 ```
 
-### Path construction
+Below is a brief vignette of many of Surgeon's features. Please see the 
+[Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
-Surgeon makes constructing the paths to the data easier. Can't remember the
-9-10 digit Id of the customer? Then use the name, like this:
+### Column classes and methods
 
-```scala 
-val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
-```
+Surgeon provides methods to make selecting and working with columns easier.
 
-Only want to select three customers for a given hour, then do:
+#### ID class
 
-```scala 
-val path = Cust(Hourly(2022, 12, 24, 18)), take = 3)
-```
-
-See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
-
-### Column methods
-
-Surgeon provides methods to make it easier to select and work with columns.  For
-example, the `val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs` is a 
-class `TimeMsCol` with `stamp` and `sec` methods. You can select it using its
-simple name with or without a method:
+Surgeon makes it easier to work with ID columns. Often, a `sid5` column (of
+class `SID`) is constructed from the `clientId` and `sessionId` columns. Both
+columns are inconsistently formatted across PbSS and PbRl datasets. Surgeon
+constructs a `sid5` column for you with methods to format the values as is
+(`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`).
 
 ```scala 
 hourly_df.select(
-  lifeFirstRecvTime // its original form, milliseconds since unix epoch
-  lifeFirstRecvTime.sec, // converted to seconds since unix epoch
-  lifeFirstRecvTime.stamp, // as a timestamp (HH:mm:ss)
-)
-```
-
-Surgeon makes it easier to work with Ids. Often, a `sid5` column is constructed from the `clientId` and `sessionId` columns. 
- Both  columns are inconsistently formatted across session summary and rawlog datasets. Surgeon constructs a `sid5` column for you with methods to format the values as is (`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`). For example, to
-construct a sid5 column (`clientId:sessionId`) with either format, do:
-
-```scala 
-hourly_df.select(
-  sid5.asis, 
+  sid5.asis,   
   sid5.hex, 
   sid5.nosign, 
 )
 ```
 
 The same methods can be used with `clientId` or `sessionId` only (which are of
-class `IdCol`), and you can even construct an `sid6` column with `sessionCreationTimeMs`:
+class `IdCol`), and you can even construct an `sid6` column (of class `SID`)
+with `sessionCreationTimeMs`:
 
 ```scala 
 hourly_df.select(
@@ -121,14 +98,115 @@ You can also extract the `customerId`, and even better, you can get the customer
 
 ```scala 
 hourly_df.select(
-  customerId,
-  customerName
+  customerId,  // Int: The customer Id
+  customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig.xml
 )
 ```
 
-
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
 [PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+
+#### Time class
+
+Surgeon makes it easy to work with Unix epoch time columns. You can select
+these columns using the short name (e.g. `lifeFirstRecvTime` rather than
+`val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs`), which are of class
+`Time*Col` For example, `lifeFirstRecvTime` is a `TimeMsCol` class which has a
+`stamp` method to format values as HH:mm:ss and a `toSec` method to convert
+values from milliseconds to seconds since Unix epoch. There is also a `toMs`
+method for the `TimeUsCol` and `TimeSecCol` classes. 
+
+```scala 
+hourly_df.select(
+  lifeFirstRecvTime // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime.toSec, // converted to seconds since unix epoch
+  lifeFirstRecvTime.stamp, // as a timestamp (HH:mm:ss)
+  dayofweek(lifeFirstRecvTime.stamp) // get the day of the week (Spark method)
+)
+```
+
+#### GeoInfo class 
+
+Surgeon makes it easy to work with `Geo` columns. You can select `GeoInfo`
+columns from `val.invariant.geoInfo` (of class `geoInfo`) like so:
+
+```scala 
+hourly_df.select(
+  geoInfo("city")        // Int: the city codes
+  geoInfo("country")     // Int: the country codes
+  geoInfo("continent")   // Int: the continent codes
+)
+```
+
+It is hard to decipher what these codes are, so Surgeon makes it easy by
+providing a `label` method map the codes to names: 
+
+
+```scala 
+hourly_df.select(
+  geoInfo("city").label        // String: the city names
+  geoInfo("country").label     // String: the country names
+  geoInfo("continent").label   // String: the continent names
+)
+```
+
+### Containers
+
+Surgeon provides an easy way to select columns using containers. 
+
+```scala
+hourly_df.select(
+  sessSum("playerState"), 
+  d3SessSum("lifePausedTimeMs"),
+  joinSwitch("playingTimeMs"),
+  lifeSwitch("sessionTimeMs"),
+  intvSwitch("networkBufferingTimeMs"), 
+  invTags("sessionCreationTimeMs"), 
+  sumTags("c3.video.isAd"), 
+  geoInfo("city")
+)
+```
+
+These containers may come with their own methods (e.g.
+`geoInfo("name").label`). The `lifeSwitch`, `joinSwitch`, and `intvSwitch` are
+array columns which have several methods such as `first`, `last`, and
+`distinct`, to name a few. See the 
+[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
+and 
+[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
+for more details about this functionality.
+
+
+### Path construction
+
+Surgeon makes constructing the paths to the data easier (of class `DataPath`). You can provide simple
+arguments for the `Monthly`, `Daily` or `Hourly` classes. 
+
+```scala 
+val path = Hourly(2022, month = 12, days = 24, hours = 18)
+val path2 = Hourly(2022, 12, 24, List(18, 19, 20))
+```
+
+Surgeon makes it easier to select monthly, daily, or hourly data by customer.
+
+```scala 
+val path = Cust(Hourly(2022, 12, 24, 18), ids = 1960180360)
+```
+
+Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
+
+```scala 
+val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
+```
+
+Only want to select any three customers for a given hour, then do:
+
+```scala 
+val path = Cust(Hourly(2022, 12, 24, 18)), take = 3)
+```
+
+See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
+
 
 ### Customer methods
 
@@ -154,7 +232,6 @@ customerNameToId(List("c3.TV2", "c3.BASC"), cdat)
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
 
 
-Please see the [Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions. 
 
 <!-- Please see the wiki page for descriptions of surgeon's features. --> 
 

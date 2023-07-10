@@ -1,18 +1,26 @@
+```scala mdoc
+import org.apache.spark.sql.{SparkSession}
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+val spark = SparkSession.builder
+  .master("local[*]")
+  .getOrCreate
+```
+
 ## Parquet Session Summary  (PbSS)
 
 Surgeon simplifies the selection of columns when reading a
 dataset for the first time. To demonstrate, first import surgeon's `PbSS`  object and
 other `Spark` necessities, set the file path, and read the data. 
 
-```scala  
-import org.apache.spark.sql._
-import org.apache.spark.sql.functions._
-import conviva.surgeon.Paths._
+```scala mdoc
 import conviva.surgeon.PbSS._
-
-// Make path and read data
-val path = Cust(Hourly(month = 5, days = 25, hours = 18), take = 1)
-val dat = spark.read.parquet(path)
+// Read in the test data
+val pbssTestPath = "./surgeon/src/test/data" 
+val dat0 = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
+// Select only one client session Id for demo
+val dat = dat0.where(sessionId === 89057425)
+    .withColumn("clientAdId", lit(200500))
 ```
 
 ### Container methods
@@ -22,7 +30,7 @@ columns from containers (arrays, maps, structs). These methods eliminate the
 need for typing out long path names to the columns. The available container
 methods are: 
 
-``` scala 
+``` scala mdoc
 dat.select(
   sessSum("playerState"), 
   d3SessSum("lifePausedTimeMs"),
@@ -31,11 +39,11 @@ dat.select(
   intvSwitch("networkBufferingTimeMs"), 
   invTags("sessionCreationTimeMs"), 
   sumTags("c3.video.isAd"), 
-)
+).show
 ```
 Any valid  string name can be used, provided the column exists. The container names are abbreviations of the root paths to the column names, as shown below:
 
-``` scala 
+``` scala mdoc 
 dat.select(
   col("val.sessSummary.playerState"),
   col("val.sessSummary.d3SessSummary.lifePausedTimeMs"),
@@ -44,7 +52,7 @@ dat.select(
   col("val.sessSummary.intvSwitchInfos.networkBufferingTimeMs"),
   col("val.invariant.sessionCreationTimeMs"),
   col("val.invariant.summarizedTags").getItem("c3.video.isAd"),
-)
+).show
 ```
 
 ### Shorthand methods
@@ -130,25 +138,25 @@ dat.select(
 
 Surgeon provides a `TimeMsCol` with methods to work with time-related columns.
 The `TimeMsCol` or `TimeSecCol` classes extends the base class of a column (`Column(expr)`) to
-add `ms()`, `sec()` or `stamp()` methods to existing column methods (i.e., 
+add `toMs()`, `toSec()` or `stamp()` methods to existing column methods (i.e., 
 `alias`, `when`, etc). The list below shows the available `Time*Col` columns with methods.
  
 ```scala
 dat.select(
   lifeFirstRecvTime,       // as is, ms since unix epoch
-  lifeFirstRecvTime.sec,   // converts ms to seconds since unix epoch
+  lifeFirstRecvTime.toSec,   // converts ms to seconds since unix epoch
   lifeFirstRecvTime.stamp, // converts to timestamp (HH:mm:ss)
   lifeFirstRecvTime, 
-  lifeFirstRecvTime.sec,  
+  lifeFirstRecvTime.toSec,  
   lifeFirstRecvTime.stamp,
   lastRecvTime, 
-  lastRecvTime.sec,  
+  lastRecvTime.toSec,  
   lastRecvTime.stamp,
   sessionCreationTime,
-  sessionCreationTime.sec,
+  sessionCreationTime.toSec,
   sessionCreationTime.stamp,
   intvStartTime,           // as is, seconds since unix epoch
-  intvStartTime.ms,        // converts seconds to ms since unix epoch
+  intvStartTime.toMs,        // converts seconds to ms since unix epoch
   intvStartTime.stamp
 )
 ```
@@ -195,5 +203,31 @@ dat.select(
   adContentMetadata.hasSSAI,
   adContentMetadata.hasCSAI, 
   adContentMetadata.preRollStartTime
+)
+```
+
+### GeoInfo methods
+
+You can select `GeoInfo` columns and their labels from `val.invariant.geoInfo` (of class `geoInfo`) like so:
+
+```scala 
+hourly_df.select(
+  geoInfo("city")        // Int: the city codes
+  geoInfo("country")     // Int: the country codes
+  geoInfo("continent")   // Int: the continent codes
+)
+```
+
+To do the labels
+
+It is hard to decipher what these codes are, so Surgeon makes it easy by
+providing a `label` method map the codes to names: 
+
+
+```scala 
+hourly_df.select(
+  geoInfo("city").label        // String: the city names
+  geoInfo("country").label     // String: the country names
+  geoInfo("continent").label   // String: the continent names
 )
 ```

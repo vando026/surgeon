@@ -1,13 +1,13 @@
 package conviva.surgeon
 
-import org.apache.spark.sql.{Column}
-import org.apache.spark.sql.{functions => F}
-import conviva.surgeon.GeoInfo._
-
 /** An object with traits and case classes to create objects named
  *  after fields that have their own methods.
 */
 object Sanitize {
+
+  import org.apache.spark.sql.{Column}
+  import org.apache.spark.sql.{functions => F}
+  import conviva.surgeon.GeoInfo._
 
   /** Convert to Unix epoch time to a different timescale.
    *  @param field The name of the field. 
@@ -31,21 +31,14 @@ object Sanitize {
     F.from_unixtime(field * F.lit(scale)).alias(suffix)
   }
 
-  // trait TimeStamp {
-  //   def stamp: Column
-  //   val name: String
-  //   def hour() = F.hour(stamp()).alias(s"${name}Hour")
-  //   def day() = F.dayofmonth(stamp()).alias(s"${name}Day")
-  // }
-
   /** A class for extracting time-based columns in microseconds.
    * @param name The name for the field. 
   */
   class TimeUsCol(col: Column, name: String) extends Column(col.expr) {
       /** Method to return field in milliseconds. */
-      def ms() = convert_(col, 1.0/1000, s"${name}Ms")
+      def toMs() = convert_(col, 1.0/1000, s"${name}Ms")
       /** Method to return field in seconds. */
-      def sec() = convert_(col, 1.0/(1000 * 1000), s"${name}Sec")
+      def toSec() = convert_(col, 1.0/(1000 * 1000), s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
       def stamp() = stamp_(col, 1.0/(1000 * 1000), s"${name}Stamp")
     }
@@ -55,11 +48,9 @@ object Sanitize {
   */
   class TimeMsCol(col: Column, name: String) extends Column(col.expr) {
       /** Method to return field in seconds. */
-      def sec() = convert_(col, 1.0/1000, s"${name}Sec")
+      def toSec() = convert_(col, 1.0/1000, s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
       def stamp() = stamp_(col, 1.0/1000, s"${name}Stamp")
-      def stampHour() = F.hour(stamp()).alias(s"${name}Hour")
-      def stampDay() = F.dayofmonth(stamp()).alias(s"${name}Day")
     }
 
 
@@ -67,7 +58,7 @@ object Sanitize {
    * @param name The name of the field.
   */
   class TimeSecCol(col: Column, name: String) extends Column(col.expr) {
-      def ms() = convert_(col, 1000.0, s"${name}Ms")
+      def toMs() = convert_(col, 1000.0, s"${name}Ms")
       def stamp() = stamp_(col, 1.0, s"${name}Stamp")
     }
 
@@ -169,17 +160,11 @@ object Sanitize {
     }
   }
 
-  class GeoCol(col: Column, field: String) extends Column(col.expr) {
+  class GeoCol(col: Column, field: String, labels: Map[Int, String]) extends Column(col.expr) {
     def label(): Column  = {
-      val gMap = getGeoData(field)
-      val gLit: Column = F.typedLit(gMap) 
+      val gLit: Column = F.typedLit(labels) 
       gLit(col).alias(s"${field}Label")
     }
   }
-
-  // class Continent(col: Column) extends Column(col.expr) {
-  //   def label(): Column = setLabel("continent", col)
-  // }
-
 
 }

@@ -24,7 +24,6 @@ val cdat: Map[Int, String] = Map(
   1960180360 -> "c3.TV2",
   978960980 -> "c3.BASC"
 )
-
 ```
 
 ### Convert customer Id to name

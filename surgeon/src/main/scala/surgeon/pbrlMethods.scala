@@ -46,12 +46,8 @@ object PbRl {
   /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
   def geoInfo(field: String): GeoCol = {
     val gcol = col(s"payload.heartbeat.geoInfo.$field")
-    new GeoCol(gcol, field)
+    new GeoCol(gcol, field, getGeoData(field))
   }
-
-  // def sumTags(field: String): Column = {
-  //   col("payload.heartbeat.")
-  // }
 
   /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields
    *  with periods are replaced with underscores by default.*/
