@@ -17,16 +17,15 @@ val spark = SparkSession.builder
 import conviva.surgeon.PbRl._
 // Read test data
 val pbrlTestPath = "./surgeon/src/test/data" 
-// Select only one client session Id for demo
+// Select only one client session Id, make Ad ID for demo
 val dat = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly1.parquet").cache
   .where(sessionId === 701891892)
 ```
-
 ### Container methods
 
 Surgeon makes it select columns from containers (arrays, maps, structs). This  eliminates the
 need for typing out long path names to the columns. The available container
-methods are: 
+methods with examples are:
 
 
 ```scala mdoc
@@ -38,10 +37,10 @@ dat.select(
   cwsStateChangeNew("playingState")  // root: payload.heartbeat.cwsStateChangeEvent.newCwsState
   ).show(false)
 ```
+
 ### Shorthand methods
 
-There are several methods that make the selection of frequently used columns as simple as
-possible: 
+There are several methods to select frequently used columns:
 
 ```scala mdoc
 dat.select(
@@ -56,7 +55,6 @@ dat.select(
   sessionTimeMs,
 ).show(false)
 ```
-
 ### Id methods
 
 Surgeon provides the `IdCol` and `SID` classes for constructing and formatting Ids,
@@ -104,9 +102,21 @@ dat.select(
 ).show(false)
 ```
 
+
 ### Geo methods
-Surgeon provides a method to extract geoInfo data and provides a convenient
-method called `label` to assign labels to the numeric coded fields. 
+Surgeon has a method to extract geoInfo data and provides a convenient
+method called `label` to assign labels to the numeric coded geo fields. 
+
+```scala
+dat.select(
+  geoInfo("city"),    
+  geoInfo("country"),
+  geoInfo("city").label,
+  geoInfo("country").label
+).show
+```
+
+You can also assign your own labels to Ids using a custom Map.
 
 ```scala mdoc
 val cityMap = Some(Map(289024 -> "Epernay"))

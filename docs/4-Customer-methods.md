@@ -15,6 +15,8 @@ For this demonstration, I use toy customer data.
 
 ```scala mdoc
 import conviva.surgeon.Customer._
+import conviva.surgeon.Paths._
+
 // Reads in the file from Databricks
 // customerNames()
 // For this demo, I used the toy data below
@@ -47,7 +49,7 @@ customerNameToId("TV2", cdat)
 customerNameToId(List("TV2", "BASC"), cdat)
 ```
 
-### Customer Ids on Databricks path
+### Customer Ids and names on Databricks path
 
 Another useful method is to get all the customer Ids from a data path on
 Databricks. You can do so using the `customerIds` method, which takes a path
@@ -57,6 +59,17 @@ for PbSS data.
 ```scala
 val path = Hourly(month = 5, days = 22, hours = 18)
 customerIds(path.toString)
+```
+
+You can go one step further and convert the IDs to names, like so (using PbRl
+data):
+
+```scala
+val path = HourlyRaw(month = 7, days = 4, hours = 16)
+customerIdToName(customerIds(path.toString))
+// path: conviva.surgeon.Paths.HourlyRaw[Int] = /mnt/conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_1/y=2023/m=07/d=04/dt=2023_07_04_16
+// res4: List[String] = List(c3.Turner-MML, c3.Echostar-SlingTV, c3.Movistarplus, c3.BBCK-PerformGroup, c3.Turner-NCAA, 
+// c3.Turner-TBS, c3.Atresmedia, c3.HearstTV, c3.Univision-OTT-Streaming, c3.SportsNet-SNY, c3.TELUS, c3.LGE, c3.OSNtv)
 ```
 
 ### Shared customer Ids on PbSS and PbRl paths
@@ -72,5 +85,6 @@ val pbss = Hourly(month = 5, days = 22, hours = 18)
 val pbrl = HourlyRaw(month = 5, days = 22, hours = 18)
 customerInBothPaths(pbss.toString, pbrl.toString)
 ```
+
 
 

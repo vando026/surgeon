@@ -14,8 +14,8 @@ class PbSS_Suite extends munit.FunSuite {
       .getOrCreate()
   val pbssTestPath = "./src/test/data" 
   val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
-  val d8905 = dat.where(col("key.sessId.clientSessionId") === 89057425)
-    .withColumn("clientAdId", lit(200500))
+  val d8905 = dat.where(sessionId === 89057425)
+    .withColumn("sessionAdId", lit(200500))
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -66,6 +66,9 @@ class PbSS_Suite extends munit.FunSuite {
     val expect = "476230728:1293028608:-1508640558:-1180571212:89057425"
     val t1 = d8905.select(sid5.asis).first.getString(0)
     assertEquals(t1, expect)
+  }
+
+  test("sid5Ad should eq expected") {
   }
 
   test("sid6 should eq asis ID str") {

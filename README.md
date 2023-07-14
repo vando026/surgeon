@@ -62,9 +62,56 @@ val hourly_df = spark.read.parquet(path)
 Below is a brief vignette of many of Surgeon's features. Please see the 
 [Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
+### Short hand columns
+
+The are several short hand names (of class `Column`) that make the selection of frequently used columns as simple as
+possible: 
+
+```scala mdoc
+dat.select(
+  customerId, 
+  clientId,
+  sessionId,
+  shouldProcess,
+  hasEnded,
+  justEnded,
+  justJoined,
+  endedStatus,
+  joinState, 
+  joinTimeMs
+) 
+``` 
+and many more. See the See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
+[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for the full list. 
+
+### Containers
+
+Surgeon makes it easier to select columns using containers. 
+
+```scala
+hourly_df.select(
+  sessSum("playerState"), 
+  d3SessSum("lifePausedTimeMs"),
+  joinSwitch("playingTimeMs"),
+  lifeSwitch("sessionTimeMs"),
+  intvSwitch("networkBufferingTimeMs"), 
+  invTags("sessionCreationTimeMs"), 
+  sumTags("c3.video.isAd"), 
+  geoInfo("city")
+)
+```
+
+These containers may come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
+`distinct`, to name a few. See the 
+[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
+and 
+[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
+for more details about this functionality.
+
 ### Column classes and methods
 
-Surgeon provides methods to make selecting and working with columns easier.
+Surgeon provides some methods for the short hand named columns, which removes
+verbose and repetitive code. 
 
 #### ID class
 
@@ -136,45 +183,38 @@ hourly_df.select(
   geoInfo("country")     // Int: the country codes
   geoInfo("continent")   // Int: the continent codes
 )
+// +------+-------+---------+
+// |  city|country|continent|
+// +------+-------+---------+
+// | 12141|    229|        4|
+// |107527|    229|        4|
+// | 21233|    229|        4|
+// | 94082|    229|        4|
+// |  4773|    229|        4|
+// +------+-------+---------+
 ```
 
-It is hard to decipher what these codes are, so Surgeon makes it easy by
+It is hard to decipher what these codes mean, so Surgeon makes it easy by
 providing a `label` method to map the codes to names: 
 
 
 ```scala 
 hourly_df.select(
-  geoInfo("city").label        // String: the city names
-  geoInfo("country").label     // String: the country names
-  geoInfo("continent").label   // String: the continent names
+  geoInfo("city").label       // String: the city names
+  geoInfo("country").label    // String: the country names
+  geoInfo("continent").label  // String: the continent names
 )
+// +------+------------+-------+-------------+---------+--------------+
+// |  city|   cityLabel|country| countryLabel|continent|continentLabel|
+// +------+------------+-------+-------------+---------+--------------+
+// | 12141|      Boston|    229|united states|        4| north america|
+// |107527|West Chester|    229|united states|        4| north america|
+// | 21233|    Columbus|    229|united states|        4| north america|
+// | 94082|    Spanaway|    229|united states|        4| north america|
+// |  4773|     Ashburn|    229|united states|        4| north america|
+// +------+------------+-------+-------------+---------+--------------+
 ```
 
-### Containers
-
-Surgeon provides an easy way to select columns using containers. 
-
-```scala
-hourly_df.select(
-  sessSum("playerState"), 
-  d3SessSum("lifePausedTimeMs"),
-  joinSwitch("playingTimeMs"),
-  lifeSwitch("sessionTimeMs"),
-  intvSwitch("networkBufferingTimeMs"), 
-  invTags("sessionCreationTimeMs"), 
-  sumTags("c3.video.isAd"), 
-  geoInfo("city")
-)
-```
-
-These containers may come with their own methods (e.g.
-`geoInfo("name").label`). The `lifeSwitch`, `joinSwitch`, and `intvSwitch` are
-array columns which have several methods such as `first`, `last`, and
-`distinct`, to name a few. See the 
-[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
-and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
-for more details about this functionality.
 
 
 ### Path construction
@@ -218,15 +258,16 @@ customer Ids and names, get names from Ids, and get Ids from names.
 
 ```scala  
 import conviva.surgeon.Customer._
-val cdat = customerNames()
-// cdat: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
-customerIdToName(207488736, cdat)
+// get map of customer Ids and Names: below output is fictious
+customerNames()
+// res1: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
+customerIdToName(207488736)
 // res2: List[String] = List("c3.MSNBC")
-customerIdToName(List(207488736, 744085924), cdat)
+customerIdToName(List(207488736, 744085924))
 // res3: List[String] = List("c3.MSNBC", "c3.PMNN")
-customerNameToId("TV2", cdat)
+customerNameToId("TV2")
 // res4: List[Int] = List(1960180360)
-customerNameToId(List("c3.TV2", "c3.BASC"), cdat)
+customerNameToId(List("c3.TV2", "c3.BASC"))
 // res5: List[Int] = List(1960180360, 978960980)
 ```
 

@@ -18,9 +18,8 @@ import conviva.surgeon.PbSS._
 // Read in the test data
 val pbssTestPath = "./surgeon/src/test/data" 
 val dat0 = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
-// Select only one client session Id for demo
+// Select only one client session Id, make Ad ID for demo
 val dat = dat0.where(sessionId === 89057425)
-    .withColumn("clientAdId", lit(200500))
 ```
 
 ### Container methods
@@ -226,7 +225,7 @@ hourly_df.select(
 )
 ```
 
-You can provide your own map of codes for the `geoInfo` values. Make sure to
+You can provide your own custom Map of labels for the `geoInfo` codes. Make sure to
 pass it to `Some`. 
 
 ```scala mdoc
