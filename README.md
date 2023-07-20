@@ -64,7 +64,7 @@ Below is a brief vignette of many of Surgeon's features. Please see the
 
 ### Short hand columns
 
-The are several short hand names (of class `Column`) that make the selection of frequently used columns as simple as
+The are several short hand names that make the selection of frequently used columns as simple as
 possible: 
 
 ```scala mdoc
@@ -81,7 +81,7 @@ dat.select(
   joinTimeMs
 ) 
 ``` 
-and many more. See the See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
+and many more. See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
 [PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for the full list. 
 
 ### Containers
@@ -115,11 +115,11 @@ verbose and repetitive code.
 
 #### ID class
 
-Surgeon makes it easier to work with ID columns. Often, a `sid5` column (of
-class `SID`) is constructed from the `clientId` and `sessionId` columns. Both
-columns are inconsistently formatted across PbSS and PbRl datasets. Surgeon
-constructs a `sid5` column for you with methods to format the values as is
-(`asis`), as unsigned (`nosign`), or as hexadecimal (`hex`).
+Surgeon makes it easier to work with ID columns. Often, a `sid5` column is
+constructed from the `clientId` and `sessionId` columns. Both columns are
+inconsistently formatted across PbSS and PbRl datasets. Surgeon constructs a
+`sid5` column for you with methods to format the values as is (`asis`), as
+unsigned (`nosign`), or as hexadecimal (`hex`).
 
 ```scala 
 hourly_df.select(
@@ -129,9 +129,8 @@ hourly_df.select(
 )
 ```
 
-The same methods can be used with `clientId` or `sessionId` individually (which are of
-class `IdCol`), and you can even construct an `sid6` column (of class `SID`)
-with `sessionCreationTimeMs`:
+The same methods can be used with `clientId` or `sessionId` individually, and
+you can even construct an `sid6` column with `sessionCreationTimeMs`:
 
 ```scala 
 hourly_df.select(
@@ -156,26 +155,24 @@ See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-P
 #### Time class
 
 Surgeon makes it easy to work with Unix epoch time columns. You can select
-these columns using the short name (e.g. `lifeFirstRecvTime` rather than
-`val.sessSummary.d3SessSummary.lifeFirstRecvTimeMs`), which are of class
-`Time*Col` For example, `lifeFirstRecvTime` is a `TimeMsCol` class which has a
-`stamp` method to format values as HH:mm:ss and a `toSec` method to convert
-values from milliseconds to seconds since Unix epoch. There is also a `toMs`
-method for the `TimeUsCol` and `TimeSecCol` classes. 
+these columns using the short name, which come with a `stamp` method to format
+values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
+seconds since Unix epoch, and a `toMs` method. 
 
 ```scala 
 hourly_df.select(
-  lifeFirstRecvTime // its original form, milliseconds since unix epoch
-  lifeFirstRecvTime.toSec, // converted to seconds since unix epoch
-  lifeFirstRecvTime.stamp, // as a timestamp (HH:mm:ss)
+  lifeFirstRecvTime                  // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
+  lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
   dayofweek(lifeFirstRecvTime.stamp) // get the day of the week (Spark method)
+  hour(lifeFirstRecvTime.stamp)      // get hour of the time (Spark method)
 )
 ```
 
 #### GeoInfo class 
 
-Surgeon makes it easy to work with `Geo` columns. You can select `GeoInfo`
-columns from `val.invariant.geoInfo` (of class `GeoInfo`) like so:
+Surgeon makes it easy to work with `geoInf` columns (`val.invariant.geoInfo`).  You can select `geoInfo`
+columns like so:
 
 ```scala 
 hourly_df.select(
@@ -200,9 +197,12 @@ providing a `label` method to map the codes to names:
 
 ```scala 
 hourly_df.select(
-  geoInfo("city").label       // String: the city names
-  geoInfo("country").label    // String: the country names
-  geoInfo("continent").label  // String: the continent names
+  geoInfo("city")            // Int: the city codes
+  geoInfo("city").label      // String: the city names
+  geoInfo("country")         // Int: the country codes
+  geoInfo("country").label   // String: the country names
+  geoInfo("continent")       // Int: the continent codes
+  geoInfo("continent").label // String: the continent names
 )
 // +------+------------+-------+-------------+---------+--------------+
 // |  city|   cityLabel|country| countryLabel|continent|continentLabel|
@@ -214,8 +214,6 @@ hourly_df.select(
 // |  4773|     Ashburn|    229|united states|        4| north america|
 // +------+------------+-------+-------------+---------+--------------+
 ```
-
-
 
 ### Path construction
 
@@ -258,8 +256,8 @@ customer Ids and names, get names from Ids, and get Ids from names.
 
 ```scala  
 import conviva.surgeon.Customer._
-// get map of customer Ids and Names: below output is fictious
-customerNames()
+// Pulls the customer names from GeoUtils/c3ServiceConfig.xml
+customerNames() 
 // res1: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
 customerIdToName(207488736)
 // res2: List[String] = List("c3.MSNBC")
