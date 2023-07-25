@@ -12,7 +12,7 @@ class PbSS_Suite extends munit.FunSuite {
       .builder()
       .master("local[*]")
       .getOrCreate()
-  val pbssTestPath = "./src/test/data" 
+  val pbssTestPath = "./surgeon/src/test/data" 
   val dat = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
