@@ -2,8 +2,6 @@ package conviva.surgeon
 
 class PbRl_Suite extends munit.FunSuite {
 
-  import conviva.surgeon.Heart._
-
   val dataPath = "./src/test/data" 
   val PathDB = SetPaths(geoUtil = dataPath)
 

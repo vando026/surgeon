@@ -68,7 +68,7 @@ The are several short hand names that make the selection of frequently used colu
 possible: 
 
 ```scala mdoc
-dat.select(
+hourly_df.select(
   customerId, 
   clientId,
   sessionId,
@@ -125,7 +125,7 @@ unsigned (`nosign`), or as hexadecimal (`hex`).
 hourly_df.select(
   sid5.asis,   
   sid5.hex, 
-  sid5.nosign, 
+  sid5.nosign 
 )
 ```
 
@@ -161,10 +161,10 @@ seconds since Unix epoch, and a `toMs` method.
 
 ```scala 
 hourly_df.select(
-  lifeFirstRecvTime                  // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
   lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
-  dayofweek(lifeFirstRecvTime.stamp) // get the day of the week (Spark method)
+  dayofweek(lifeFirstRecvTime.stamp),// get the day of the week (Spark method)
   hour(lifeFirstRecvTime.stamp)      // get hour of the time (Spark method)
 )
 ```
@@ -176,9 +176,9 @@ columns like so:
 
 ```scala 
 hourly_df.select(
-  geoInfo("city")        // Int: the city codes
-  geoInfo("country")     // Int: the country codes
-  geoInfo("continent")   // Int: the continent codes
+  geoInfo("city"),        // Int: the city codes
+  geoInfo("country"),     // Int: the country codes
+  geoInfo("continent")    // Int: the continent codes
 )
 // +------+-------+---------+
 // |  city|country|continent|
@@ -197,12 +197,12 @@ providing a `label` method to map the codes to names:
 
 ```scala 
 hourly_df.select(
-  geoInfo("city")            // Int: the city codes
-  geoInfo("city").label      // String: the city names
-  geoInfo("country")         // Int: the country codes
-  geoInfo("country").label   // String: the country names
-  geoInfo("continent")       // Int: the continent codes
-  geoInfo("continent").label // String: the continent names
+  geoInfo("city"),            // Int: the city codes
+  geoInfo("city").label,      // String: the city names
+  geoInfo("country"),         // Int: the country codes
+  geoInfo("country").label,   // String: the country names
+  geoInfo("continent"),       // Int: the continent codes
+  geoInfo("continent").label  // String: the continent names
 )
 // +------+------------+-------+-------------+---------+--------------+
 // |  city|   cityLabel|country| countryLabel|continent|continentLabel|
