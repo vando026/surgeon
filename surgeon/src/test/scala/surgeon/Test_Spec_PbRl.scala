@@ -2,7 +2,8 @@ package conviva.surgeon
 
 class PbRl_Suite extends munit.FunSuite {
 
-  val dataPath = "./surgeon/src/test/data" 
+  val dataPath = "./src/test/data" 
+  // val dataPath = "./surgeon/src/test/data" 
 
   import org.apache.spark.sql.{SparkSession, DataFrame, Column}
   import org.apache.spark.sql.functions._
@@ -28,6 +29,12 @@ class PbRl_Suite extends munit.FunSuite {
   test("Data nrow should be expected") {
     val nrow = dat.count.toInt
     assertEquals(nrow, 100)
+  }
+
+  test("c3isAd should work as expected") {
+    val t1 = d701.select(c3isAd, c3isAd.recode)
+    assertEquals(t1.select("c3_isAd").first.apply(0), "F")
+    assertEquals(t1.select("c3_isAd_rc").first.apply(0).toString, "false")
   }
 
   // test("timeStampUs should compute us/ms/sec") {

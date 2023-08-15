@@ -167,4 +167,14 @@ object Sanitize {
     }
   }
 
+  /** Recode `c3 Video.is.Ad` field. */
+  class c3isAd(col: Column) extends Column(col.expr) {
+    def recode(): Column = {
+      F.when(F.lower(col).isin("true", "t"), true)
+      .when(F.lower(col).isin("false", "f"), false)
+      .otherwise(null)
+      .alias("c3_isAd_rc")
+    }
+  }
+
 }

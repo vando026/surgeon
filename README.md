@@ -226,7 +226,7 @@ val path = Hourly(2022, month = 12, days = 24, hours = 18)
 val path2 = Hourly(2022, 12, 24, List(18, 19, 20))
 ```
 
-Surgeon makes it easier to select monthly, daily, or hourly data by customer.
+You can select monthly, daily, or hourly data by customer.
 
 ```scala 
 val path = Cust(Hourly(2022, 12, 24, 18), ids = 1960180360)
@@ -238,7 +238,7 @@ Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
 ```
 
-Only want to select any three customers for a given hour, then do:
+Only want to select any three customers for a given path, then do:
 
 ```scala 
 val path = Cust(Hourly(2022, 12, 24, 18)), take = 3)
@@ -249,10 +249,9 @@ See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-
 
 ### Customer methods
 
-Surgeon provides some convenient methods for working with Customer data. An
-example of this functionality was shown in the conversion of the customer name
-to Id in the demo code above. You can use these methods to read in a file with
-customer Ids and names, get names from Ids, and get Ids from names. 
+Surgeon provides some convenient methods for working with Customer data. You
+can use these methods to read in a file with customer Ids and names, get names
+from Ids, and get Ids from names. 
 
 ```scala  
 import conviva.surgeon.Customer._

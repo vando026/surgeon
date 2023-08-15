@@ -181,6 +181,18 @@ object PbRl {
     */
   def sessionCreationTime = new TimeMsCol(payload("sessionCreationTimeMs"), "sessionCreationTime")
 
+  /** Create a c3 `isAd` object with an `asis` and `recode` method. The
+   *  `recode` method standardizes the field values into true, false, or
+   *  null.
+   *  @example{{{
+   *  df.select(
+   *    c3isAd, 
+   *    c3isAd.recode
+   *  )
+   *  }}}
+   */
+  def c3isAd = new c3isAd(c3Tags("c3.video.isAd").alias("c3_isAd"))
+
 }
 /*
   def EventTimeStamp(data: DataFrame): DataFrame {

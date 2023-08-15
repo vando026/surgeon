@@ -1,6 +1,10 @@
+surgeon/target/*
 target/*
 .bsp/*
+surgeon/.bsp/*
 project/*
+surgeon/project/*
 .metals/*
 .bloop/*
+surgeon/.bloop/*
 .DS_Store

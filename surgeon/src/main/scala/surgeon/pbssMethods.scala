@@ -326,16 +326,6 @@ object PbSS {
    */
   def c3adTech = new AdTech(sumTags("c3.ad.technology").alias("c3_adTech"))
 
-  /** Recode `c3 Video is Ad` field. */
-  class c3isAd(col: Column) extends Column(col.expr) {
-    import org.apache.spark.sql.{Column, functions => F}
-    def recode(): Column = {
-      F.when(lower(col).isin("true", "t"), true)
-      .when(lower(col).isin("false", "f"), false)
-      .otherwise(null)
-      .alias("c3_isAd_rc")
-    }
-  }
   /** Create a c3 `isAd` object with an `asis` and `recode` method. The
    *  `recode` method standardizes the field values into true, false, or
    *  null.
