@@ -4,7 +4,7 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 
-A Scala library with tools to operate on parquet Session Summary (PbSS) and RawLog (PbRl) data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, surgeon reduces this mess (taken from a sample notebook on Databricks):
+A Scala library with tools to operate on parquet Session Summary (PbSS) and RawLog (PbRl) data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, Surgeon reduces this mess (taken from a sample notebook on Databricks):
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
@@ -86,7 +86,7 @@ and many more. See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-s
 
 ### Containers
 
-Surgeon makes it easier to select columns using containers. 
+Surgeon makes it easier to select columns from structs, maps or arrays. 
 
 ```scala
 hourly_df.select(
@@ -140,7 +140,7 @@ hourly_df.select(
 )
 ```
 
-You can select the customer columns using `customerId` and customer names using `customerName`.
+You can select the customer column using `customerId` and customer names using `customerName`.
 
 ```scala 
 hourly_df.select(
@@ -171,7 +171,7 @@ hourly_df.select(
 
 #### GeoInfo class 
 
-Surgeon makes it easy to work with `geoInf` columns (`val.invariant.geoInfo`).  You can select `geoInfo`
+Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
 columns like so:
 
 ```scala 
@@ -217,19 +217,14 @@ hourly_df.select(
 
 ### Path construction
 
-Surgeon makes constructing the paths to the data easier (of class `DataPath`). You can provide simple
-arguments for the `Monthly`, `Daily` or `Hourly` classes. 
+Surgeon makes constructing the paths to the data easier. Customers come with
+Hourly, Daily or Monthly data. 
 
 ```scala 
 import conviva.surgeon.Paths._
-val path = Hourly(2022, month = 12, days = 24, hours = 18)
+val path1 = Hourly(2022, month = 12, days = 24, hours = 18)
 val path2 = Hourly(2022, 12, 24, List(18, 19, 20))
-```
-
-You can select monthly, daily, or hourly data by customer.
-
-```scala 
-val path = Cust(Hourly(2022, 12, 24, 18), ids = 1960180360)
+val path3 = Cust(Hourly(2022, 12, 24, 18), ids = 1960180360)
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:

@@ -199,6 +199,7 @@ object Paths {
    *  @param hours $hour
    *  @param year $year
    *  @param root $root
+   *  @param lt The log version
    *  @return 
    *  @example {{{
    *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).toString
@@ -209,9 +210,9 @@ object Paths {
       extends HourlyPath[A] {
   }
 
-  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023)
+  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, lt = 1)
       extends HourlyPath[A] {
-    override val root: String = PathDB.rawlog()
+    override val root: String = PathDB.rawlog(lt)
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
