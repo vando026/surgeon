@@ -210,7 +210,7 @@ object Paths {
       extends HourlyPath[A] {
   }
 
-  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, lt = 1)
+  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, lt: Int = 1)
       extends HourlyPath[A] {
     override val root: String = PathDB.rawlog(lt)
   }
