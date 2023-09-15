@@ -22,7 +22,6 @@ object Druid {
 
     val dat = segIds.map(getDat(_)).reduce(_ union _)
     dat.toDF(dat.columns.map(_.replace(".", "_")): _*)
-      .withColumn("sid5", regexp_replace(col("sid5"), "\\.", ":"))
   }
 
 }

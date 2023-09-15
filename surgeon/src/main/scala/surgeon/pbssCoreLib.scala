@@ -1,6 +1,6 @@
 package conviva.surgeon
 
-object pbssCoreMetrics {
+object PbSSCoreLib {
 
   import org.apache.spark.sql.functions._
   import org.apache.spark.sql._
@@ -162,28 +162,33 @@ object pbssCoreMetrics {
   // COMMAND ----------
 
   // Join metric
-  val UDFJoinTime = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).joinTimeMs().toDouble )
-  val UDFHasJoined = F.udf.register( "hasJoined", (ss: Row) => buildStdSs(ss).hasJoined() )
-  /*
-  val UDFJustJoined = sqlContext.udf.register("justJoined", (ss: Row) => buildStdSs(ss).isSessJustJoined() )
-  val UDFVSF = sqlContext.udf.register( "isVSF", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
-  val UDFEBVS = sqlContext.udf.register( "isEBVS", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
-  val UDFVPF = sqlContext.udf.register("isVPF", (ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
+  // val UDFJoinTime = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).joinTimeMs().toDouble )
+  val UDFHasJoined = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).hasJoined() )
+  val hasJoined = UDFHasJoined(col("val.SessSummary"))
 
-  val UDFVSF2 = sqlContext.udf.register( "isVSF2", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
-  val UDFEBVS2 = sqlContext.udf.register( "isEBVS2", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
+  val UDFVSF = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
+  val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId"))
+  val UDFEBVS = F.udf((ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
+  val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId"))
 
-  // Life based metric
-  val UDFLifeBitrate = sqlContext.udf.register( "lifeAvgBitrateKbps", (ss: Row) => buildStdSs(ss).lifeAvgBitrateKbp(0L).toDouble )
-  val UDFLifeBuffering = sqlContext.udf.register( "lifeBufferingTimeMs", (ss: Row) => buildSessSummary(ss).lifeBufferingTimeMs().toDouble )
-  val UDFLifePlaying = sqlContext.udf.register( "lifePlayingTimeMs", (ss: Row) => buildSessSummary(ss).lifePlayingTimeMs().toDouble )
-  val UDFFirstHbTimeMs = sqlContext.udf.register( "firstHbTimeMs", (ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs().toDouble )
-  val UDFHasEnded = sqlContext.udf.register( "hasEnded", (ss: Row) => buildSessSummary(ss).hasEnded() )
+  val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
+  val isVPF = UDFVPF(col("val.sessSummary"))
+
+  val UDFLifeBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).lifeAvgBitrateKbp(0L).toDouble )
+  val lifeAvgBitrateKbps = UDFLifeBitrate(col("val.sessSummary")) 
+
+  val UDFFirstHbTimeMs = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs().toDouble )
+  val firstHbTimeMs  = UDFFirstHbTimeMs(col("val.sessSummary"))
 
   // interval based metric
-  val UDFIntvBitrate = sqlContext.udf.register( "intvAvgBitrateKbps", (ss: Row) => buildStdSs(ss).intvBitrateKbps().toDouble )
-  val UDFIntvBuffering = sqlContext.udf.register( "intvBufferingTimeMs", (ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble )
-  val UDFIntvPlaying = sqlContext.udf.register( "intvPlayingTimeMs", (ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
+  val UDFIntvBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).intvBitrateKbps().toDouble )
+  val intvAvgBitrateKbps = UDFIntvBitrate(col("val.sessSummary"))
+  val UDFIntvBuffering = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble )
+  val intvBufferingTimeMs = UDFIntvBuffering(col("val.sessSummary"))
+  val UDFIntvPlaying = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
+  val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary"))
+
+  /*
 
   // Monthly Join metric
   val UDFVSF3 = sqlContext.udf.register( "isVSF3", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailureMonthly() )
@@ -201,13 +206,6 @@ object pbssCoreMetrics {
     }
   )
   val UDFTagMap2 = sqlContext.udf.register("makeTagMap", (inv: Row) => makeTagMap(inv))
-
-  // Ids
-  val UDFClientIdHex = sqlContext.udf.register( "getClientIdToHex", (id: Row) => buildSessId(id).clientId_vector.map(_.toInt.toHexString).mkString(":"))
-  val UDFClientID = sqlContext.udf.register("clientIdStr", (cid: WrappedArray[Int]) => {
-    if (cid.length != 4) throw new RuntimeException("Invalid cid len")
-    cid.map(_.toHexString).mkString(":")
-  })
 
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
   val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )
