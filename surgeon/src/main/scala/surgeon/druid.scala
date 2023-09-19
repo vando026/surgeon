@@ -5,14 +5,12 @@ object Druid {
   import org.apache.spark.sql.{SparkSession, DataFrame, Column}
   import org.apache.spark.sql.functions._
 
-  val spark = SparkSession
-      .builder()
-      .master("local[*]")
-      .getOrCreate()
-
   def readDruid(jfile: String): DataFrame = {
 
-    val jdat = spark.read.json(jfile)
+    val jdat = SparkSession
+      .builder.master("local[*]")
+      .getOrCreate()
+      .read.json(jfile)
     val segIds = jdat.select("segmentId").collect.map(_.getString(0))
     def getDat(seg: String): DataFrame = {
       val j1 = jdat.filter(col("segmentId") === seg)
