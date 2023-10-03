@@ -22,7 +22,7 @@ object Customer {
    *  }}}
    */
   def customerIdToName[A](ids: A, cmap: Map[Int, String] = customerNames()): List[String] = {
-    mkIntList(ids).map(cmap(_))
+    mkIntList(ids).map(cmap.getOrElse(_, "Key_missing"))
   }
   
   /** Get the ID of the customer name. 
