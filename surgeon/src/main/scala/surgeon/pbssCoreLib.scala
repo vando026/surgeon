@@ -164,12 +164,12 @@ object PbSSCoreLib {
   // Join metric
   // val UDFJoinTime = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).joinTimeMs().toDouble )
   val UDFHasJoined = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).hasJoined() )
-  val hasJoined = UDFHasJoined(col("val.SessSummary"))
+  val hasJoined = UDFHasJoined(col("val.SessSummary")).alias("hasJoined")
 
   val UDFVSF = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
-  val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId"))
+  val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
   val UDFEBVS = F.udf((ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
-  val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId"))
+  val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
 
   val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
   val isVPF = UDFVPF(col("val.sessSummary"))

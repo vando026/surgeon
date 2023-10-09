@@ -4,6 +4,7 @@ import conviva.surgeon.Sanitize._
 import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
 import org.apache.spark.sql.{Column}
 import conviva.surgeon.GeoInfo._
+import conviva.surgeon.PbSSCoreLib._
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -444,5 +445,23 @@ object PbSS {
       .alias("CIRR")
       
   }
+  
+  def  isSessDoneNotJoined(): Column = {
+    when(hasJoined === false && hasEnded === true, true).otherwise(false)
+      .alias("isSessDoneNotJoined")
+  }
+
+  def isSessJustJoined(): Column = {
+    when(hasJoined === true && justJoined === true, true).otherwise(false)
+      .alias("isSessJustJoined")
+  }
+
+  /** Identify if session isAttempt. */
+  def isAttempt(): Column = {
+    when(isSessJustJoined === true || isSessDoneNotJoined === true, true).otherwise(false)
+      .alias("isAttempt")
+  }
+
+
 }
 

@@ -7,6 +7,7 @@ class PbSS_Suite extends munit.FunSuite {
   import conviva.surgeon.PbSS._
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.GeoInfo._
+  import conviva.surgeon.PbSSCoreLib._
 
   val spark = SparkSession
       .builder()
@@ -197,6 +198,13 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1.select("cityLabel").first.getString(0), "Epernay")
     assertEquals(t2.select("country").first.getShort(0).toInt, 165)
     assertEquals(t2.select("countryLabel").first.getString(0), "Norway")
+  }
+
+  test("isAttempt should work as expected") {
+    val t1 = d8905.select(isSessDoneNotJoined, isSessJustJoined, isAttempt)
+    assertEquals(t1.select("isSessDoneNotJoined").first.getBoolean(0), false)
+    assertEquals(t1.select("isSessJustJoined").first.getBoolean(0), true)
+    assertEquals(t1.select("isAttempt").first.getBoolean(0), true)
   }
 
  // for documentation

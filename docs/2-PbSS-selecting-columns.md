@@ -90,7 +90,7 @@ dat.select(
 ).show
 ```
 
-The `isConsistent` column is based on Oleg White's code: 
+The `isConsistent` column is based on the logic: 
 
 |isJoinTimeMs|joinState|isLifePlayingTimeMs| Comment |
 |---         |---      |---                |---      |
