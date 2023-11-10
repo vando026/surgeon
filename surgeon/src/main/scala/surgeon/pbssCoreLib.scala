@@ -172,8 +172,8 @@ object PbSSCoreLib {
   val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
   val UDFEBVS = F.udf((ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
   val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
-  // val UDFVSFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eTechVSF))
-  // val isVSFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVSFT")
+  val UDFVSFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eTechVSF))
+  val isVSFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVSFT")
 
   val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
   val isVPF = UDFVPF(col("val.sessSummary"))

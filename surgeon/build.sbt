@@ -6,52 +6,22 @@ organization := "conviva"
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
 libraryDependencies ++= List(
-    "org.apache.spark" % "spark-sql_2.12" % "3.4.0" 
-      exclude("org.slf4j", "slf4j-log4j12") 
-      exclude("org.apache.parquet", "parquet.column")
-      exclude("org.apache.parquet", "parquet-hadoop")
-      exclude("org.apache.parquet", "parquet-column")
-      exclude("com.twitter", "parquet-hadoop")
-      exclude("com.twitter", "parquet-avro"),
-    "com.conviva.vma" % "hadoopApps_2.12" %  "2.240.0.6940" 
-      exclude("org.apache.hadoop", "hadoop-core")
-      exclude("org.apache.hadoop", "hadoop-client")
-      exclude("com.conviva.vma", "setupTools")
-      exclude("com.conviva.vma", "utils")
-      exclude("com.conviva.jobConsoleCommons", "jobConsoleCommons")
-      exclude("com.typesafe.scala-logging", "scala-logging_2.12"),
-    "org.scalameta" %% "munit" % "0.7.29" % Test,
-    "com.conviva.vma" % "stdMetrics_2.12" % "2.241.0.36178"
-      exclude("com.typesafe.scala-logging", "scala-logging_2.12"),
-    "com.conviva.packetbrain" % "parquet-pb" % "9.1.0"
-    // "com.conviva.3d" %% "3dReports" % "2.240.0.6940" 
-      // exclude("com.conviva", "connectionMetadata")
-      // exclude("com.twitter.algebird-core", "algebird-core")
-      // exclude("org.slf4j", "slf4j-log4j12")
+  "org.apache.spark" % "spark-sql_2.12" % "3.4.0" 
+    exclude("org.slf4j", "slf4j-log4j12"),
+  "org.scalameta" %% "munit" % "0.7.29" % Test,
+  "com.conviva.packetbrain" % "parquet-pb" % "9.1.0",
+  "com.conviva.3d" % "3dReports_2.12" % "2.234.0.6914" 
+    exclude("org.slf4j", "slf4j-log4j12")
+    exclude("com.conviva", "connectionMetadata_2.12")
+    exclude("com.conviva", "deviceMetadata_mapAdaptor_2.12")
+    exclude("com.twitter", "algebird-core_2.12")
+    exclude("com.conviva.platform", "utils_2.12")
+    exclude("org.scala", "scala-parser-combinators_2.12"),
 )
 
-// dependencyOverrides ++= Seq(
-  // "org.scala-lang.modules" % "scala-parser-combinators_2.12" % "1.0.4",
-//   "com.google.guava" % "guava" % "12.0.1",
-//   "org.apache.yetus" % "audience-annotations" % "0.5.0",
-//   "org.apache.parquet" % "parquet-encoding" % "1.7.0",
-//   "org.apache.parquet" % "parquet-common" % "1.7.0",
-//   "org.apache.parquet" % "parquet-column" % "1.7.0",
-//   "com.conviva.packetbrain" % "messages" % "9.1.0",
-//   "com.conviva.packetbrain" % "log-utils" % "9.1.0",
-//   "io.netty" % "netty-transport-native-epotll" % "4.1.63.Final",
-//   "io.netty" % "netty-transport" % "4.1.63.Final",
-//   "io.netty" % "netty-common" % "4.1.63.Final",
-//   "io.netty" % "netty-transport-native-unix-common" % "4.1.63.Final",
-//   "io.netty" % "netty-handler" % "4.1.63.Final",
-//   "io.netty" % "netty-buffer" % "4.1.63.Final",
-//   "io.netty" % "netty-codec" % "4.1.63.Final",
-//   "io.netty" % "netty-resolver" % "4.1.63.Final",
-//   "com.google.code.findbugs" % "jsr305" % "1.3.9",
-//   "com.google.protobuf" % "protobuf-java" % "2.5.0",
-//   "org.slf4j" % "slf4j-api" % "1.6.1",
-//   "com.conviva" %% "connectionMetadata" % "4.9.0",
-// )
+dependencyOverrides ++= Seq(
+  "org.scala-lang.modules" % "scala-parser-combinators_2.12" % "1.0.4",
+)
 
 // publishArtifact := false
 testFrameworks += TestFramework("munit.TestFramework")
