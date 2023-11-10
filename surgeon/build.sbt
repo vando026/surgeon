@@ -24,7 +24,7 @@ dependencyOverrides ++= Seq(
 //   "org.apache.parquet" % "parquet-column" % "1.7.0",
 //   "com.conviva.packetbrain" % "messages" % "9.1.0",
 //   "com.conviva.packetbrain" % "log-utils" % "9.1.0",
-//   "io.netty" % "netty-transport-native-epoll" % "4.1.63.Final",
+//   "io.netty" % "netty-transport-native-epotll" % "4.1.63.Final",
 //   "io.netty" % "netty-transport" % "4.1.63.Final",
 //   "io.netty" % "netty-common" % "4.1.63.Final",
 //   "io.netty" % "netty-transport-native-unix-common" % "4.1.63.Final",
