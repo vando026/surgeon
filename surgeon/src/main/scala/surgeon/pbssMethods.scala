@@ -462,6 +462,12 @@ object PbSS {
       .alias("isAttempt")
   }
 
+  /** Identify valid joined sessions. */
+  def justJoinedAndLifeJoinTimeMsIsAccurate(): Column = {
+    when(justJoined === true && isJoinTimeAccurate === true, true).otherwise(false)
+      .alias("justJoinedAndLifeJoinTimeMsIsAccurate")
+  }
+
 
 }
 

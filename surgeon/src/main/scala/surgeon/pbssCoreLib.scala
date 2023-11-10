@@ -164,12 +164,16 @@ object PbSSCoreLib {
   // Join metric
   // val UDFJoinTime = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).joinTimeMs().toDouble )
   val UDFHasJoined = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).hasJoined() )
-  val hasJoined = UDFHasJoined(col("val.SessSummary")).alias("hasJoined")
+  val hasJoined = UDFHasJoined(col("val.sessSummary")).alias("hasJoined")
+  val UDFJoinAccurate = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isJoinTimeAccurate())
+  val isJoinTimeAccurate = UDFJoinAccurate(col("val.sessSummary"))
 
   val UDFVSF = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
   val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
   val UDFEBVS = F.udf((ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
   val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
+  val UDFVSFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eTechVSF))
+  val isVSFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVSFT")
 
   val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
   val isVPF = UDFVPF(col("val.sessSummary"))
@@ -186,7 +190,7 @@ object PbSSCoreLib {
   val UDFIntvBuffering = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble )
   val intvBufferingTimeMs = UDFIntvBuffering(col("val.sessSummary"))
   val UDFIntvPlaying = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
-  val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary"))
+  val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary")).alias("intvPlayingTimeMs")
 
   /*
 
