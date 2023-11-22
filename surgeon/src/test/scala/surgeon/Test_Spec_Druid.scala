@@ -11,7 +11,7 @@ class DruidSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val dataPath = "./src/test/data" 
+  val dataPath = "./surgeon/src/test/data" 
 
   val dat = readDruid(dataPath + "/druid.json")
 

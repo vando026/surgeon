@@ -2,8 +2,7 @@ package conviva.surgeon
 
 class PbRl_Suite extends munit.FunSuite {
 
-  val dataPath = "./src/test/data" 
-  // val dataPath = "./surgeon/src/test/data" 
+  val dataPath = "./surgeon/src/test/data" 
 
   import org.apache.spark.sql.{SparkSession, DataFrame, Column}
   import org.apache.spark.sql.functions._

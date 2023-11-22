@@ -25,10 +25,6 @@ lazy val surgeon = (
 )
 
 
-// dependencyOverrides ++= Seq(
-//   "org.scala-lang.modules" % "scala-parser-combinators_2.12" % "2.1.1"
-// )
-
 publishArtifact := false
 testFrameworks += TestFramework("munit.TestFramework")
 // Global / semanticdbEnabled := true

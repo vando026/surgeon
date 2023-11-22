@@ -14,8 +14,8 @@ class PathSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val geopath = "./src/test/data/cust_dat.txt"
-  val pbssTestPath = "./src/test/data" 
+  val geopath = "./surgeon/src/test/data/cust_dat.txt"
+  val pbssTestPath = "./surgeon/src/test/data" 
 
   val custData = Map(
     207488736 -> "c3.MSNBC",
