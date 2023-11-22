@@ -17,7 +17,7 @@ val spark = SparkSession.builder
 import conviva.surgeon.PbRl._
 // Read test data
 val pbrlTestPath = "./surgeon/src/test/data" 
-// Select only one client session Id, make Ad ID for demo
+// Select only one client session Id
 val dat = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly1.parquet").cache
   .where(sessionId === 701891892)
 ```

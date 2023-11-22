@@ -142,9 +142,9 @@ add `toMs()`, `toSec()` or `stamp()` methods to existing column methods (i.e.,
  
 ```scala mdoc
 dat.select(
-  lifeFirstRecvTime,       // as is, ms since unix epoch
+  lifeFirstRecvTime,         // as is, ms since unix epoch
   lifeFirstRecvTime.toSec,   // converts ms to seconds since unix epoch
-  lifeFirstRecvTime.stamp, // converts to timestamp (HH:mm:ss)
+  lifeFirstRecvTime.stamp,   // converts to timestamp (HH:mm:ss)
   lifeFirstRecvTime, 
   lifeFirstRecvTime.toSec,  
   lifeFirstRecvTime.stamp,
@@ -154,8 +154,8 @@ dat.select(
   sessionCreationTime,
   sessionCreationTime.toSec,
   sessionCreationTime.stamp,
-  intvStartTime,           // as is, seconds since unix epoch
-  intvStartTime.toMs,        // converts seconds to ms since unix epoch
+  intvStartTime,            // as is, seconds since unix epoch
+  intvStartTime.toMs,       // converts seconds to ms since unix epoch
   intvStartTime.stamp
 ).show
 ```
@@ -189,15 +189,15 @@ Surgeon also provides several methods for selecting Ad related fields.
 
 ```scala mdoc
 dat.select(
-  sessionAdId,         // short for sumTags("c3.csid")
-  c3csid,              // same as clientAdId
-  c3isAd,              // short for sumTags("c3.video.isAd') 
-  c3isAd.recode,       // recode labels as either true, false, or null
-  c3adTech,            // field that identifies if ad tech is server or client side
-  c3adTech.recode,     // recode the labels into either server, client, or unknown
+  sessionAdId,                    // short for sumTags("c3.csid")
+  c3csid,                         // same as clientAdId
+  c3isAd,                         // short for sumTags("c3.video.isAd') 
+  c3isAd.recode,                  // recode labels as either true, false, or null
+  c3adTech,                       // field that identifies if ad tech is server or client side
+  c3adTech.recode,                // recode the labels into either server, client, or unknown
   exitDuringPreRoll, 
-  adContentMetadata,   // get the container for adContentMetaData
-  adContentMetadata.adRequested, // get specific fields by name
+  adContentMetadata,              // get the container for adContentMetaData
+  adContentMetadata.adRequested,  // get specific fields by name
   adContentMetadata.preRollStatus,
   adContentMetadata.hasSSAI,
   adContentMetadata.hasCSAI, 

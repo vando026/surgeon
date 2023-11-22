@@ -177,6 +177,8 @@ object PbSSCoreLib {
 
   val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
   val isVPF = UDFVPF(col("val.sessSummary"))
+  val UDFVPFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eTechVPF))
+  val isVPFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVPFT")
 
   val UDFLifeBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).lifeAvgBitrateKbp(0L).toDouble )
   val lifeAvgBitrateKbps = UDFLifeBitrate(col("val.sessSummary")) 
@@ -193,24 +195,6 @@ object PbSSCoreLib {
   val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary")).alias("intvPlayingTimeMs")
 
   /*
-
-  // Monthly Join metric
-  val UDFVSF3 = sqlContext.udf.register( "isVSF3", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailureMonthly() )
-  val UDFEBVS3 = sqlContext.udf.register( "isEBVS3", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStartMonthly() )
-  val UDFVPF3 = sqlContext.udf.register( "isVPF3", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailureMonthly() )
-
-  // Tags
-  val UDFTagMap = sqlContext.udf.register("makeTagStr", (inv: Row) => {  
-    if (inv == null) 
-        ""
-    else {
-        val invPb = convertToPb[SessInvariantPb](inv, getGroupConverter[SessInvariantPb]("SessInvariantPb"))  
-        (new TagMap(invPb)).toString
-    }
-    }
-  )
-  val UDFTagMap2 = sqlContext.udf.register("makeTagMap", (inv: Row) => makeTagMap(inv))
-
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
   val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )
   val UDFLifeFirstRecvTimeSec = sqlContext.udf.register("liftFirstHbTimeSec", (ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs() / 1000 )
@@ -219,24 +203,7 @@ object PbSSCoreLib {
   val UDFLongIP = sqlContext.udf.register( "getLongIP", (inv: Row) => getLongIPAddress(inv))
   val UDFGetAsset = sqlContext.udf.register( "getAsset", (inv: Row) => buildStdSsInv(inv).objectId() ) 
 
-  sqlContext.udf.register( "vsf_t", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eTechVSF))
-  sqlContext.udf.register( "vpf_t", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eTechVPF))
   sqlContext.udf.register( "vsf_b", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eBusinessVSF))
   sqlContext.udf.register( "vpf_b", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eBusinessVPF))
-
-  // COMMAND ----------
-
-  def capMetric(orig: Double, cap: Double, default: Double):Double = {
-    if (orig >= cap) {
-      return default
-    } else {
-      return if (orig >= 0) orig else (null).asInstanceOf[Double]
-    }
-  }
-  val joinTimeSecCap = 10.0 * 60         // 10 mins
-  val joinTimeMsCap = joinTimeSecCap * 1000
-  val bufferingTimeSecCap = 30.0 * 60   // 30 mins
-  val bufferingTimeMsCap = bufferingTimeSecCap * 1000
-  val bitrateCap = 40.0 * 1000          // 40 Mbps
-  */
+*/
 }
