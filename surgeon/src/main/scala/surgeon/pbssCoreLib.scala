@@ -166,7 +166,7 @@ object PbSSCoreLib {
   val UDFHasJoined = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).hasJoined() )
   val hasJoined = UDFHasJoined(col("val.sessSummary")).alias("hasJoined")
   val UDFJoinAccurate = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isJoinTimeAccurate())
-  val isJoinTimeAccurate = UDFJoinAccurate(col("val.sessSummary"))
+  val isJoinTimeAccurate = UDFJoinAccurate(col("val.sessSummary")).alias("isJoinTimeAccurate")
 
   val UDFVSF = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
   val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
@@ -176,21 +176,21 @@ object PbSSCoreLib {
   val isVSFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVSFT")
 
   val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
-  val isVPF = UDFVPF(col("val.sessSummary"))
+  val isVPF = UDFVPF(col("val.sessSummary")).alias("isVPF")
   val UDFVPFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eTechVPF))
   val isVPFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVPFT")
 
   val UDFLifeBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).lifeAvgBitrateKbp(0L).toDouble )
-  val lifeAvgBitrateKbps = UDFLifeBitrate(col("val.sessSummary")) 
+  val lifeAvgBitrateKbps = UDFLifeBitrate(col("val.sessSummary")).alias("lifeAvgBitrateKbps")
 
   val UDFFirstHbTimeMs = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs().toDouble )
-  val firstHbTimeMs  = UDFFirstHbTimeMs(col("val.sessSummary"))
+  val firstHbTimeMs  = UDFFirstHbTimeMs(col("val.sessSummary")).alias("firstHbTimeMs")
 
   // interval based metric
   val UDFIntvBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).intvBitrateKbps().toDouble )
-  val intvAvgBitrateKbps = UDFIntvBitrate(col("val.sessSummary"))
+  val intvAvgBitrateKbps = UDFIntvBitrate(col("val.sessSummary")).alias("intvAvgBitrateKbps")
   val UDFIntvBuffering = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble )
-  val intvBufferingTimeMs = UDFIntvBuffering(col("val.sessSummary"))
+  val intvBufferingTimeMs = UDFIntvBuffering(col("val.sessSummary")).alias("intvBufferingTimeMs")
   val UDFIntvPlaying = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
   val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary")).alias("intvPlayingTimeMs")
 
