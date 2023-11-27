@@ -1,4 +1,8 @@
-surgeon/target/*
+surgeon/target/streams/*
+surgeon/target/scala-2.12/classes/*
+surgeon/target/scala-2.12/sync/*
+surgeon/target/scala-2.12/update/*
+surgeon/target/scala-2.12/zinc/*
 target/*
 .bsp/*
 surgeon/.bsp/*

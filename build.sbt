@@ -1,7 +1,7 @@
-scalaVersion := "2.12.17"
-version := "0.0.7"
+ThisBuild / scalaVersion := "2.12.17"
+ThisBuild / version := "0.0.7"
 name := "surgeon"
-organization := "conviva"
+ThisBuild / organization := "conviva"
 
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
