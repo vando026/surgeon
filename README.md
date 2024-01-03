@@ -57,13 +57,15 @@ val hourly_df = spark.read.parquet(path)
     shouldProcess, 
     intvStartTime
   )
+``` 
 
+```scala 
 
-+----------+---------+--------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-|customerId|sessionId|             sid5Hex| intvStartTimeStamp|lifeFirstRecvTimeStamp|c3_viewer_id|c3_video_isAd|lifeFirstRecvTimeMs|hasEnded|justJoined|lifePlayingTimeMs|lifeFirstRecvTimeMs|endedStatus|shouldProcess|intvStartTimeSec|
-+----------+---------+--------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-|1960180360| 89057425|1c62b448:4d120d00...|2023-02-07 02:00:00|   2023-02-07 02:28:13|     2640043|            F|      1675765693115|   false|      true|          1742812|      1675765693115|          0|         true|      1675764000|
-+----------+---------+--------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
++----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
+|customerId|sessionId|sid5Hex                                    |intvStartTimeStamp |lifeFirstRecvTimeStamp|c3_viewer_id|c3_video_isAd|lifeFirstRecvTimeMs|hasEnded|justJoined|lifePlayingTimeMs|lifeFirstRecvTimeMs|endedStatus|shouldProcess|intvStartTimeSec|
++----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
+|1960180360|89057425 |1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|2023-02-07 02:00:00|2023-02-07 02:28:13   |2640043     |F            |1675765693115      |false   |true      |1742812          |1675765693115      |0          |true         |1675764000      |
++----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
 ```
 
 Below is a brief vignette of many of Surgeon's features. Please see the 
@@ -87,9 +89,47 @@ hourly_df.select(
   joinState, 
   joinTimeMs
 ) 
+
++----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+|customerId|clientId                                         |sessionId|shouldProcess|hasEnded|justEnded|justJoined|endedStatus|joinState|joinTimeMs|
++----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+|1960180360|[476230728, 1293028608, -1508640558, -1180571212]|89057425 |true         |false   |false    |true      |0          |1        |4978      |
++----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+
 ``` 
 and many more. See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
 [PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for the full list. 
+
+
+### PbSS Core Library metrics
+You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
+
+```scala
+hourly_df.select(
+  isAttempt,
+  hasJoined,
+  isVSF, 
+  isVSFT,
+  isVPF, 
+  isVPFT,
+  isEBVS,
+  lifeAvgBitrateKbps,
+  firstHbTimeMs,
+  isSessDoneNotJoined,
+  isSessJustJoined,
+  isJoinTimeAccurate,
+  justJoinedAndLifeJoinTimeMsIsAccurate,
+  intvAvgBitrateKbps,
+  intvBufferingTimeMs, 
+  intvPlayingTimeMs
+).show
+// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
+// |isAttempt|hasJoined|isVSF|isVSFT|isVPF|isVPFT|isEBVS|lifeAvgBitrateKbps|    firstHbTimeMs|isSessDoneNotJoined|isSessJustJoined|isJoinTimeAccurate|justJoinedAndLifeJoinTimeMsIsAccurate|intvAvgBitrateKbps|intvBufferingTimeMs|intvPlayingTimeMs|
+// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
+// |     true|     true|false| false|false| false| false|            5807.0|1.675765693115E12|              false|            true|              true|                                 true|            5806.0|             2375.0|        1742812.0|
+// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
+//
+```
 
 ### Containers
 
@@ -134,6 +174,13 @@ hourly_df.select(
   sid5.concatToHex, 
   sid5.concatToUnsigned 
 )
+
++-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+|sid5                                                 |sid5Hex                                    |sid5Unsigned                                       |
++-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+|476230728:1293028608:-1508640558:-1180571212:89057425|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|476230728:1293028608:2786326738:3114396084:89057425|
++-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+
 ```
 
 The same methods can be used with `clientId` or `sessionId` individually, and
@@ -145,6 +192,13 @@ hourly_df.select(
   sid6.concatToHex, 
   sid6.concatToUnsigned, 
 )
+
++-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+|sid6                                                               |sid6Hex                                             |sid6Unsigned                                                 |
++-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+|476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7|476230728:1293028608:2786326738:3114396084:89057425:728446647|
++-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+
 ```
 
 You can select the customer column using `customerId` and customer names using `customerName`.
@@ -171,9 +225,15 @@ hourly_df.select(
   lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
   lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
-  dayofweek(lifeFirstRecvTime.stamp),// get the day of the week (Spark method)
-  hour(lifeFirstRecvTime.stamp)      // get hour of the time (Spark method)
+  dayofweek(lifeFirstRecvTime.stamp).alias("dow"), // get the day of the week (Spark method)
+  hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
 )
+
++-------------------+--------------------+----------------------+---+----+
+|lifeFirstRecvTimeMs|lifeFirstRecvTimeSec|lifeFirstRecvTimeStamp|dow|hour|
++-------------------+--------------------+----------------------+---+----+
+|1675765693115      |1675765693          |2023-02-07 02:28:13   |3  |2   |
++-------------------+--------------------+----------------------+---+----+
 ```
 
 #### GeoInfo class 

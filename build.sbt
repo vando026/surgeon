@@ -1,5 +1,5 @@
 ThisBuild / scalaVersion := "2.12.17"
-ThisBuild / version := "0.0.7"
+ThisBuild / version := "0.0.8"
 ThisBuild / organization := "conviva"
 name := "surgeon"
 
@@ -22,11 +22,6 @@ lazy val surgeon = project
           exclude("com.twitter", "algebird-core_2.12")
           exclude("com.conviva.platform", "utils_2.12"),
      ), 
-    // sourceDirectory := file("./surgeon/src/"),
-    // set the main Scala source directory to be <base>/src
-    // Compile / scalaSource := baseDirectory.value / "surgeon/src",
-    // set the Scala test source directory to be <base>/test
-    // Test / scalaSource := baseDirectory.value / "surgeon/test",
 )
 
 
