@@ -19,7 +19,7 @@ package conviva.surgeon
 object PbRl {
 
   import conviva.surgeon.Sanitize._
-  import org.apache.spark.sql.functions.{lower, col, when, typedLit}
+  import org.apache.spark.sql.functions.{lower, col, when, typedLit, array_join, array_remove, split}
   import org.apache.spark.sql.{Column}
   import conviva.surgeon.GeoInfo._
   
@@ -192,6 +192,22 @@ object PbRl {
    *  }}}
    */
   def c3isAd = new c3isAd(c3Tags("c3.video.isAd").alias("c3_isAd"))
+
+
+  /** Class for converting IPV6 to hexadecimal format. */
+  class IP6(field: String, name: String) extends Column(col.alias(name).expr) {
+      /** Method to convert to hexadecimal format and concatenate*/
+      def hex(): Column = {
+        val hexArray = bytesToHexUDF(col(s"${field}.element"))
+        // Split into groups of 4
+        val strSplit = split(hexArray, "(?<=\\G....)")
+        // remove empty strings
+        val dropEmpty = array_remove(strSplit, "")
+        array_join(dropEmpty, ":").alias(s"${name}Hex")
+      }
+  }
+
+  def ipv6() = new IP6("payload.heartbeat.publicipv6", "ipv6")
 
 }
 /*

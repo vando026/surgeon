@@ -76,9 +76,19 @@ object Sanitize {
   /** UDF to convert Int to hexadecimal format. */
   def toHexStringUDF = F.udf[String, Int](toHexString_)
   /** Convert all elements in an array to hexadecimal format. */
-  def arrayToHex(col: Column): Column = {
-    F.array_join(F.transform(col, toHexStringUDF(_)), ":")
+  def arrayToHex(col: Column, sep: String = ":"): Column = {
+    F.array_join(F.transform(col, toHexStringUDF(_)), sep)
   }
+
+  /** Convert bytes to hexadecimal format. */
+  def bytesToHex(bytes: Seq[Short]): String = {
+      val sb = new StringBuilder
+      for (b <- bytes) {
+          sb.append(String.format("%02x", Short.box(b)))
+      }
+      sb.toString
+  }
+  def bytesToHexUDF = F.udf[String, Seq[Short]](bytesToHex)
 
   /** Class to extract and convert IDs from non-array fields.
    * @param field The input field
@@ -86,34 +96,34 @@ object Sanitize {
    */
   class IdCol(col: Column, name: String) extends Column(col.alias(name).expr) {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = toHexStringUDF(col).alias(s"${name}Hex")
+    def toHex(): Column = toHexStringUDF(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def nosign(): Column = toUnsignedUDF(col).alias(s"${name}NoSign")
+    def toUnisgned(): Column = toUnsignedUDF(col).alias(s"${name}Unsigned")
   }
   
   class IdArray(col: Column, name: String) extends Column(col.expr) {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = arrayToHex(col).alias(s"${name}Hex")
+    def concatToHex(sep: String = ""): Column = arrayToHex(col).alias(s"${name}Hex", sep)
     /** Method to convert to unsigned format */
-    def nosign(): Column = arrayToUnsigned(col).alias(s"${name}NoSign")
+    def concatToUnsigned(sep: String = ""): Column = arrayToUnsigned(col).alias(s"${name}UnSigned", sep)
     /** Method concatenates fields unconverted. */
-    def asis(): Column = F.concat_ws(":", col).alias(s"${name}")
+    def concat(sep: String = ":"): Column = F.concat_ws(sep, col).alias(s"${name}")
   }
 
   /** Class for creating sid5 and sid6 fields. */
   case class SID(name: String, clientId: IdArray, id: IdCol*) {
     /** Method to convert to hexadecimal format */
-    def hex(): Column = {
+    def concatToHex(): Column = {
       val cols = clientId.hex +: id.map(_.hex)
       F.concat_ws(":", cols: _*).alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
-    def nosign(): Column = {
+    def concatToUnsigned(): Column = {
       val cols = clientId.nosign +: id.map(_.nosign)
-      F.concat_ws(":", cols: _*).alias(s"${name}NoSign")
+      F.concat_ws(":", cols: _*).alias(s"${name}UnSigned")
     }
     /** Method to concatenate fields asis. */
-    def asis(): Column =  F.concat_ws(":", clientId +: id:_*).alias(s"${name}")
+    def concat(): Column =  F.concat_ws(":", clientId +: id:_*).alias(s"${name}")
   }
 
   /** Class with methods to operate on arrays. */

@@ -1,13 +1,13 @@
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / version := "0.0.7"
-name := "surgeon"
 ThisBuild / organization := "conviva"
 
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
-lazy val surgeon = (
-  Project("surgeon", file("surgeon"))
+lazy val surgeon = project 
+   .in(file("."))
    .settings(
+      name := "surgeon",
       libraryDependencies ++= List(
         "org.apache.spark" % "spark-sql_2.12" % "3.4.0" 
           exclude("org.slf4j", "slf4j-log4j12"),
@@ -20,8 +20,11 @@ lazy val surgeon = (
           exclude("com.conviva", "deviceMetadata_mapAdaptor_2.12")
           exclude("com.twitter", "algebird-core_2.12")
           exclude("com.conviva.platform", "utils_2.12"),
-      ),
-   )
+     ), 
+    // set the main Scala source directory to be <base>/src
+    // Compile / scalaSource := baseDirectory.value / "src",
+    // set the Scala test source directory to be <base>/test
+    // Test / scalaSource := baseDirectory.value / "test",
 )
 
 

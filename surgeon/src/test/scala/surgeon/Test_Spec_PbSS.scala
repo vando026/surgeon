@@ -51,9 +51,9 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1, expect)
   }
 
-  test("sid5 should eq hex ID str") {
+  test("sid5 should eq concatToHex ID str") {
     val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891"
-    val t1 = d8905.select(sid5.hex).first.getString(0)
+    val t1 = d8905.select(sid5.concatToHex).first.getString(0)
     assertEquals(t1, expect)
   }
 
@@ -80,20 +80,20 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("sessionCreationId should eq expected") {
     val expect = "2b6b36b7"
-    val t1 = d8905.select(sessionCreationId.hex).first.getString(0)
+    val t1 = d8905.select(sessionCreationId.concatToHex).first.getString(0)
     assertEquals(t1, expect)
   }
 
-  test("sid6 should eq hex ID str") {
+  test("sid6 should eq concatToHex ID str") {
     val expect = "1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7"
-    val t1 = d8905.select(sid6.hex).first.getString(0)
+    val t1 = d8905.select(sid6.concatToHex).first.getString(0)
     assertEquals(t1, expect)
   }
 
   test("Select should include all ID field names") {
     val expect = "customerId:clientId:sessionId:sid5:sid5NoSign:sid5Hex"
     val tnames = d8905
-      .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.nosign, sid5.hex)
+      .select(customerId, clientId.asis, sessionId, sid5.asis, sid5.nosign, sid5.concatToHex)
         .columns.mkString(":")
     assertEquals(tnames, expect)
   }
@@ -213,7 +213,7 @@ class PbSS_Suite extends munit.FunSuite {
  val dat2 = dat.select(
     customerId, 
     sessionId, 
-    sid5.hex, 
+    sid5.toHex, 
     intvStartTime.stamp,
     lifeFirstRecvTime.stamp, 
     sumTags("c3.viewer.id"),
@@ -247,24 +247,24 @@ class PbSS_Suite extends munit.FunSuite {
   val dat2 = dat.select(
     customerId,
     clientId,             // returns as is, signed array
-    clientId.asis,        // returns as signed String
-    clientId.nosign,      // returns unsigned String
-    clientId.hex,         // returns hexadecimal String
+    clientId.concat,        // returns as asis String
+    clientId.concatToUnsigned,      // returns unsigned String
+    clientId.concatToHex,         // returns hexadecimal String
     sessionId,            // signed
-    sessionId.nosign,     // unsigned 
-    sessionId.hex,        // hexadecimal String
-    sessionAdId,          // (c3.csid) signed array
-    sessionAdId.nosign,   // (c3.csid) unsigned
-    sessionAdId.hex,      // (c3.csid) unsigned
-    sid5.asis,            // clientId:sessionId signed String
-    sid5.nosign,          // clientId:sessionId unsigned String
-    sid5.hex,             // clientId:sessionId hexadecimal String
-    sid5Ad.asis,          // clientAdId:sessionId signed String
-    sid5Ad.nosign,        // clientAdId:sessionId unsigned String
-    sid5Ad.hex,           // clientAdId:sessionId hexadecimal String
-    sid6.asis,            // clientAdId:sessionId:sessionCreationTime signed String
-    sid6.nosign,          // clientAdId:sessionId:sessionCreationTime unsigned String
-    sid6.hex              // clientAdId:sessionId:sessionCreationTime hexadecimal String
+    sessionId.concatToUnsigned,     // unsigned 
+    sessionId.concatToHex,        // hexadecimal String
+    sessionAdId,          // (c3.csid) array
+    sessionAdId.concatToUnsigned,   // (c3.csid) unsigned
+    sessionAdId.concatToHex,      // (c3.csid) unsigned
+    sid5.concat,            // clientId:sessionId asis String
+    sid5.concatToUnsigned,          // clientId:sessionId unsigned String
+    sid5.concatToHex,             // clientId:sessionId hexadecimal String
+    sid5Ad.concat,          // clientAdId:sessionId asis String
+    sid5Ad.concatToUnsigned,        // clientAdId:sessionId unsigned String
+    sid5Ad.concatToHex,           // clientAdId:sessionId hexadecimal String
+    sid6.concat,                  // clientAdId:sessionId:sessionCreationTime asis String
+    sid6.concatToUnsigned,        // clientAdId:sessionId:sessionCreationTime unsigned String
+    sid6.concatToHex              // clientAdId:sessionId:sessionCreationTime hexadecimal String
   )
  }
 
