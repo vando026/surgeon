@@ -18,7 +18,7 @@ import com.conviva.vmaStdMetrics.sess.StdSess
  * @define clientId The clientID assigned to the client by Conviva
  * @define sessionId The sessionId assigned to the session by Conviva
  * @define timestamp to seconds, milliseconds, timestamp or asis methods
- * @define signed as a signed, nosign, or hexadecimal string
+ * @define signed as a signed, unsigned, or hexadecimal string
  * @define ss `val.sessSummary`
  * @example {{{
  * df.select(customerId, clientId.hex, hasEnded, justJoined)
@@ -84,9 +84,12 @@ object PbSS {
   */ 
   def customerId(): Column = col("key.sessId.customerId")
 
-  /** Extract the `customerId` column as is.
+  /** Extract the name of the `customerId` column.
    * @example{{{
-   * df.select(customerName)
+   * df.select(
+   *  customerId, 
+   *  customerName
+   * )
    * }}}
   */ 
   def customerName(): Column = {
@@ -100,18 +103,19 @@ object PbSS {
    * @example{{{
    * df.select(
    *  sessionId
-   *  sessionId.hex,
-   *  sessionId.nosign)
+   *  sessionId.toHex,
+   *  sessionId.toUnsigned)
    * }}}
   */ 
   def sessionId() = new IdCol(col("key.sessId.clientSessionId"), "sessionId") 
 
-  /** Create the `clientId` column as is or $signed. 
+  /** Create the `clientId` column asis or $signed. 
    * @example{{{
    * df.select(
    *  clientId,
-   *  clientId.nosign, 
-   *  clientId.hex)
+   *  clientId.concat,
+   *  clientId.concatToUnsigned, 
+   *  clientId.concatToHex)
    * }}}  
   */ 
   def clientId = new IdArray(col("key.sessId.clientId.element").alias("clientId"), name = "clientId")
@@ -121,9 +125,9 @@ object PbSS {
    *  has ms, sec, and timestamp methods. 
    *  @example{{{
    *  df.select(
-   *    sessionCreationId.asis,
-   *    sessionCreationId.hex,
-   *    sessionCreationId.nosign
+   *    sessionCreationId,
+   *    sessionCreationId.toHex,
+   *    sessionCreationId.toUnsigned
    *  )
    *  }}}
    */
@@ -132,9 +136,10 @@ object PbSS {
   /** Create an sid5 object which concatenates `clientId` and `clientSessionId` $signed. 
    * @example{{{
    * df.select(
-   *  sid5.asis, 
-   *  sid5.nosign, 
-   *  sid5.hex)
+   *  sid5, 
+   *  sid5.concat,
+   *  sid5.concatToUnsigned, 
+   *  sid5.concatToHex)
    * }}}  
   */ 
   def sid5 = SID(name = "sid5", clientId, sessionId)
@@ -143,9 +148,10 @@ object PbSS {
    *  `sessionCreationTime` $signed. 
    * @example{{{
    * df.select(
-   *  sid6.asis, 
-   *  sid6.nosign, 
-   *  sid6.hex)
+   *  sid6,
+   *  sid6.concat, 
+   *  sid6.concatToUnsigned, 
+   *  sid6.concatToHex)
    * }}}  
   */ 
   def sid6 = SID(name = "sid6", clientId, sessionId, sessionCreationId)
@@ -154,9 +160,10 @@ object PbSS {
    *  $signed. 
    *  @example{{{
    *  df.select(
-   *    sid5Ad.asis, 
-   *    sid5Ad.hex, 
-   *    sid5Ad.nosign
+   *    sid5Ad, 
+   *    sid5Ad.concat, 
+   *    sid5Ad.concatToUnsigned, 
+   *    sid5Ad.concatToHex
    *  )
    *  }}}
    */
@@ -507,6 +514,8 @@ object PbSS {
   val UDFIntvPlaying = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
   val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary")).alias("intvPlayingTimeMs")
 
+  val UDFLongIP = F.udf[String, Row]((inv: Row) => getLongIPAddress(inv))
+  val ipv4 = UDFLongIP(col("val.sessSummary"))
   /*
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
   val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )

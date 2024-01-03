@@ -195,19 +195,22 @@ object PbRl {
 
 
   /** Class for converting IPV6 to hexadecimal format. */
-  class IP6(field: String, name: String) extends Column(col.alias(name).expr) {
+  class IP6(col: Column, name: String) extends Column(col.alias("publicIpv6").expr) {
       /** Method to convert to hexadecimal format and concatenate*/
-      def hex(): Column = {
-        val hexArray = bytesToHexUDF(col(s"${field}.element"))
+      def concatToHex(): Column = {
+        val hexArray = bytesToHexUDF(col)
         // Split into groups of 4
         val strSplit = split(hexArray, "(?<=\\G....)")
         // remove empty strings
         val dropEmpty = array_remove(strSplit, "")
         array_join(dropEmpty, ":").alias(s"${name}Hex")
       }
+      def concat(): Column = {
+        array_join(col, ":").alias(s"${name}")
+      }
   }
 
-  def ipv6() = new IP6("payload.heartbeat.publicipv6", "ipv6")
+  def ipv6() = new IP6(col("payload.heartbeat.publicipv6.element"), "ipv6")
 
 }
 /*

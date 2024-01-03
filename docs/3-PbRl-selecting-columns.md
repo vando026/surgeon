@@ -21,7 +21,7 @@ val pbrlTestPath = "./surgeon/src/test/data"
 val dat = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly1.parquet").cache
   .where(sessionId === 701891892)
 ```
-### Container methods
+### Container selection
 
 Surgeon makes it select columns from containers (arrays, maps, structs). This  eliminates the
 need for typing out long path names to the columns. The available container
@@ -38,9 +38,9 @@ dat.select(
   ).show(false)
 ```
 
-### Shorthand methods
+### Quick selection
 
-There are several methods to select frequently used columns:
+Quick ways to select frequently used columns:
 
 ```scala mdoc
 dat.select(
@@ -53,37 +53,63 @@ dat.select(
   dftot,
   dfcnt,
   sessionTimeMs,
+  ipv6
 ).show(false)
 ```
-### Id methods
 
-Surgeon provides the `IdCol` and `SID` classes for constructing and formatting Ids,
-with asis (signed), nosign (unsigned), or hexadecimal methods. The `ID` class
-handles the formatting. The `SID` class handles the concatenations of columns, for example,
-`clientId` and `sessionId`, and assigns a name based on
-the format selected. 
+A useful column is `customerName`, which returns the name of
+the `customerId`. 
+
+```scala
+dat.select(
+  customerId, 
+  customerName 
+)
+```
+
+The `ipv6` column comes with two methods, 
+
+```scala 
+dat.select(
+  ipv6,            // Array asis, root: payload.heartbeat.publicIpv6
+  ipv6.concat      // concat values in Array 
+  ipv6.concatToHex // concat values and convert to hexadecimal
+)
+
+```
+
+### Id selection, conversion, formatting
+
+Surgeon provides methods for converting and formatting ID values or
+Arrays. The `ID` class handles the conversion to hexadecimal or unsigned and
+the `SID` class handles the concatenations of columns, for example,
+`clientSessionId` and `sessionId`, and assigns a name based on the format
+selected. 
 
 
 ```scala mdoc
 dat.select(
   customerId,
   sessionId,
-  sessionId.nosign,
-  sessionId.hex,
+  sessionId.toUnsigned,
+  sessionId.toHex,
   sessionAdId,
-  sessionAdId.nosign,
-  sessionAdId.hex,
+  sessionAdId.toUnsigned,
+  sessionAdId.toHex,
   clientId,
-  clientId.asis,
-  clientId.nosign,
-  clientId.hex,
-  sid5.asis,
-  sid5Ad.asis,
-  sessionAdId, 
+  clientId.concat,
+  clientId.concatToUnsigned,
+  clientId.concatToHex,
+  sid5.concat,
+  sid5.concatToUnsigned,
+  sid5.concatToHex,
+  sid5Ad.concat,
+  sid5Ad.concatToUnsigned,
+  sid5Ad.concatToHex,
 ).show(false)
 ```
 
-### Time methods
+### Time selection
 
 Surgeon provides `TimeSecCol`, `TimeMsCol`, and `TimeUsCol` classes with methods to work with Unix Epoch time columns.
 These classes extends the base class of a column (`Column(expr)`) to
@@ -103,7 +129,7 @@ dat.select(
 ```
 
 
-### Geo methods
+### Geo selection
 Surgeon has a method to extract geoInfo data and provides a convenient
 method called `label` to assign labels to the numeric coded geo fields. 
 

@@ -43,7 +43,7 @@ val hourly_df = spark.read.parquet(path)
   .select(
     customerId, 
     sessionId, 
-    sid5.hex, 
+    sid5.concatToHex, 
     intvStartTime.stamp,
     lifeFirstRecvTime.stamp, 
     sumTags("c3.viewer.id"),
@@ -67,7 +67,7 @@ Below is a brief vignette of many of Surgeon's features. Please see the
 The are several short hand names that make the selection of frequently used columns as simple as
 possible: 
 
-```scala mdoc
+```scala 
 hourly_df.select(
   customerId, 
   clientId,
@@ -118,14 +118,14 @@ verbose and repetitive code.
 Surgeon makes it easier to work with ID columns. Often, a `sid5` column is
 constructed from the `clientId` and `sessionId` columns. Both columns are
 inconsistently formatted across PbSS and PbRl datasets. Surgeon constructs a
-`sid5` column for you with methods to format the values as is (`asis`), as
-unsigned (`nosign`), or as hexadecimal (`hex`).
+`sid5` column for you with methods to concat the values as is (`concat`), as
+unsigned (`concatToUnsigned`), or as hexadecimal (`concatToHex`).
 
 ```scala 
 hourly_df.select(
-  sid5.asis,   
-  sid5.hex, 
-  sid5.nosign 
+  sid5.concat,   
+  sid5.concatToHex, 
+  sid5.concatToUnsigned 
 )
 ```
 
@@ -134,9 +134,9 @@ you can even construct an `sid6` column with `sessionCreationTimeMs`:
 
 ```scala 
 hourly_df.select(
-  sid6.asis, 
-  sid6.hex, 
-  sid6.nosign, 
+  sid6.concat, 
+  sid6.concatToHex, 
+  sid6.concatToUnsigned, 
 )
 ```
 

@@ -22,12 +22,11 @@ val dat0 = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
 val dat = dat0.where(sessionId === 89057425)
 ```
 
-### Container methods
+### Container selction
 
-Surgeon provides several methods which make it easier to select columns or
-columns from containers (arrays, maps, structs). These methods eliminate the
-need for typing out long path names to the columns. The available container
-methods are: 
+Surgeon makes it easy to select columns or columns from containers (arrays,
+maps, structs), which eliminates the need to type out long path names to the
+columns: 
 
 ```scala mdoc
 dat.select(
@@ -54,9 +53,9 @@ dat.select(
 ).show
 ```
 
-### Shorthand methods
+### Quick selection
 
-There are several methods that make the selection of frequently used columns as simple as
+This makes the selection of frequently used columns as simple as
 possible: 
 
 ```scala mdoc
@@ -99,41 +98,74 @@ The `isConsistent` column is based on the logic:
 |-3          |0        |1                  | joined, unknown join time, positive life playing time |
 Any other combination is inconsistent.
 
+Another useful shorthand method is `customerName`, which returns the name of
+the `customerId`. 
 
-### Id methods
+```scala
+dat.select(
+  customerId, 
+  customerName 
+)
+```
 
-Surgeon provides the `IdCol` and `SID` classes for constructing and formatting Ids,
-with asis (signed), nosign (unsigned), or hexadecimal methods. The `ID` class
-handles the formatting. The `SID` class handles the concatenations of columns, for example,
-`clientSessionId` and `sessionId`, and assigns a name based on
-the format selected. 
+You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
+
+```scala mdoc
+dat.select(
+  isAttempt,
+  hasJoined,
+  isVSF, 
+  isVSFT,
+  isVPF, 
+  isVPFT,
+  isEBVS,
+  lifeAvgBitrateKbps,
+  firstHbTimeMs,
+  isSessDoneNotJoined,
+  isSessJustJoined,
+  isJoinTimeAccurate,
+  justJoinedAndLifeJoinTimeMsIsAccurate,
+  intvAvgBitrateKbps,
+  intvBufferingTimeMs, 
+  intvPlayingTimeMs
+).show
+
+```
+
+### Id selection, conversion, formatting
+
+Surgeon an easy way to convert and format ID values or
+Arrays. The `ID` class handles the conversion to hexadecimal or unsigned and
+the `SID` class handles the concatenations of columns, for example,
+`clientSessionId` and `sessionId`, and assigns a name based on the format
+selected. 
 
 ```scala mdoc
 dat.select(
   customerId,
-  clientId,           // returns as is, signed Array
-  clientId.asis,      // returs signed String
-  clientId.nosign,    // returns unsigned String
-  clientId.hex,       // returns hexadecimal String
-  sessionAdId,        // AdId (c3.csid) signed Array
-  sessionAdId.nosign, // AdId (c3.csid) unsigned String
-  sessionAdId.hex,    // AdId (c3.csid) hexadecimal String
-  sessionId,          // signed
-  sessionId.nosign,   // unsigned
-  sessionId.hex,      // hexadecimal
-  sid5.asis,          // clientId:sessionId signed String
-  sid5.nosign,        // clientId:sessionId unsigned String
-  sid5.hex,           // clientId:sessionId hexadecimal String
-  sid5Ad.asis,        // clientAdId:sessionId signed String
-  sid5Ad.nosign,      // clientAdId:sessionId unsigned String
-  sid5Ad.hex,         // clientAdId:sessionId hexadecimal String
-  sid6.asis,          // clientAdId:sessionId:sessionCreationTime signed String
-  sid6.nosign,        // clientAdId:sessionId:sessionCreationTime unsigned String
-  sid6.hex            // clientAdId:sessionId:sessionCreationTime hexadecimal String
+  clientId,                     // returns Array as is
+  clientId.concat,              // returns concated String
+  clientId.concatToUnsigned,    // returns concated unsigned String
+  clientId.concatToHex,         // returns concated hexadecimal String
+  sessionAdId,                  // AdId (c3.csid) returns as is
+  sessionAdId.toUnsigned,       // AdId (c3.csid) unsigned 
+  sessionAdId.toHex,            // AdId (c3.csid) hexadecimal 
+  sessionId,                    // return as is
+  sessionId.toUnsigned,         // unsigned
+  sessionId.toHex,              // hexadecimal
+  sid5.concat,                  // clientId:sessionId String
+  sid5.concatToUnsigned,        // clientId:sessionId unsigned String
+  sid5.concatToHex,             // clientId:sessionId hexadecimal String
+  sid5Ad.concat,                // clientAdId:sessionId String
+  sid5Ad.concatToUnsigned,      // clientAdId:sessionId unsigned String
+  sid5Ad.concatToHex,           // clientAdId:sessionId hexadecimal String
+  sid6.concat,                  // clientAdId:sessionId:sessionCreationTime String
+  sid6.concatToUnsigned,        // clientAdId:sessionId:sessionCreationTime unsigned String
+  sid6.concatToHex              // clientAdId:sessionId:sessionCreationTime hexadecimal String
 ).show(false)
 ```
 
-### Time methods
+### Time selection
 
 Surgeon provides a `TimeMsCol` with methods to work with time-related columns.
 The `TimeMsCol` or `TimeSecCol` classes extends the base class of a column (`Column(expr)`) to
@@ -183,7 +215,7 @@ string argument to the containers (i.e., something other than
 `framesPlayingTimeMs`).
 
 
-### Ad methods
+### Ad selection
 Surgeon also provides several methods for selecting Ad related fields.
 
 
@@ -205,7 +237,7 @@ dat.select(
 ).show(false)
 ```
 
-### GeoInfo methods
+### GeoInfo selection
 
 You can select `GeoInfo` columns and their labels from `val.invariant.geoInfo` (of class `geoInfo`) like so:
 

@@ -67,8 +67,8 @@ object Sanitize {
   /** UDF to convert signed BigInt to Unsigned BigInt */
   def toUnsignedUDF = F.udf[BigInt, Int](toUnsigned)
   /** Convert all elements in array to unsigned. */
-  def arrayToUnsigned(col: Column): Column = {
-    F.array_join(F.transform(col, toUnsignedUDF(_)), ":")
+  def arrayToUnsigned(col: Column, sep: String = ":"): Column = {
+    F.array_join(F.transform(col, toUnsignedUDF(_)), sep)
   }
 
   /** Convert integer value to hexadecimal format. */
@@ -98,29 +98,29 @@ object Sanitize {
     /** Method to convert to hexadecimal format */
     def toHex(): Column = toHexStringUDF(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def toUnisgned(): Column = toUnsignedUDF(col).alias(s"${name}Unsigned")
+    def toUnsigned(): Column = toUnsignedUDF(col).alias(s"${name}Unsigned")
   }
   
   class IdArray(col: Column, name: String) extends Column(col.expr) {
     /** Method to convert to hexadecimal format */
-    def concatToHex(sep: String = ""): Column = arrayToHex(col).alias(s"${name}Hex", sep)
+    def concatToHex(): Column = arrayToHex(col).alias(s"${name}Hex")
     /** Method to convert to unsigned format */
-    def concatToUnsigned(sep: String = ""): Column = arrayToUnsigned(col).alias(s"${name}UnSigned", sep)
+    def concatToUnsigned(): Column = arrayToUnsigned(col).alias(s"${name}Unsigned")
     /** Method concatenates fields unconverted. */
-    def concat(sep: String = ":"): Column = F.concat_ws(sep, col).alias(s"${name}")
+    def concat(): Column = F.concat_ws(":", col).alias(s"${name}")
   }
 
   /** Class for creating sid5 and sid6 fields. */
   case class SID(name: String, clientId: IdArray, id: IdCol*) {
     /** Method to convert to hexadecimal format */
     def concatToHex(): Column = {
-      val cols = clientId.hex +: id.map(_.hex)
+      val cols = clientId.concatToHex +: id.map(_.toHex)
       F.concat_ws(":", cols: _*).alias(s"${name}Hex")
     }
     /** Method to convert to unsigned format */
     def concatToUnsigned(): Column = {
-      val cols = clientId.nosign +: id.map(_.nosign)
-      F.concat_ws(":", cols: _*).alias(s"${name}UnSigned")
+      val cols = clientId.concatToUnsigned +: id.map(_.toUnsigned)
+      F.concat_ws(":", cols: _*).alias(s"${name}Unsigned")
     }
     /** Method to concatenate fields asis. */
     def concat(): Column =  F.concat_ws(":", clientId +: id:_*).alias(s"${name}")
