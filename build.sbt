@@ -8,7 +8,7 @@ credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 lazy val surgeon = project 
    .in(file("surgeon"))
    .settings(
-      name := "core",
+      name := "surgeon",
       libraryDependencies ++= List(
         "org.apache.spark" % "spark-sql_2.12" % "3.4.0" 
           exclude("org.slf4j", "slf4j-log4j12"),

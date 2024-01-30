@@ -48,6 +48,12 @@ class PbRl_Suite extends munit.FunSuite {
 
   }
 
+  test("ipv4 should work as expected") {
+    val t1 = dat2.select(ipv4.concat).first.getString(0)
+    val e1 = "107:130:101:70"
+    assertEquals(t1, e1)
+  }
+
   // test("timeStampUs should compute us/ms/sec") {
     // val t1 = d8905.select(sessionTimeMs).first.getInt(0)
     // assertEquals(t1, 1906885)

@@ -187,4 +187,26 @@ object Sanitize {
     }
   }
 
+  /** Class for formating IPV6. */
+  class IP6(col: Column, name: String) extends Column(col.alias("publicipv6").expr) {
+      /** Method to convert to hexadecimal format and concatenate*/
+      def concatToHex(): Column = {
+        val hexArray = bytesToHexUDF(col)
+        // Split into groups of 4
+        val strSplit = F.split(hexArray, "(?<=\\G....)")
+        // remove empty strings
+        val dropEmpty = F.array_remove(strSplit, "")
+        F.array_join(dropEmpty, ":").alias(s"${name}Hex")
+      }
+      def concat(): Column = {
+        F.array_join(col, ":").alias(s"${name}")
+      }
+  }
+
+  /** Class for formating IPV4. */
+  class IP4(col: Column, name: String) extends Column(col.alias("publicIp").expr) {
+      def concat(): Column = {
+        F.array_join(col, ":").alias(s"${name}")
+      }
+  }
 }

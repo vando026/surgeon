@@ -20,7 +20,7 @@ object GeoInfo {
       ("asn" -> "asn.dat"), 
       ("asnIdToIspName" -> "asnIdToIspName.dat"), 
       ("connectionType" -> "connectionTypes_dat.gp"),
-      ("resource") -> ("c3ServiceConfig_march_31_2023.xml")
+      ("resource") -> ("c3ServiceConfig_30Jan2024.csv")
   )
 
   // Read GEO file, convert it to Scala Map and load to geoMap
@@ -31,13 +31,11 @@ object GeoInfo {
     val fs = xpath.getFileSystem(new Configuration)
     val input = fs.open(xpath)
     val out = geoName match {
-      case "resource" => (XML.load(input)  \\ "customers" \\ "customer")
-        .map({ x => ((x.attributes("id")).toString.toInt -> (x.attributes("name")).toString.toString )}).toMap
-      case _ => scala.io.Source.fromInputStream(input).getLines
-          .filterNot(_.startsWith("#")) // skip 'comment' line
-          .map(_.split("\\|").map(_.trim))
-          .filter(_.length == 2) // what if "54|czech republic|r" - skip or take?? skip for now...
-          .map{case Array(id, name) => id.toInt -> name}.toMap
+      case "resource" => scala.io.Source.fromInputStream(input).getLines
+        .map(_.split(","))
+        .filter(_.length == 2)
+        .map {case Array(id, name) => id.toInt -> name}.toMap
+      case _ => throw new Exception(s"${path}/${geoName} not found.")
     }
     fs.close()
     out

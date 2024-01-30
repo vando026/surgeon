@@ -288,5 +288,14 @@ class PbSS_Suite extends munit.FunSuite {
   )
  }
 
+  d8905.select(
+    lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
+    lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
+    lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
+    dayofweek(lifeFirstRecvTime.stamp).alias("dow"),// get the day of the week (Spark method)
+    hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
+    ).show(false)
+
 
 }
+

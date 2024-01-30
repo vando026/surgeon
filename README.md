@@ -4,7 +4,7 @@
 
 <h1 align="center"> conviva-surgeon</h1>
 
-A Scala library with tools to operate on parquet Session Summary (PbSS) and RawLog (PbRl) data. Surgeon is designed to reduce the verbose startup code needed to read the data and simplifies working with columns and column arrays. For example, Surgeon reduces this mess (taken from a sample notebook on Databricks):
+A Scala library with that makes it easy to read and query parquet Session Summary (PbSS) and RawLog (PbRl) data. For example, Surgeon reduces this mess (taken from a sample notebook on Databricks):
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
@@ -68,13 +68,12 @@ val hourly_df = spark.read.parquet(path)
 +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
 ```
 
-Below is a brief vignette of many of Surgeon's features. Please see the 
+Below is a brief vignette of Surgeon's many features. Please see the 
 [Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
-### Short hand columns
+### Quick column selection
 
-The are several short hand names that make the selection of frequently used columns as simple as
-possible: 
+Surgeon makes it easy to select columns that are frequently used in analysis:
 
 ```scala 
 hourly_df.select(
@@ -90,19 +89,118 @@ hourly_df.select(
   joinTimeMs
 ) 
 
-+----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
-|customerId|clientId                                         |sessionId|shouldProcess|hasEnded|justEnded|justJoined|endedStatus|joinState|joinTimeMs|
-+----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
-|1960180360|[476230728, 1293028608, -1508640558, -1180571212]|89057425 |true         |false   |false    |true      |0          |1        |4978      |
-+----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+// +----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+// |customerId|clientId                                         |sessionId|shouldProcess|hasEnded|justEnded|justJoined|endedStatus|joinState|joinTimeMs|
+// +----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
+// |1960180360|[476230728, 1293028608, -1508640558, -1180571212]|89057425 |true         |false   |false    |true      |0          |1        |4978      |
+// +----------+-------------------------------------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
 
 ``` 
-and many more. See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for the full list. 
 
+It is also easy to query from structs, maps or arrays in PbSS and PbRl:
+
+```scala
+hourly_df.select(
+  sessSum("playerState"), 
+  d3SessSum("lifePausedTimeMs"),
+  joinSwitch("playingTimeMs"),
+  lifeSwitch("sessionTimeMs"),
+  intvSwitch("networkBufferingTimeMs"), 
+  invTags("sessionCreationTimeMs"), 
+  sumTags("c3.video.isAd"), 
+  geoInfo("city")
+)
+```
+
+These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
+`distinct`, to name a few. See the 
+[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
+and 
+[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
+for more details about this functionality.
+
+### ID selction, formatting and conversion
+
+Surgeon makes it easier to work with ID columns. For example, the `clientId`
+column is an array of 4 values, which can be easily concatenated into a single
+string using the `concat` method. Some fields like `clientId`,
+`clientSessionId`, `publicIpv6` are  inconsistently formatted as unsigned,
+signed, or hexadecimal across the PbSS and PbRl datasets. Surgeon
+makes it easy to both concat and format these values as is (`concat`), as unsigned
+(`concatToUnsigned`), or as hexadecimal (`concatToHex`). Further,  a `sid5` column
+is often constructed from the `clientId` and `sessionId` columns, which is easy
+to do with Surgeon.
+
+
+```scala 
+hourly_df.select(
+  sid5.concat,   
+  sid5.concatToHex, 
+  sid5.concatToUnsigned 
+)
+
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+// |sid5                                                 |sid5Hex                                    |sid5Unsigned                                       |
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+// |476230728:1293028608:-1508640558:-1180571212:89057425|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|476230728:1293028608:2786326738:3114396084:89057425|
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
+
+```
+
+The same applies for `sid6`, which appends `sessionCreationTimeMs`:
+
+```scala 
+hourly_df.select(
+  sid6.concat, 
+  sid6.concatToHex, 
+  sid6.concatToUnsigned, 
+)
+
+// +-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+// |sid6                                                               |sid6Hex                                             |sid6Unsigned                                                 |
+// +-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+// |476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7|476230728:1293028608:2786326738:3114396084:89057425:728446647|
+// +-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+
+```
+
+You can select the customer column using `customerId` and customer names using `customerName`.
+
+```scala 
+hourly_df.select(
+  customerId,  // Int: The customer Id
+  customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig.xml
+)
+```
+
+See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
+[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+
+#### Querying time columns
+
+Surgeon makes it easy to work with Unix epoch time columns. You can select
+these columns using the short name, which come with a `stamp` method to format
+values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
+seconds since Unix epoch, and a `toMs` method. 
+
+```scala 
+hourly_df.select(
+  lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
+  lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
+  lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
+  dayofweek(lifeFirstRecvTime.stamp).alias("dow"), // get the day of the week (Spark method)
+  hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
+)
+
+// +-------------------+--------------------+----------------------+---+----+
+// |lifeFirstRecvTimeMs|lifeFirstRecvTimeSec|lifeFirstRecvTimeStamp|dow|hour|
+// +-------------------+--------------------+----------------------+---+----+
+// |1675765693115      |1675765693          |2023-02-07 02:28:13   |3  |2   |
+// +-------------------+--------------------+----------------------+---+----+
+```
 
 ### PbSS Core Library metrics
-You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
+Surgeon makes it easy to select columns that are constructed from the PbSS Core Library, which cannot be found in the PbSS data:
 
 ```scala
 hourly_df.select(
@@ -129,113 +227,12 @@ hourly_df.select(
 // |     true|     true|false| false|false| false| false|            5807.0|1.675765693115E12|              false|            true|              true|                                 true|            5806.0|             2375.0|        1742812.0|
 // +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
 //
-```
 
-### Containers
+Previously, to achieve this functionality, one had to run a chain of Notebooks
+on Databricks, which took long and produced much verbose output. 
 
-Surgeon makes it easier to select columns from structs, maps or arrays. 
-
-```scala
-hourly_df.select(
-  sessSum("playerState"), 
-  d3SessSum("lifePausedTimeMs"),
-  joinSwitch("playingTimeMs"),
-  lifeSwitch("sessionTimeMs"),
-  intvSwitch("networkBufferingTimeMs"), 
-  invTags("sessionCreationTimeMs"), 
-  sumTags("c3.video.isAd"), 
-  geoInfo("city")
-)
-```
-
-These containers may come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
-`distinct`, to name a few. See the 
-[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
-and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
-for more details about this functionality.
-
-### Column classes and methods
-
-Surgeon provides some methods for the short hand named columns, which removes
-verbose and repetitive code. 
-
-#### ID class
-
-Surgeon makes it easier to work with ID columns. Often, a `sid5` column is
-constructed from the `clientId` and `sessionId` columns. Both columns are
-inconsistently formatted across PbSS and PbRl datasets. Surgeon constructs a
-`sid5` column for you with methods to concat the values as is (`concat`), as
-unsigned (`concatToUnsigned`), or as hexadecimal (`concatToHex`).
-
-```scala 
-hourly_df.select(
-  sid5.concat,   
-  sid5.concatToHex, 
-  sid5.concatToUnsigned 
-)
-
-+-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
-|sid5                                                 |sid5Hex                                    |sid5Unsigned                                       |
-+-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
-|476230728:1293028608:-1508640558:-1180571212:89057425|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|476230728:1293028608:2786326738:3114396084:89057425|
-+-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+
 
 ```
-
-The same methods can be used with `clientId` or `sessionId` individually, and
-you can even construct an `sid6` column with `sessionCreationTimeMs`:
-
-```scala 
-hourly_df.select(
-  sid6.concat, 
-  sid6.concatToHex, 
-  sid6.concatToUnsigned, 
-)
-
-+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
-|sid6                                                               |sid6Hex                                             |sid6Unsigned                                                 |
-+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
-|476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7|476230728:1293028608:2786326738:3114396084:89057425:728446647|
-+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
-
-```
-
-You can select the customer column using `customerId` and customer names using `customerName`.
-
-```scala 
-hourly_df.select(
-  customerId,  // Int: The customer Id
-  customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig.xml
-)
-```
-
-See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
-
-#### Time class
-
-Surgeon makes it easy to work with Unix epoch time columns. You can select
-these columns using the short name, which come with a `stamp` method to format
-values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
-seconds since Unix epoch, and a `toMs` method. 
-
-```scala 
-hourly_df.select(
-  lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
-  lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
-  lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
-  dayofweek(lifeFirstRecvTime.stamp).alias("dow"), // get the day of the week (Spark method)
-  hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
-)
-
-+-------------------+--------------------+----------------------+---+----+
-|lifeFirstRecvTimeMs|lifeFirstRecvTimeSec|lifeFirstRecvTimeStamp|dow|hour|
-+-------------------+--------------------+----------------------+---+----+
-|1675765693115      |1675765693          |2023-02-07 02:28:13   |3  |2   |
-+-------------------+--------------------+----------------------+---+----+
-```
-
 #### GeoInfo class 
 
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`

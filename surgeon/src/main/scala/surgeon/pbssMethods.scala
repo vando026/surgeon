@@ -458,6 +458,9 @@ object PbSS {
       .alias("CIRR")
       
   }
+
+  def ipv6() = new IP6(invTags("publicipv6.element"), "ipv6")
+
   
   def  isSessDoneNotJoined(): Column = {
     when(hasJoined === false && hasEnded === true, true).otherwise(false)
@@ -516,6 +519,7 @@ object PbSS {
 
   val UDFLongIP = F.udf[String, Row]((inv: Row) => getLongIPAddress(inv))
   val ipv4 = UDFLongIP(col("val.sessSummary"))
+
   /*
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
   val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )

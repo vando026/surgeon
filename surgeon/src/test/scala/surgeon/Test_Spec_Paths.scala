@@ -8,14 +8,28 @@ class PathSuite extends munit.FunSuite {
   import org.apache.spark.sql.functions.{col}
   import org.apache.spark.sql.{SparkSession}
   import java.io._
+  import org.apache.hadoop.fs._
+  import org.apache.hadoop.conf._
 
   val spark = SparkSession
       .builder()
       .master("local[*]")
       .getOrCreate()
 
-  val geopath = "./surgeon/src/test/data/cust_dat.txt"
   val pbssTestPath = "./surgeon/src/test/data" 
+
+  // test("ServiceConfig data is expected") {
+  //   val geopath2 = pbssTestPath + "/c3ServiceConfig.csv"
+  //   val xpath = new Path(geopath2)
+  //   val fs = xpath.getFileSystem(new Configuration)
+  //   val input = fs.open(xpath)
+  //   val c3Data = scala.io.Source.fromInputStream(input).getLines
+  //     .map(_.split(","))
+  //     .filter(_.length == 2)
+  //     .map {case Array(id, name) => id -> name}.toMap
+  //   val t1 = c3Data.filter(x => x._2 == "c3.TopServe").map(_._1).toList(0)
+  //   assertEquals(t1, "2960180364")
+  // }
 
   val custData = Map(
     207488736 -> "c3.MSNBC",
@@ -84,7 +98,7 @@ class PathSuite extends munit.FunSuite {
     val t1 = Hourly(2, 4, List(23), 2023).toString
     val t3 = Hourly(2, 22, List(10, 11, 12), 2023).toString
     val t4 = Hourly(2, List(22, 23), List(10, 11, 12), 2023).toString
-    val t5 = Hourly(5, 30, List(0, 1, 2, 3))
+    val t5 = Hourly(5, 30, List(0, 1, 2, 3), 2023)
     assertEquals(t1, expect1)
     assertEquals(t3, expect3)
     assertEquals(t4, expect4)

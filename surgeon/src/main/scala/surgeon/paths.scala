@@ -8,7 +8,7 @@ import org.apache.spark.sql.DataFrame
 
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 
-   * @define year A value for the year. The default in this version is 2023. 
+   * @define year A value for the year. The default in this version is 2024. 
    * Use this parameter to change to a previous year. 
    * @define day A value from 1 to 31 representing the day of the month.
    * @define hour A value from 0 to 23 representing an hour of the day. Can be a list of strings or integers, an integer, or a string.
@@ -105,7 +105,7 @@ object Paths {
    *  }}}
    */ 
 
-  case class Monthly(year: Int = 2023, month: Int, root: String = PathDB.monthly) 
+  case class Monthly(year: Int = 2024, month: Int, root: String = PathDB.monthly) 
       extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
     checkDays(month, List(1))
@@ -129,7 +129,7 @@ object Paths {
    *  Daily(2023, month = 2, day = List.range(1, 4)))
    *  }}}
    */ 
-  case class Daily[A](month: Int, days: A, year: Int = 2023, root: String = PathDB.daily)
+  case class Daily[A](month: Int, days: A, year: Int = 2024, root: String = PathDB.daily)
       extends DataPath {
 
     val days_ = mkIntList(days).sorted
@@ -206,11 +206,11 @@ object Paths {
    *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
    *  }}}
    */ 
-  case class Hourly[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, root: String = PathDB.hourly()) 
+  case class Hourly[A](val month: Int, val days: A, val hours: A, val year: Int = 2024, root: String = PathDB.hourly()) 
       extends HourlyPath[A] {
   }
 
-  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2023, lt: Int = 1)
+  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2024, lt: Int = 1)
       extends HourlyPath[A] {
     override val root: String = PathDB.rawlog(lt)
   }
