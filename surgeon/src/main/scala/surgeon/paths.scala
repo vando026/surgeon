@@ -35,6 +35,8 @@ object Paths {
     def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
     /** Path to Geo_Utils folder on Databricks. */
     val geoUtil = "dbfs:/FileStore/Geo_Utils"
+    /** Path to personally updated files */
+    val fileStore = "dbfs:/FileStore/avandormael"
   }
 
   // utility methods

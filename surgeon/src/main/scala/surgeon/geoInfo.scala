@@ -6,7 +6,7 @@ object GeoInfo {
   import org.apache.hadoop.fs._
   import org.apache.hadoop.conf._
   import scala.xml._
-  import org.apache.spark.sql.SparkSession
+  import org.apache.spark.sql.{SparkSession, Row}
     
   def getGeoTypes = Map(
       ("continent" -> "continents_dat.gp"), 
@@ -24,18 +24,22 @@ object GeoInfo {
   )
 
   // Read GEO file, convert it to Scala Map and load to geoMap
-  def getGeoData(geoName: String, path: String = PathDB.geoUtil) = {
+  def getGeoData(geoName: String, path: String = PathDB.fileStore) = {
     val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
     val dx = FileSystem.get(ss)
     val xpath = new Path(path + "/" + getGeoTypes(geoName))
     val fs = xpath.getFileSystem(new Configuration)
     val input = fs.open(xpath)
     val out = geoName match {
-      case "resource" => scala.io.Source.fromInputStream(input).getLines
-        .map(_.split(","))
-        .filter(_.length == 2)
-        .map {case Array(id, name) => id.toInt -> name}.toMap
-      case _ => throw new Exception(s"${path}/${geoName} not found.")
+      case "resource" => SparkSession.builder() .master("local[*]").getOrCreate()
+          .read.csv(path + getGeoTypes(geoName))
+          .collect
+          .map {case Row(id, name) => id.toString.toInt -> name.toString}.toMap
+      case _ => scala.io.Source.fromInputStream(input).getLines
+          .filterNot(_.startsWith("#")) // skip 'comment' line
+          .map(_.split("\\|").map(_.trim))
+          .filter(_.length == 2) // what if "54|czech republic|r" - skip or take?? skip for now...
+          .map{case Array(id, name) => id.toInt -> name}.toMap
     }
     fs.close()
     out

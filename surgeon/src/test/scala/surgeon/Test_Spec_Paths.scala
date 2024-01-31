@@ -6,7 +6,7 @@ class PathSuite extends munit.FunSuite {
   import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
   import org.apache.spark.sql.functions.{col}
-  import org.apache.spark.sql.{SparkSession}
+  import org.apache.spark.sql.{SparkSession, Row}
   import java.io._
   import org.apache.hadoop.fs._
   import org.apache.hadoop.conf._
@@ -18,18 +18,13 @@ class PathSuite extends munit.FunSuite {
 
   val pbssTestPath = "./surgeon/src/test/data" 
 
-  // test("ServiceConfig data is expected") {
-  //   val geopath2 = pbssTestPath + "/c3ServiceConfig.csv"
-  //   val xpath = new Path(geopath2)
-  //   val fs = xpath.getFileSystem(new Configuration)
-  //   val input = fs.open(xpath)
-  //   val c3Data = scala.io.Source.fromInputStream(input).getLines
-  //     .map(_.split(","))
-  //     .filter(_.length == 2)
-  //     .map {case Array(id, name) => id -> name}.toMap
-  //   val t1 = c3Data.filter(x => x._2 == "c3.TopServe").map(_._1).toList(0)
-  //   assertEquals(t1, "2960180364")
-  // }
+  test("ServiceConfig data is expected") {
+    val c3Data = spark.read.csv(pbssTestPath + "/c3ServiceConfig.csv")
+      .collect
+      .map {case Row(id, name) => id.toString.toInt -> name.toString}.toMap
+    val t1 = c3Data.filter(x => x._2 == "c3.TopServe").map(_._1).toList(0)
+    assertEquals(t1, 2001)
+  }
 
   val custData = Map(
     207488736 -> "c3.MSNBC",
