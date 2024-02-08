@@ -61,11 +61,11 @@ val hourly_df = spark.read.parquet(path)
 
 ```scala 
 
-+----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-|customerId|sessionId|sid5Hex                                    |intvStartTimeStamp |lifeFirstRecvTimeStamp|c3_viewer_id|c3_video_isAd|lifeFirstRecvTimeMs|hasEnded|justJoined|lifePlayingTimeMs|lifeFirstRecvTimeMs|endedStatus|shouldProcess|intvStartTimeSec|
-+----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-|1960180360|89057425 |1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|2023-02-07 02:00:00|2023-02-07 02:28:13   |2640043     |F            |1675765693115      |false   |true      |1742812          |1675765693115      |0          |true         |1675764000      |
-+----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
+// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
+// |customerId|sessionId|sid5Hex                                    |intvStartTimeStamp |lifeFirstRecvTimeStamp|c3_viewer_id|c3_video_isAd|lifeFirstRecvTimeMs|hasEnded|justJoined|lifePlayingTimeMs|lifeFirstRecvTimeMs|endedStatus|shouldProcess|intvStartTimeSec|
+// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
+// |1960180360|89057425 |1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|2023-02-07 02:00:00|2023-02-07 02:28:13   |2640043     |F            |1675765693115      |false   |true      |1742812          |1675765693115      |0          |true         |1675764000      |
+// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
 ```
 
 Below is a brief vignette of Surgeon's many features. Please see the 
@@ -227,12 +227,11 @@ hourly_df.select(
 // |     true|     true|false| false|false| false| false|            5807.0|1.675765693115E12|              false|            true|              true|                                 true|            5806.0|             2375.0|        1742812.0|
 // +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
 //
+```
 
 Previously, to achieve this functionality, one had to run a chain of Notebooks
 on Databricks, which took long and produced much verbose output. 
 
-
-```
 #### GeoInfo class 
 
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
@@ -286,21 +285,28 @@ Hourly, Daily or Monthly data.
 
 ```scala 
 import conviva.surgeon.Paths._
-val path1 = PbSS.hourly(2022, month = 12, days = 24, hours = 18)
-val path2 = PbSS.hourly(2022, 12, 24, List(18, 19, 20))
-val path3 = Cust(PbSS.hourly(2022, 12, 24, 18), ids = 1960180360)
+val path1 = PbSS.hourly(year = 2023, month = 12, days = 24, hours = 18)
+val path2 = PbSS.hourly(12, 24, List(18, 19, 20))
+val path3 = Cust(PbSS.hourly(12, 24, 18), ids = 1960180360)
+
+// path1: conviva.surgeon.Paths.DataPath = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=12/d=24/dt=2023_12_24_18
+// path2: conviva.surgeon.Paths.DataPath = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_{18,19,20}
+// path3: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180360}
+
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(PbSS.hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
+val path = Cust(PbSS.hourly(month = 12, days = 24, hours = 18), names = "c3.RicksTV")
+// path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180000}
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala 
 val path = Cust(PbSS.hourly(2022, 12, 24, 18)), take = 3)
+// path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180001,1960180360,1960184999}
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
