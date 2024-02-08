@@ -209,8 +209,8 @@ object Paths {
 
   /** Construct paths specific to PbSS datasets. **/
   object PbSS {
-    def monthly(month: Int, year: Int = currentYear, root: String = PathDB.pbssMonthly): 
-      DataPath = Monthly(month, year, root)
+    def monthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssMonthly): 
+      DataPath = Monthly(year, month, root)
     def hourly[A](month: Int, days: A,  hours: A,  year: Int = currentYear, lt: Int = 0, 
         root: (Int => String) = PathDB.pbssHourly): 
       DataPath = Hourly(month, days, hours, year, root(lt))

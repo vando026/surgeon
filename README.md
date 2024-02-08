@@ -38,7 +38,7 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
-val path = Cust(Hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
+val path = Cust(PbSS.hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
 val hourly_df = spark.read.parquet(path)
   .select(
     customerId, 
@@ -286,21 +286,21 @@ Hourly, Daily or Monthly data.
 
 ```scala 
 import conviva.surgeon.Paths._
-val path1 = Hourly(2022, month = 12, days = 24, hours = 18)
-val path2 = Hourly(2022, 12, 24, List(18, 19, 20))
-val path3 = Cust(Hourly(2022, 12, 24, 18), ids = 1960180360)
+val path1 = PbSS.hourly(2022, month = 12, days = 24, hours = 18)
+val path2 = PbSS.hourly(2022, 12, 24, List(18, 19, 20))
+val path3 = Cust(PbSS.hourly(2022, 12, 24, 18), ids = 1960180360)
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(Hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
+val path = Cust(PbSS.hourly(2022, month = 12, days = 24, hours = 18), names = "c3.CBSCom")
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala 
-val path = Cust(Hourly(2022, 12, 24, 18)), take = 3)
+val path = Cust(PbSS.hourly(2022, 12, 24, 18)), take = 3)
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
