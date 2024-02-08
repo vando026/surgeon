@@ -3,9 +3,6 @@
 // Date: 27-Jan-2023
 package conviva.surgeon
 
-import conviva.surgeon.Customer._
-import org.apache.spark.sql.DataFrame
-
 /** Object with methods to create file paths for parquet datasets on `/mnt/conviva-prod-archive`. 
    * @define month A value from 1 to 12 representing the month of the year. 
    * @define year A value for the year. The default in this version is 2024. 
@@ -16,23 +13,27 @@ import org.apache.spark.sql.DataFrame
 */
 
 object Paths {
+
+  import conviva.surgeon.Customer._
+  import org.apache.spark.sql.DataFrame
    
-  /** Database of common paths to the parquet files on Databricks. 
-   *
-  */
+  // Update every year to the current year
+  val currentYear = 2024
+
+  /** Database of common paths to the parquet files on Databricks. **/
   object PathDB {
     /** Root path to `databricks-user-share`. */
     val dbUserShare = "/mnt/databricks-user-share"
     /** Root path to `conviva-prod-archive`. */
     val prodArchive    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
-    val daily   = prodArchive + "pbss-daily/pbss/daily"
+    val pbssDaily   = prodArchive + "pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    def hourly(st: Int = 0)  = prodArchive + s"pbss-hourly/pbss/hourly/st=$st"
+    def pbssHourly(st: Int = 0)  = prodArchive + s"pbss-hourly/pbss/hourly/st=$st"
     /** Path to the monthly session summary parquet files. */
-    val monthly = prodArchive + "pbss-monthly/pbss/monthly"
+    val pbssMonthly = prodArchive + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    def rawlog(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
+    def pbrlParquet(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
     /** Path to Geo_Utils folder on Databricks. */
     val geoUtil = "dbfs:/FileStore/Geo_Utils"
     /** Path to personally updated files */
@@ -96,7 +97,7 @@ object Paths {
     }
   }
 
-  /** Class with methods to construct paths to monthly PbSS parquet data on Databricks. 
+  /** Class with methods to construct paths to monthly data on Databricks. 
    *  @param year $year
    *  @param month $month Only a single value for month is permitted. 
    *  @param root The root of the path, defaults to `PathDB.monthly()`.
@@ -107,7 +108,7 @@ object Paths {
    *  }}}
    */ 
 
-  case class Monthly(year: Int = 2024, month: Int, root: String = PathDB.monthly) 
+  case class Monthly(year: Int, month: Int, root: String) 
       extends DataPath {
     val (nyear, nmonth) = if (month == 12) (year + 1, 1) else (year, month + 1)
     checkDays(month, List(1))
@@ -131,7 +132,7 @@ object Paths {
    *  Daily(2023, month = 2, day = List.range(1, 4)))
    *  }}}
    */ 
-  case class Daily[A](month: Int, days: A, year: Int = 2024, root: String = PathDB.daily)
+  case class Daily[A](month: Int, days: A, year: Int, root: String)
       extends DataPath {
 
     val days_ = mkIntList(days).sorted
@@ -171,26 +172,6 @@ object Paths {
 
   }
 
-  /** Trait for defining Hourly Paths to data. */ 
-  trait HourlyPath[A] extends DataPath {
-    val days: A
-    val hours: A
-
-     def stitch(days: List[Int], hours: List[Int]): String = {
-      List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
-        f"dt=${year}_${fmt(month)}_${paste(days)}_${paste(hours)}")
-        .mkString("/")
-    }
-    val days_ = mkIntList(days)
-    val hours_ = mkIntList(hours)
-
-    checkDays(month, days_)
-    checkHours(hours_)
-
-    override def toString(): String = stitch(days_, hours_)
-    override def toList(): List[String] = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
-  }
-
   /** Class with methods to construct paths to hourly parquet data on
    *  Databricks. If parameter names are omitted, then the order is month, day,
    *  hour(s), year, path. The default year is the current year. 
@@ -208,13 +189,42 @@ object Paths {
    *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
    *  }}}
    */ 
-  case class Hourly[A](val month: Int, val days: A, val hours: A, val year: Int = 2024, root: String = PathDB.hourly()) 
-      extends HourlyPath[A] {
+  case class Hourly[A](month: Int, days: A, hours: A, year: Int, root: String) 
+    extends DataPath {
+
+     def stitch(days: List[Int], hours: List[Int]): String = {
+      List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
+        f"dt=${year}_${fmt(month)}_${paste(days)}_${paste(hours)}")
+        .mkString("/")
+    }
+    val days_ = mkIntList(days)
+    val hours_ = mkIntList(hours)
+
+    checkDays(month, days_)
+    checkHours(hours_)
+
+    override def toString(): String = stitch(days_, hours_)
+    override def toList(): List[String] = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
   }
 
-  case class HourlyRaw[A](val month: Int, val days: A, val hours: A, val year: Int = 2024, lt: Int = 1)
-      extends HourlyPath[A] {
-    override val root: String = PathDB.rawlog(lt)
+  /** Construct paths specific to PbSS datasets. **/
+  object PbSS {
+    def monthly(month: Int, year: Int = currentYear, root: String = PathDB.pbssMonthly): 
+      DataPath = Monthly(month, year, root)
+    def hourly[A](month: Int, days: A,  hours: A,  year: Int = currentYear, lt: Int = 0, 
+        root: (Int => String) = PathDB.pbssHourly): 
+      DataPath = Hourly(month, days, hours, year, root(lt))
+    def daily[A](month: Int, days: A, year: Int = currentYear, root: String = PathDB.pbssDaily): 
+      DataPath = Daily(month, days, year, root)
+    def minute() = "not implemented"
+  }
+
+
+  /** Construct paths specific to PbRl datasets. **/
+  object PbRl {
+    def parquet[A](month: Int, days: A, hours: A, year: Int = currentYear, 
+        lt: Int = 1, root: (Int => String) = PathDB.pbrlParquet):
+      DataPath =  Hourly(month, days, hours, year, root(lt))
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
@@ -272,4 +282,7 @@ object Paths {
     */
     def apply(obj: DataPath) = stitch(obj, "*")
   }
+
+
 }
+
