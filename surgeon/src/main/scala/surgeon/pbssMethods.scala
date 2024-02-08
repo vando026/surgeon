@@ -93,7 +93,7 @@ object PbSS {
    * }}}
   */ 
   def customerName(): Column = {
-    val gMap = getGeoData("resource")
+    val gMap = getGeoData("customer")
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }
@@ -520,13 +520,15 @@ object PbSS {
   val UDFLongIP = F.udf[String, Row]((inv: Row) => getLongIPAddress(inv))
   val ipv4 = UDFLongIP(col("val.sessSummary"))
 
+  val UDFLastCDN = F.udf[String, Row]((ss: Row) => buildSessSummary(ss).cdn().name() )
+  val lastCDN = UDFLastCDN(col("val.sessSummary"))
+
   /*
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
   val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )
   val UDFLifeFirstRecvTimeSec = sqlContext.udf.register("liftFirstHbTimeSec", (ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs() / 1000 )
   val UDFNumBufferInterrupst = sqlContext.udf.register("getNumInterrupts", (ss: Row) => buildSessSummary(ss).lifeNumBufferingEvents() )
   val UDFPercComplete = sqlContext.udf.register( "percentCompleted", (inv: Row, ss:Row) => buildFullStdSs(inv, ss).pctContentWatched().toDouble )
-  val UDFLongIP = sqlContext.udf.register( "getLongIP", (inv: Row) => getLongIPAddress(inv))
   val UDFGetAsset = sqlContext.udf.register( "getAsset", (inv: Row) => buildStdSsInv(inv).objectId() ) 
 
   sqlContext.udf.register( "vsf_b", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eBusinessVSF))

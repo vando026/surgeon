@@ -83,7 +83,7 @@ object PbRl {
    * }}}
   */ 
   def customerName(): Column = {
-    val gMap = getGeoData("resource")
+    val gMap = getGeoData("customer")
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }
@@ -125,7 +125,7 @@ object PbRl {
   */ 
   def sid5 = SID(name = "sid5", clientId, sessionId)
 
-  /** Creates an Ad SID5 object which concatenates `clientId` and `c3_csid`
+  /** Creates an Ad SID5 object which concatenates `clientId` and `c3csid`
    *  $signed. 
    *  @example{{{
    *  df.select(
@@ -135,19 +135,19 @@ object PbRl {
    *  )
    *  }}}
    */
-  def sid5Ad = SID(name = "sid5Ad", clientId, c3_csid)
+  def sid5Ad = SID(name = "sid5Ad", clientId, c3csid)
 
   /** Creates a client session Id (c3.csid) object asis or $signed. 
    * @example{{{
    * df.select(
-   *   c3_csid.asis,
-   *   c3_csid.hex, 
-   *   c3_csid.nosign
+   *   c3csid.asis,
+   *   c3csid.hex, 
+   *   c3csid.nosign
    * )
    * }}}
    */ 
   def sessionAdId = new IdCol(clientTags("c3.csid"), name = "sessionAdId")
-  def c3_csid = new IdCol(clientTags("c3.csid"), name = "c3_csid")
+  def c3csid = new IdCol(clientTags("c3.csid"), name = "c3_csid")
 
   /** Extract the `seqNumber` field as is.
    * @example{{{

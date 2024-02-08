@@ -40,7 +40,7 @@ object Sanitize {
       /** Method to return field in seconds. */
       def toSec() = convert_(col, 1.0/(1000 * 1000), s"${name}Sec")
       /** Method to return the Unix epoch timestamp. */
-      def stamp() = stamp_(col, 1.0/(1000 * 1000), s"${name}Stamp")
+      def stamp() = stamp_(col, 1.0/(1000 * 1000), s"${name}")
     }
   
   /** A class for extracting time-based columns in milliseconds.

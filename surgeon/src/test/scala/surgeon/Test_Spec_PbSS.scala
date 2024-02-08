@@ -28,6 +28,7 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t2, expectSec)
   }
 
+
   test("Data nrow should be expected") {
     val nrow = dat.count.toInt
     assertEquals(nrow, 10)
@@ -203,6 +204,16 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t1.select("isSessDoneNotJoined").first.getBoolean(0), false)
     assertEquals(t1.select("isSessJustJoined").first.getBoolean(0), true)
     assertEquals(t1.select("isAttempt").first.getBoolean(0), true)
+  }
+
+  test("customerName should work") {
+    def customerName(): Column = {
+      val gMap = getGeoData("customer", pbssTestPath)
+      val gLit: Column = typedLit(gMap) 
+      gLit(customerId).alias(s"customerName")
+    }
+    val t1 = d8905.select(customerName).first.getString(0)
+    assertEquals(t1, "c3.TopServe")
   }
 
  // for documentation

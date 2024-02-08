@@ -10,7 +10,7 @@ object Customer {
 
   /** Read the `/FileStore/Geo_Utils/c3ServiceConfig*.xml` from Databricks, which
    *  contains customer names and ids. */
-  def customerNames(): Map[Int, String] = getGeoData("resource")
+  def customerNames(): Map[Int, String] = getGeoData("customer")
 
   /** Get the ID of the customer name. 
    *  @param ids The ids of the customer.

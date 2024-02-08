@@ -5,6 +5,7 @@ class PathSuite extends munit.FunSuite {
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
+  import conviva.surgeon.GeoInfo._
   import org.apache.spark.sql.functions.{col}
   import org.apache.spark.sql.{SparkSession, Row}
   import java.io._
@@ -17,57 +18,26 @@ class PathSuite extends munit.FunSuite {
       .getOrCreate()
 
   val pbssTestPath = "./surgeon/src/test/data" 
-
-  test("ServiceConfig data is expected") {
-    val c3Data = spark.read.csv(pbssTestPath + "/c3ServiceConfig.csv")
-      .collect
-      .map {case Row(id, name) => id.toString.toInt -> name.toString}.toMap
-    val t1 = c3Data.filter(x => x._2 == "c3.TopServe").map(_._1).toList(0)
-    assertEquals(t1, 2001)
-  }
-
-  val custData = Map(
-    207488736 -> "c3.MSNBC",
-    744085924 -> "c3.PMNN",
-    1960180360 -> "c3.TV2",
-    978960980 -> "c3.BASC"
-  )
-
-  test("Customer data is expected") {
-    val t1 = custData.filter(x => x._2 == "c3.MSNBC").map(_._1).toList
-    assertEquals(t1, List(207488736))
-  }
-
-  test("customerNamToId is expected") {
-    val t1 = customerNameToId("c3.MSNBC", custData)
-    val t2 = customerNameToId(List("c3.MSNBC", "c3.TV2"), custData)
-    assertEquals(t1, List(207488736))
-    assertEquals(t2, List(207488736, 1960180360))
-  }
-
-  // test("Customer take n is expected") {
-  //   val t1 = customerIds(Monthly(2023, 2).path).take(3).length
-  //   assertEquals(t1, 3)
-  // }
-
   val root = "/mnt/conviva-prod-archive-pbss"
+  val custData = getGeoData("customer", pbssTestPath)
+
   test("pbssMonthly is expected") {
     val expect1 = s"${PathDB.monthly}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
-    val expect2 = s"${PathDB.monthly}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={207488736}"
+    val expect2 = s"${PathDB.monthly}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={1960180360}"
     val t1 = Monthly(2023, 2).toString
-    val t2 = Cust(Monthly(2022, 12), names = List("c3.MSNBC"), custData)
+    val t2 = Cust(Monthly(2022, 12), names = List("c3.TopServe"), custData)
     assertEquals(t1, expect1)
     assertEquals(t2, expect2)
   }
 
   test("Daily is expected") {
     val expect1 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
-    val expect2 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={207488736}"
+    val expect2 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={1960180360}"
     val expect3 = s"${PathDB.daily}/y=2023/m=02/dt=d2023_02_{22,23}_08_00_to_2023_02_{23,24}_08_00"
     val expect4 = s"${PathDB.daily}/y=2023/m=12/dt=d2023_12_31_08_00_to_2024_01_01_08_00"
     val expect5 = s"${PathDB.daily}/y=2023/m=10/dt=d2023_10_31_08_00_to_2023_11_01_08_00"
     val t1 = Daily(2, 22, 2023).toString
-    val t2 = Cust(Daily(2, 22, 2023), names = List("c3.MSNBC"), custData)
+    val t2 = Cust(Daily(2, 22, 2023), names = List("c3.TopServe"), custData)
     val t3 = Daily(2, List(22,23), 2023).toString
     val t4 = Daily(12, 31, 2023).toString
     val t5 = Daily(10, 31, 2023).toString
