@@ -320,7 +320,7 @@ from Ids, and get Ids from names.
 
 ```scala  
 import conviva.surgeon.Customer._
-// Pulls the customer names from GeoUtils/c3ServiceConfig.xml
+// Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 customerNames() 
 // res1: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
 customerIdToName(207488736)

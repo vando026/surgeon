@@ -27,13 +27,13 @@ object Paths {
     /** Root path to `conviva-prod-archive`. */
     val prodArchive    = "/mnt/conviva-prod-archive-"
     /** Path to the daily session summary parquet files. */
-    val pbssDaily   = prodArchive + "pbss-daily/pbss/daily"
+    val pbssProd1d   = prodArchive + "pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    def pbssHourly(st: Int = 0)  = prodArchive + s"pbss-hourly/pbss/hourly/st=$st"
+    def pbssProd1h(st: Int = 0)  = prodArchive + s"pbss-hourly/pbss/hourly/st=$st"
     /** Path to the monthly session summary parquet files. */
-    val pbssMonthly = prodArchive + "pbss-monthly/pbss/monthly"
+    val pbssProd1M = prodArchive + "pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    def pbrlParquet(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
+    def pbrlProd(lt: Int = 1) = prodArchive + s"pbrl/3d/rawlogs/pbrl/lt_$lt"
     /** Path to Geo_Utils folder on Databricks. */
     val geoUtil = "dbfs:/FileStore/Geo_Utils"
     /** Path to personally updated files */
@@ -209,12 +209,11 @@ object Paths {
 
   /** Construct paths specific to PbSS datasets. **/
   object PbSS {
-    def monthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssMonthly): 
+    def prodMonthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssProd1M): 
       DataPath = Monthly(year, month, root)
-    def hourly[A](month: Int, days: A,  hours: A,  year: Int = currentYear, lt: Int = 0, 
-        root: (Int => String) = PathDB.pbssHourly): 
-      DataPath = Hourly(month, days, hours, year, root(lt))
-    def daily[A](month: Int, days: A, year: Int = currentYear, root: String = PathDB.pbssDaily): 
+    def prodHourly[A](month: Int, days: A,  hours: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
+      DataPath = Hourly(month, days, hours, year, root)
+    def prodDaily[A](month: Int, days: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
       DataPath = Daily(month, days, year, root)
     def minute() = "not implemented"
   }
@@ -222,9 +221,8 @@ object Paths {
 
   /** Construct paths specific to PbRl datasets. **/
   object PbRl {
-    def parquet[A](month: Int, days: A, hours: A, year: Int = currentYear, 
-        lt: Int = 1, root: (Int => String) = PathDB.pbrlParquet):
-      DataPath =  Hourly(month, days, hours, year, root(lt))
+    def prodHourly[A](month: Int, days: A, hours: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
+      DataPath =  Hourly(month, days, hours, year, root)
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 

@@ -176,6 +176,14 @@ object PbSS {
   */ 
   def shouldProcess(): Column = sessSum("shouldProcess")
 
+  /** Extract the `c3.viewer.id` field as is.
+   * @example{{{
+   * df.select(viewerId)
+   * }}}
+  */ 
+
+  def viewerId(): Column = invTags("c3.viewer.id")
+
   /** Extract the `hasEnded` field as is. 
    * @example{{{
    * df.select(hadEnded)
@@ -521,11 +529,10 @@ object PbSS {
   val ipv4 = UDFLongIP(col("val.sessSummary"))
 
   val UDFLastCDN = F.udf[String, Row]((ss: Row) => buildSessSummary(ss).cdn().name() )
-  val lastCDN = UDFLastCDN(col("val.sessSummary"))
+  val lastCDN = UDFLastCDN(col("val.sessSummary")).alias("lastCDN")
 
   /*
   val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
-  val UDFLastCDN = sqlContext.udf.register("getLastCDN", (ss: Row) => buildSessSummary(ss).cdn().name() )
   val UDFLifeFirstRecvTimeSec = sqlContext.udf.register("liftFirstHbTimeSec", (ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs() / 1000 )
   val UDFNumBufferInterrupst = sqlContext.udf.register("getNumInterrupts", (ss: Row) => buildSessSummary(ss).lifeNumBufferingEvents() )
   val UDFPercComplete = sqlContext.udf.register( "percentCompleted", (inv: Row, ss:Row) => buildFullStdSs(inv, ss).pctContentWatched().toDouble )

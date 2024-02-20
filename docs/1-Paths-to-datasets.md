@@ -23,20 +23,20 @@ To construct paths to the data, the `Path` object provides three clasess,
 called `Monthly`, `Daily`, and `Hourly`, which extend the `DataPath` trait. Each class comes with a `toString` and a `toList` method.
 
 ### Monthly 
-For monthly PbSS data use the `PbSS.monthly` class which have year and month parameters.   So for February 2023:
+For monthly PbSS production data use the `PbSS.prodMonthly` class which have year and month parameters.   So for February 2023:
 
 ```scala mdoc
-val monthly = PbSS.monthly(year = 2023, month = 2)
+val monthly = PbSS.prodMonthly(year = 2023, month = 2)
 monthly.toString
 ```
 
 ### Daily
-For the daily PbSS data, use the `PbSS.daily` class. 
+For the daily PbSS production data, use the `PbSS.prodDaily` class. 
 
 ```scala mdoc 
-val daily = PbSS.daily(year = 2023, month = 2, days = 16)
+val daily = PbSS.prodDaily(year = 2023, month = 2, days = 16)
 daily.toString
-val daily2 = PbSS.daily(year = 2023, month = 2, days = List(16, 17))
+val daily2 = PbSS.prodDaily(year = 2023, month = 2, days = List(16, 17))
 daily2.toString
 daily2.toList
 ```
@@ -47,20 +47,20 @@ List[Int]. The year defaults to the current year, so you can omit it as long as
 the parameters are in the order of month then day.
 
 ```scala mdoc
-val daily3 = PbSS.daily(2, List(16, 17))
+val daily3 = PbSS.prodDaily(2, List(16, 17))
 daily3.toString
 ```
 
 ### Hourly
 
-For the PbSS hourly data, use the `PbSS.hourly` class:
+For the PbSS hourly production data, use the `PbSS.prodHourly` class:
 
 ```scala mdoc 
-val hourly = PbSS.hourly(year = 2023, month = 2, days = 14, hours = 2)
+val hourly = PbSS.prodHourly(year = 2023, month = 2, days = 14, hours = 2)
 hourly.toString
-val hourly2 = PbSS.hourly(month = 2, days = 14, hours = List.range(2, 10))
+val hourly2 = PbSS.prodHourly(month = 2, days = 14, hours = List.range(2, 10))
 hourly2.toString
-val hourly3 = PbSS.hourly(month = 2, days = List(14, 15), hours = 2)
+val hourly3 = PbSS.prodHourly(month = 2, days = List(14, 15), hours = 2)
 hourly3.toString
 hourly3.toList
 ```
@@ -72,7 +72,7 @@ can be an Int or List[Int] so that you can select multiple days or hours.
 For the PbRl data, you can do:
 
 ```scala mdoc 
-val pbraw = PbRl.parquet(year = 2023, month = 2, days = 14, hours = List.range(2, 8))
+val pbraw = PbRl.prod(year = 2023, month = 2, days = 14, hours = List.range(2, 8))
 pbraw.toString
 ```
 
@@ -82,17 +82,17 @@ The classes above use the `PathDB` object to construct paths to the various data
 
 ```scala mdoc 
 PathDB.prodArchive
-PathDB.pbssHourly()
-PathDB.pbssDaily
-PathDB.pbssMonthly
-PathDB.pbrlParquet()
+PathDB.pbssProd1h()  // production 1 hour
+PathDB.pbssProd1d    // production 1 day   
+PathDB.pbssProd1M    // production 1 month
+PathDB.pbrlProd()    // rawlog production
 ```
-The `pbssHourly` and `pbrlParquet` root paths default to `st=1`, so you can set the `st`
+The `pbssProd1h` and `pbrlProd` root paths default to `st=1`, so you can set the `st`
 flag using the relevant interger, provided it exists:
 
 
 ```scala mdoc 
-val ss = PbSS.hourly(year = 2023, month = 2, days = 14, hours = List(2), root = PathDB.pbssHourly, lt=2)
+val ss = PbSS.prodHourly(year = 2023, month = 2, days = 14, hours = List(2), root = PathDB.pbssProd1h(2))
 ss.toString
 ```
 
@@ -104,35 +104,35 @@ the `Cust` class. This class also comes with a convenient `take` method. These m
 To construct the path for all customers.
 
 ```scala mdoc 
-val c1 = Cust(PbSS.daily(month = 12, days = 28))
+val c1 = Cust(PbSS.prodDaily(month = 12, days = 28))
 ```
 To construct the path for one customer using the customer Id. 
 
 ```scala mdoc
-val c2 = Cust(PbSS.daily(12, 28), ids = 1960184999)
+val c2 = Cust(PbSS.prodDaily(12, 28), ids = 1960184999)
 ```
 
 Using several customer Ids.
 
 ```scala mdoc
-val c3 = Cust(PbSS.daily(12, 28), ids = List(1960184999, 1960180360))
+val c3 = Cust(PbSS.prodDaily(12, 28), ids = List(1960184999, 1960180360))
 ``` 
 Take the first n customer Ids
 
 ```scala 
-val c4 = Cust(PbSS.daily(12, 28), take  = 3)
+val c4 = Cust(PbSS.prodDaily(12, 28), take  = 3)
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={1960180360,1960180361,1960180388}"
 ```
 
 To select by customer name.
 
 ```scala 
-val c5 = Cust(PbSS.daily(12, 28), names = "c3.Yahoo")
+val c5 = Cust(PbSS.prodDaily(12, 28), names = "c3.Yahoo")
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772}"
 
 ``` 
 To select by customer names.
 ```scala 
-val c6 = Cust(PbSS.daily(12, 28), names = List("c3.Yahoo", "c3.MLB"))
+val c6 = Cust(PbSS.prodDaily(12, 28), names = List("c3.Yahoo", "c3.MLB"))
 // res: String = "/mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=12/dt=d2023_12_28_08_00_to_2023_12_29_08_00/cust={450695772,1960180361}"
 ``` 

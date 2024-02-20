@@ -24,7 +24,7 @@ object GeoInfo {
   )
 
   // Read GEO file, convert it to Scala Map and load to geoMap
-    def getGeoData(geoName: String, path: String = PathDB.geoUtil) = {
+    def getGeoData(geoName: String, path: String = PathDB.geoUtil): Map[Int, String] = {
       val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
       val xpath = new Path(path + "/" + getGeoTypes(geoName))
       val fs = xpath.getFileSystem(new Configuration)
