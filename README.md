@@ -285,7 +285,7 @@ Hourly, Daily or Monthly data.
 
 ```scala 
 import conviva.surgeon.Paths._
-val path1 = PbSS.hourly(year = 2023, month = 12, days = 24, hours = 18)
+val path1 = PbSS.hourly(year = 2023, month = 12, day = 24, hours = 18)
 val path2 = PbSS.hourly(12, 24, List(18, 19, 20))
 val path3 = Cust(PbSS.hourly(12, 24, 18), ids = 1960180360)
 
@@ -298,7 +298,7 @@ val path3 = Cust(PbSS.hourly(12, 24, 18), ids = 1960180360)
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(PbSS.hourly(month = 12, days = 24, hours = 18), names = "c3.RicksTV")
+val path = Cust(PbSS.hourly(month = 12, day = 24, hours = 18), names = "c3.RicksTV")
 // path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180000}
 ```
 

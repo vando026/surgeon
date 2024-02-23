@@ -74,11 +74,11 @@ object Paths {
     val root: String
     def toList: List[String]
 
-    def checkDays(month: Int, days: List[Int]) {
+    def checkDays(month: Int, day: List[Int]) {
       if (
         (month > 12 || month < 1) ||
-        (days.exists(d => d > 31) || days.exists(d => d < 1)) ||
-        (days.exists(d => d > 29) & month == 2))
+        (day.exists(d => d > 31) || day.exists(d => d < 1)) ||
+        (day.exists(d => d > 29) & month == 2))
           throw new Exception("Invalid day or month.")
     }
 
@@ -132,30 +132,30 @@ object Paths {
    *  Daily(2023, month = 2, day = List.range(1, 4)))
    *  }}}
    */ 
-  case class Daily[A](month: Int, days: A, year: Int, root: String)
+  case class Daily[A](month: Int, day: A, year: Int, root: String)
       extends DataPath {
 
-    val days_ = mkIntList(days).sorted
-    checkDays(month, days_)
+    val day_ = mkIntList(day).sorted
+    checkDays(month, day_)
 
     /* Method to check if day is last day of month. */
-    private def lastDay(month: Int, days: List[Int]): Boolean = {
+    private def lastDay(month: Int, day: List[Int]): Boolean = {
       val m31 = List(1, 3, 5, 7, 8, 10, 12)
       val m30 = List(4, 6, 9, 11)
-      (m31.contains(month) & days.contains(31)) ||
-      (m30.contains(month) & days.contains(30)) ||
-      month == 2 & days.exists(d => List(28, 29).contains(d))
+      (m31.contains(month) & day.contains(31)) ||
+      (m30.contains(month) & day.contains(30)) ||
+      month == 2 & day.exists(d => List(28, 29).contains(d))
     }
 
     override def toString = {
-      val (nyear, nmonth, ndays) = month match {
-        case m if (lastDay(m, days_) & days_.length > 1) => 
+      val (nyear, nmonth, nday) = month match {
+        case m if (lastDay(m, day_) & day_.length > 1) => 
           throw new Exception("List[Int] cannot include last day of month, use .toList instead.")
-        case m if (m != 12 & lastDay(m, days_) & days_.length == 1) => (year, month + 1, List(1))
-        case m if (m == 12 & lastDay(m, days_) & days_.length == 1) => (year + 1, 1, List(1))
-        case _ => (year, month, days_.map(_ + 1))
+        case m if (m != 12 & lastDay(m, day_) & day_.length == 1) => (year, month + 1, List(1))
+        case m if (m == 12 & lastDay(m, day_) & day_.length == 1) => (year + 1, 1, List(1))
+        case _ => (year, month, day_.map(_ + 1))
       }
-      stitch(root, year, month, days_, nyear, nmonth, ndays)
+      stitch(root, year, month, day_, nyear, nmonth, nday)
     }
 
     override def toList = {
@@ -167,7 +167,7 @@ object Paths {
         }
         stitch(root, year, month, List(day), nyear, nmonth, List(nday))
       }
-      for (d <- days_) yield singlePath(d)
+      for (d <- day_) yield singlePath(d)
     }
 
   }
@@ -189,40 +189,40 @@ object Paths {
    *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
    *  }}}
    */ 
-  case class Hourly[A](month: Int, days: A, hours: A, year: Int, root: String) 
+  case class Hourly[A](month: Int, day: A, hours: A, year: Int, root: String) 
     extends DataPath {
 
-     def stitch(days: List[Int], hours: List[Int]): String = {
-      List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(days)}",
-        f"dt=${year}_${fmt(month)}_${paste(days)}_${paste(hours)}")
+     def stitch(day: List[Int], hours: List[Int]): String = {
+      List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(day)}",
+        f"dt=${year}_${fmt(month)}_${paste(day)}_${paste(hours)}")
         .mkString("/")
     }
-    val days_ = mkIntList(days)
+    val day_ = mkIntList(day)
     val hours_ = mkIntList(hours)
 
-    checkDays(month, days_)
+    checkDays(month, day_)
     checkHours(hours_)
 
-    override def toString(): String = stitch(days_, hours_)
-    override def toList(): List[String] = for (h <- hours_; d <- days_) yield stitch(List(d), List(h))
+    override def toString(): String = stitch(day_, hours_)
+    override def toList(): List[String] = for (h <- hours_; d <- day_) yield stitch(List(d), List(h))
   }
 
   /** Construct paths specific to PbSS datasets. **/
   object PbSS {
     def prodMonthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssProd1M): 
       DataPath = Monthly(year, month, root)
-    def prodHourly[A](month: Int, days: A,  hours: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
-      DataPath = Hourly(month, days, hours, year, root)
-    def prodDaily[A](month: Int, days: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
-      DataPath = Daily(month, days, year, root)
+    def prodHourly[A](month: Int, day: A,  hours: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
+      DataPath = Hourly(month, day, hours, year, root)
+    def prodDaily[A](month: Int, day: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
+      DataPath = Daily(month, day, year, root)
     def minute() = "not implemented"
   }
 
 
   /** Construct paths specific to PbRl datasets. **/
   object PbRl {
-    def prodHourly[A](month: Int, days: A, hours: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
-      DataPath =  Hourly(month, days, hours, year, root)
+    def prodHourly[A](month: Int, day: A, hours: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
+      DataPath =  Hourly(month, day, hours, year, root)
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 

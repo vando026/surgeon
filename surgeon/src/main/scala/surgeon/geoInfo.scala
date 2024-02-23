@@ -25,21 +25,28 @@ object GeoInfo {
 
   // Read GEO file, convert it to Scala Map and load to geoMap
     def getGeoData(geoName: String, path: String = PathDB.geoUtil): Map[Int, String] = {
-      val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
-      val xpath = new Path(path + "/" + getGeoTypes(geoName))
-      val fs = xpath.getFileSystem(new Configuration)
-      val dat = scala.io.Source.fromInputStream(fs.open(xpath)).getLines
-      val out = geoName match {
-        case "customer" => dat.map(_.stripPrefix("\uFEFF")) // Remove special character 
-            .map(_.split("\\,").map(_.trim))
-        case _ => dat.filterNot(_.startsWith("#")) // skip 'comment' line
-            .map(_.split("\\|").map(_.trim))
+      val fileName = getGeoTypes.getOrElse(geoName, "Unknown")
+      val result = fileName match {
+        // if there is no match, make an dummy map
+        case "Unknown" => Map(9999 -> "Unknown")
+        case _ => {
+          val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
+          val xpath = new Path(path + "/" + fileName)
+          val fs = xpath.getFileSystem(new Configuration)
+          val dat = scala.io.Source.fromInputStream(fs.open(xpath)).getLines
+          val out = geoName match {
+            case "customer" => dat.map(_.stripPrefix("\uFEFF")) // Remove special character 
+                .map(_.split("\\,").map(_.trim))
+            case _ => dat.filterNot(_.startsWith("#")) // skip 'comment' line
+                .map(_.split("\\|").map(_.trim))
+          }
+          fs.close
+          out.filter(_.length == 2) // what if "54|czech republic|r" - skip or take?? skip for now...
+            .map{case Array(id, name) => id.toInt -> name}.toMap
+
+          }
       }
-      fs.close
-      out.filter(_.length == 2) // what if "54|czech republic|r" - skip or take?? skip for now...
-        .map{case Array(id, name) => id.toInt -> name}.toMap
+      result
     }
-
-
 
 }

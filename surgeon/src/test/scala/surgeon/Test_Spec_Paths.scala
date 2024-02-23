@@ -91,7 +91,7 @@ class PathSuite extends munit.FunSuite {
 
   test("PbRl.parquet is expected") {
     val expect1 = s"${PathDB.pbrlProd()}/y=2024/m=02/d=01/dt=2024_02_01_00/cust={1960180442}"
-    val t1 = Cust(PbRl.prod(2, 1, List(0), 2024), ids = 1960180442)
+    val t1 = Cust(PbRl.prodHourly(2, 1, List(0), 2024), ids = 1960180442)
     assertEquals(t1, expect1)
   }
 

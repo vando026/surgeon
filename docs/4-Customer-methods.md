@@ -57,7 +57,7 @@ argument.  For example, you want to know all the customer Ids for a given hour
 for PbSS data. 
 
 ```scala
-val path = Hourly(month = 5, days = 22, hours = 18)
+val path = Hourly(month = 5, day = 22, hours = 18)
 customerIds(path.toString)
 ```
 
@@ -65,7 +65,7 @@ You can go one step further and convert the IDs to names, like so (using PbRl
 data):
 
 ```scala
-val path = HourlyRaw(month = 7, days = 4, hours = 16)
+val path = HourlyRaw(month = 7, day = 4, hours = 16)
 customerIdToName(customerIds(path.toString))
 // path: conviva.surgeon.Paths.HourlyRaw[Int] = /mnt/conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_1/y=2023/m=07/d=04/dt=2023_07_04_16
 // res4: List[String] = List(c3.Turner-MML, c3.Echostar-SlingTV, c3.Movistarplus, c3.BBCK-PerformGroup, c3.Turner-NCAA, 
@@ -81,8 +81,8 @@ paths.
 
 
 ```scala
-val pbss = Hourly(month = 5, days = 22, hours = 18)
-val pbrl = HourlyRaw(month = 5, days = 22, hours = 18)
+val pbss = Hourly(month = 5, day = 22, hours = 18)
+val pbrl = HourlyRaw(month = 5, day = 22, hours = 18)
 customerInBothPaths(pbss.toString, pbrl.toString)
 ```
 
