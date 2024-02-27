@@ -243,9 +243,9 @@ object Paths {
      *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply[A](obj: DataPath, names: A, cmap: Map[Int, String] = customerNames()):
+    def apply[A](obj: DataPath, names: A, cmap: Map[Int, String] = c3IdMap()):
         String = {
-      val cnames = customerNameToId(mkStrList(names), cmap)
+      val cnames = c3NameToId(mkStrList(names), cmap)
       stitch(obj, cnames.mkString(","))
     }
 
@@ -269,7 +269,7 @@ object Paths {
      *  }}}
     */
     def apply(obj: DataPath, take: Int) = {
-      val cids = customerIds(obj.toList).take(take)
+      val cids = c3IdOnPath(obj.toList).take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
 
