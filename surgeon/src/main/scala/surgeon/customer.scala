@@ -43,7 +43,7 @@ object Customer {
    *  val path = Daily(year = 2023, month = 1, day = 20)
    *  c3IdOnPath(path)
    *  c3IdOnPath(path.toString)
-   *  val paths = Hourly(month = 6, day = 2, hours = List(2, 3))
+   *  val paths = Hourly(month = 6, day = 2, hour = List(2, 3))
    *  c3IdOnPath(paths.toList)
    *  }}}
   */

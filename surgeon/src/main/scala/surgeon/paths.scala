@@ -175,44 +175,44 @@ object Paths {
   /** Class with methods to construct paths to hourly parquet data on
    *  Databricks. If parameter names are omitted, then the order is month, day,
    *  hour(s), year, path. The default year is the current year. 
-   *  The default is the hourly Session Summary path. See `PathDB`.  Only the `hours`
+   *  The default is the hourly Session Summary path. See `PathDB`.  Only the `hour`
    *  parameter can take a list of integers.
    *  @param month $month
    *  @param day $day
-   *  @param hours $hour
+   *  @param hour $hour
    *  @param year $year
    *  @param root $root
    *  @param lt The log version
    *  @return 
    *  @example {{{
-   *  Hourly(year = 2023, month = 1, day = 12, hours = List(2, 3)).toString
-   *  Hourly(year = 2023, month = 1, day = 12, hours = 2).toString
+   *  Hourly(year = 2023, month = 1, day = 12, hour = List(2, 3)).toString
+   *  Hourly(year = 2023, month = 1, day = 12, hour = 2).toString
    *  }}}
    */ 
-  case class Hourly[A](month: Int, day: A, hours: A, year: Int, root: String) 
+  case class Hourly[A](month: Int, day: A, hour: A, year: Int, root: String) 
     extends DataPath {
 
-     def stitch(day: List[Int], hours: List[Int]): String = {
+     def stitch(day: List[Int], hour: List[Int]): String = {
       List(root, s"y=${year}", f"m=${fmt(month)}", f"d=${paste(day)}",
-        f"dt=${year}_${fmt(month)}_${paste(day)}_${paste(hours)}")
+        f"dt=${year}_${fmt(month)}_${paste(day)}_${paste(hour)}")
         .mkString("/")
     }
     val day_ = mkIntList(day)
-    val hours_ = mkIntList(hours)
+    val hour_ = mkIntList(hour)
 
     checkDays(month, day_)
-    checkHours(hours_)
+    checkHours(hour_)
 
-    override def toString(): String = stitch(day_, hours_)
-    override def toList(): List[String] = for (h <- hours_; d <- day_) yield stitch(List(d), List(h))
+    override def toString(): String = stitch(day_, hour_)
+    override def toList(): List[String] = for (h <- hour_; d <- day_) yield stitch(List(d), List(h))
   }
 
   /** Construct paths specific to PbSS datasets. **/
   object PbSS {
     def prodMonthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssProd1M): 
       DataPath = Monthly(year, month, root)
-    def prodHourly[A](month: Int, day: A,  hours: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
-      DataPath = Hourly(month, day, hours, year, root)
+    def prodHourly[A](month: Int, day: A,  hour: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
+      DataPath = Hourly(month, day, hour, year, root)
     def prodDaily[A](month: Int, day: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
       DataPath = Daily(month, day, year, root)
     def minute() = "not implemented"
@@ -221,8 +221,8 @@ object Paths {
 
   /** Construct paths specific to PbRl datasets. **/
   object PbRl {
-    def prodHourly[A](month: Int, day: A, hours: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
-      DataPath =  Hourly(month, day, hours, year, root)
+    def prodHourly[A](month: Int, day: A, hour: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
+      DataPath =  Hourly(month, day, hour, year, root)
   }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 

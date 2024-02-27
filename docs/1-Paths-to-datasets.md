@@ -56,11 +56,11 @@ daily3.toString
 For the PbSS hourly production data, use the `PbSS.prodHourly` class:
 
 ```scala mdoc 
-val hourly = PbSS.prodHourly(year = 2023, month = 2, day = 14, hours = 2)
+val hourly = PbSS.prodHourly(year = 2023, month = 2, day = 14, hour = 2)
 hourly.toString
-val hourly2 = PbSS.prodHourly(month = 2, day = 14, hours = List.range(2, 10))
+val hourly2 = PbSS.prodHourly(month = 2, day = 14, hour = List.range(2, 10))
 hourly2.toString
-val hourly3 = PbSS.prodHourly(month = 2, day = List(14, 15), hours = 2)
+val hourly3 = PbSS.prodHourly(month = 2, day = List(14, 15), hour = 2)
 hourly3.toString
 hourly3.toList
 ```
@@ -72,7 +72,7 @@ can be an Int or List[Int] so that you can select multiple days or hours.
 For the PbRl data, you can do:
 
 ```scala mdoc 
-val pbraw = PbRl.prodHourly(year = 2023, month = 2, day = 14, hours = List.range(2, 8))
+val pbraw = PbRl.prodHourly(year = 2023, month = 2, day = 14, hour = List.range(2, 8))
 pbraw.toString
 ```
 
@@ -92,7 +92,7 @@ flag using the relevant interger, provided it exists:
 
 
 ```scala mdoc 
-val ss = PbSS.prodHourly(year = 2023, month = 2, day = 14, hours = List(2), root = PathDB.pbssProd1h(2))
+val ss = PbSS.prodHourly(year = 2023, month = 2, day = 14, hour = List(2), root = PathDB.pbssProd1h(2))
 ss.toString
 ```
 
