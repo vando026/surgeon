@@ -48,16 +48,18 @@ object PbSS {
   }
 
   /** Method for extracting fields from `val.invariant.c3Tags`. */
-  def c3Tags(field: String): Column = {
-    col("val.invariant.c3Tags").getField(field)
-      .alias(field.replaceAll("\\.", "_"))
+  def c3Tags(field: String = ""): Column = {
+    val tag = col("val.invariant.c3Tags")
+    if (field.isEmpty) tag 
+    else tag.getField(field).alias(field.replaceAll("\\.", "_"))
   }
 
   /** Method for extracting fields from `val.invariant.summarizedTags`. Fields
    *  with periods are replaced with underscores by default.*/
-  def sumTags(field: String): Column = {
-    col("val.invariant.summarizedTags").getItem(field)
-      .alias(field.replaceAll("\\.", "_"))
+  def sumTags(field: String  = ""): Column = {
+    val tag = col("val.invariant.summarizedTags")
+    if (field.isEmpty) tag 
+    else tag.getItem(field).alias(field.replaceAll("\\.", "_"))
   }
 
   /** Method for extracting fields from `val.sessSummary.d3SessSummary`. */

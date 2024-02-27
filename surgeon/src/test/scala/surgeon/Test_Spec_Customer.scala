@@ -27,8 +27,8 @@ class CustomerSuite extends munit.FunSuite {
   }
 
   test("customerNameToId is expected") {
-    val t1 = customerNameToId("c3.TopServe", custData)
-    val t2 = customerNameToId(List("c3.PlayFoot", "c3.TopServe"), custData)
+    val t1 = c3NameToId("c3.TopServe", custData)
+    val t2 = c3NameToId(List("c3.PlayFoot", "c3.TopServe"), custData)
     assertEquals(t1, List(1960180360))
     assertEquals(t2, List(1960002004, 1960180360))
   }
