@@ -184,7 +184,7 @@ object PbSS {
    * }}}
   */ 
 
-  def viewerId(): Column = invTags("c3.viewer.id")
+  def viewerId(): Column = sumTags("c3.viewer.id")
 
   /** Extract the `hasEnded` field as is. 
    * @example{{{

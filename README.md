@@ -169,7 +169,7 @@ You can select the customer column using `customerId` and customer names using `
 ```scala 
 hourly_df.select(
   customerId,  // Int: The customer Id
-  customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig.xml
+  customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
 )
 ```
 
@@ -321,15 +321,15 @@ from Ids, and get Ids from names.
 ```scala  
 import conviva.surgeon.Customer._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
-customerNames() 
+c3IdMap() 
 // res1: Map[Int,String] = Map(207488736 -> c3.MSNBC, 744085924 -> c3.PMNN, 1960180360 -> c3.TV2, 978960980 -> c3.BASC)
-customerIdToName(207488736)
+c3IdToName(207488736)
 // res2: List[String] = List("c3.MSNBC")
-customerIdToName(List(207488736, 744085924))
+c3IdToName(List(207488736, 744085924))
 // res3: List[String] = List("c3.MSNBC", "c3.PMNN")
-customerNameToId("TV2")
+c3NameToId("TV2")
 // res4: List[Int] = List(1960180360)
-customerNameToId(List("c3.TV2", "c3.BASC"))
+c3NameToId(List("c3.TV2", "c3.BASC"))
 // res5: List[Int] = List(1960180360, 978960980)
 ```
 
