@@ -22,6 +22,7 @@ object PbRl {
   import org.apache.spark.sql.functions.{lower, col, when, typedLit, array_join, array_remove, split}
   import org.apache.spark.sql.{Column}
   import conviva.surgeon.GeoInfo._
+  import conviva.surgeon.Paths.PathDB
   
   val pbsdm = "payload.heartbeat.pbSdmEvents"
 
@@ -82,8 +83,9 @@ object PbRl {
    * df.select(customerName)
    * }}}
   */ 
-  def customerName(): Column = {
-    val gMap = getGeoData("customer")
+  def customerName(path: Option[String] = None): Column = {
+    val gPath = path.getOrElse(PathDB.geoUtil)
+    val gMap = getGeoData("customer", gPath)
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }

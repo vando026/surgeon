@@ -38,6 +38,8 @@ object Paths {
     val geoUtil = "dbfs:/FileStore/Geo_Utils"
     /** Path to personally updated files */
     val fileStore = "dbfs:/FileStore/avandormael"
+    /** Path to test data for this library. */
+    val testPath = "./surgeon/src/test/data/" 
   }
 
   // utility methods

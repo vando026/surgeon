@@ -17,9 +17,9 @@ class PathSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val pbssTestPath = "./surgeon/src/test/data" 
+  // val pbssTestPath = "./surgeon/src/test/data" 
   val root = "/mnt/conviva-prod-archive-pbss"
-  val custData = getGeoData("customer", pbssTestPath)
+  val custData = getGeoData("customer", PathDB.testPath)
 
   test("PbSS.Monthly is expected") {
     val expect1 = s"${PathDB.pbssProd1M}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
@@ -93,6 +93,12 @@ class PathSuite extends munit.FunSuite {
     val expect1 = s"${PathDB.pbrlProd()}/y=2024/m=02/d=01/dt=2024_02_01_00/cust={1960180442}"
     val t1 = Cust(PbRl.prodHourly(2, 1, List(0), 2024), ids = 1960180442)
     assertEquals(t1, expect1)
+  }
+
+  test("Test data path should work as expected") {
+    val path = Cust(PbSS.prodHourly(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss"), 
+      names = "c3.TopServe", cmap = custData)
+    assertEquals(path, "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
   }
 
   // // see getData.scala in ./src/test/data/ for generating these paths

@@ -5,6 +5,7 @@ import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
 import org.apache.spark.sql.{Column, Row}
 import conviva.surgeon.GeoInfo._
 import conviva.surgeon.PbSSCoreLib._
+import conviva.surgeon.Paths.PathDB
 import org.apache.spark.sql.{functions => F}
 import com.conviva.vmaStdMetrics.sess.StdSess
   
@@ -94,8 +95,9 @@ object PbSS {
    * )
    * }}}
   */ 
-  def customerName(): Column = {
-    val gMap = getGeoData("customer")
+  def customerName(path: Option[String] = None): Column = {
+    val gPath = path.getOrElse(PathDB.geoUtil)
+    val gMap = getGeoData("customer", gPath)
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }

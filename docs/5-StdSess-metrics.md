@@ -16,9 +16,16 @@ shown in Druid, such as `VSF`, `VSFT`, `VPF`, `EBVS`, and so on.
 ```scala mdoc
 import conviva.surgeon.PbSS._
 import conviva.surgeon.PbSSCoreLib._
+import conviva.surgeon.GeoInfo._
+import conviva.surgeon.Paths._
+
+// First point to the customer data in this test env
+val custMap = getGeoData("customer", PathDB.testPath)
+val path = Cust(
+    PbSS.prodHourly(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss"),
+  names = "c3.TopServe", custMap)
 // Read in the test data
-val pbssTestPath = "./surgeon/src/test/data" 
-val dat0 = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
+val dat0 = spark.read.parquet(path).cache
 // Select only one client session Id
 val dat = dat0.where(sessionId === 89057425)
 ```

@@ -1,6 +1,6 @@
 ```scala mdoc
-import org.apache.spark.sql.{SparkSession}
-import org.apache.spark.sql._
+// setup code
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder
   .master("local[*]")
@@ -9,16 +9,33 @@ val spark = SparkSession.builder
 
 ## Parquet Session Summary  (PbSS)
 
-Surgeon simplifies the selection of columns when reading a
-dataset for the first time. To demonstrate, first import surgeon's `PbSS`  object and
-other `Spark` necessities, set the file path, and read the data. 
+Surgeon simplifies the selection of columns when reading a dataset for the
+first time. 
+
+This demonstration will be run on a test environment, so we have to
+point to the correct PbSS and Customer data sources.  
+
 
 ```scala mdoc
-import conviva.surgeon.PbSS._
-// Read in the test data
-val pbssTestPath = "./surgeon/src/test/data" 
-val dat0 = spark.read.parquet(s"${pbssTestPath}/pbssHourly1.parquet").cache
-// Select only one client session Id, make Ad ID for demo
+import conviva.surgeon.PbSS._ 
+import conviva.surgeon.GeoInfo._
+import conviva.surgeon.Paths._
+// First point to the customer data in this test env
+val custMap = getGeoData("customer", PathDB.testPath)
+```
+
+```scala mdoc
+// create the path to the test data for a specific customer
+val path = Cust(
+        PbSS.prodHourly(year=2023, month=2, day=7, hour=2, root =
+        PathDB.testPath + "pbss"),
+    names = "c3.TopServe", custMap)
+```
+
+```scala mdoc
+// now we can read the pbss data
+val dat0 = spark.read.parquet(path).cache
+// Select only one client session Id
 val dat = dat0.where(sessionId === 89057425)
 ```
 
@@ -99,13 +116,36 @@ The `isConsistent` column is based on the logic:
 Any other combination is inconsistent.
 
 Another useful shorthand method is `customerName`, which returns the name of
-the `customerId`. 
+the `customerId`. On DataBricks, you should be able to the run the command as
+is, since the default folder path for this method is set.
 
 ```scala
+// this code is actually not for this demo, but this is 
+// how you would run it in production env.
 dat.select(
   customerId, 
-  customerName 
-)
+  customerName
+).show
+
+// +----------+-------------+
+// |customerId|customerName |                                   
+// +----------+-------------+
+// |1960180360|c3.TopServe  |
+// +----------+-------------+
+```
+
+
+In this demo, we instead use the test data and so we need to point the path in
+to this data, which is done below. The `customerName` method
+therefore shows its flexibility in that you can pass any valid Map of customer Ids and
+names to it. 
+
+
+```scala mdoc
+dat.select(
+  customerId, 
+  customerName(Some(PathDB.testPath))
+).show
 ```
 
 You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
@@ -255,7 +295,9 @@ hourly_df.select(
   geoInfo("city").label      // Int: the city codes
   geoInfo("country").label   // Int: the country codes
 )
+
 ```
+
 
 You can provide your own custom Map of labels for the `geoInfo` codes. Make sure to
 pass it to `Some`. 

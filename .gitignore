@@ -1,7 +1,11 @@
 surgeon/target/streams/*
+surgeon/target/test-reports/*
 surgeon/target/scala-2.12/classes/*
+surgeon/target/scala-2.12/test-classes/*
 surgeon/target/scala-2.12/sync/*
+surgeon/target/scala-2.12/test-sync/*
 surgeon/target/scala-2.12/update/*
+surgeon/target/scala-2.12/test-zinc/*
 surgeon/target/scala-2.12/zinc/*
 target/*
 .bsp/*
