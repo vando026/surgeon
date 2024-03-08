@@ -14,27 +14,27 @@ object Customer {
 
   /** Get the ID of the customer name. 
    *  @param ids The ids of the customer.
-   *  @param cmap A map derived from `c3IdMap`.
+   *  @param customerMap A map derived from `c3IdMap`.
    *  @example{{{
-   *  c3IdToName(List(196900922, 196300090), cmap = c3IdMap()) 
+   *  c3IdToName(List(196900922, 196300090), c3IdMap = c3IdMap()) 
    *  c3IdToName(List(196900922, 196300090)) 
    *  c3IdToName(196300090)
    *  }}}
    */
-  def c3IdToName[A](ids: A, cmap: Map[Int, String] = c3IdMap()): List[String] = {
-    mkIntList(ids).map(cmap.getOrElse(_, "Key_missing"))
+  def c3IdToName[A](ids: A, customerMap: Map[Int, String] = c3IdMap()): List[String] = {
+    mkIntList(ids).map(customerMap.getOrElse(_, "Key_missing"))
   }
   
   /** Get the ID of the customer name. 
    *  @param names The names of the customer.
-   *  @param cmap A map derived from `c3IdMap`.
+   *  @param customerMap A map derived from `c3IdMap`.
    *  @example{{{
    *  c3NameToId(List("c3.MLB", "c3.CBNS"))
    *  c3NameToId("c3.MLB")
    *  }}}
    */
-  def c3NameToId[A](names: A, cmap: Map[Int, String] = c3IdMap()): List[Int] = {
-    mkStrList(names).map(i => cmap.filter(_._2 == i)).map(_.keys).flatten
+  def c3NameToId[A](names: A, customerMap: Map[Int, String] = c3IdMap()): List[Int] = {
+    mkStrList(names).map(i => customerMap.filter(_._2 == i)).map(_.keys).flatten
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 

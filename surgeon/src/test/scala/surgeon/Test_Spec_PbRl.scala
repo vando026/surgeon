@@ -7,22 +7,18 @@ class PbRl_Suite extends munit.FunSuite {
   import conviva.surgeon.PbRl._
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.GeoInfo._
+  import conviva.surgeon.Paths._
 
   val spark = SparkSession
       .builder()
       .master("local[*]")
       .getOrCreate()
 
-  val dataPath = "./surgeon/src/test/data" 
-  val dat = spark.read.parquet(s"${dataPath}/pbrlHourly1.parquet").cache
+  val custMap = getGeoData("customer", PathDB.testPath)
+  val path = PbRl.prodHourly(year=2023, month=5, day=1, hour=9, root = PathDB.testPath + "pbrl")
+  val pbrlPath = Cust(path, names = "c3.DuoFC", custMap)
+  val dat = spark.read.parquet(pbrlPath).cache
   val d701 = dat.where(sessionId === 701891892)
-
-  val cust_dat = Map(
-    207488736 -> "c3.MSNBC",
-    744085924 -> "c3.PMNN",
-    1960180360 -> "c3.TV2",
-    978960980 -> "c3.BASC"
-  )
 
   test("Data nrow should be expected") {
     val nrow = dat.count.toInt
@@ -35,7 +31,9 @@ class PbRl_Suite extends munit.FunSuite {
     assertEquals(t1.select("c3_isAd_rc").first.apply(0).toString, "false")
   }
 
-  val dat2 = spark.read.parquet(s"${dataPath}/pbrlHourly2.parquet")
+  val path2 = PbRl.prodHourly(year=2023, month=12, day=28, hour=12, root = PathDB.testPath + "pbrl")
+  val pbrlPath2 = Cust(path2, names = "c3.FappleTV", custMap)
+  val dat2 = spark.read.parquet(pbrlPath2)
 
   test("ipv6 should work as expected") {
     val e1 = "38:1:5:137:3:1:84:96:13:29:190:184:171:173:248:37"
