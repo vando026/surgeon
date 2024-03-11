@@ -209,13 +209,6 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(t2.select("countryLabel").first.getString(0), "Norway")
   }
 
-  test("isAttempt should work as expected") {
-    val t1 = d8905.select(isSessDoneNotJoined, isSessJustJoined, isAttempt)
-    assertEquals(t1.select("isSessDoneNotJoined").first.getBoolean(0), false)
-    assertEquals(t1.select("isSessJustJoined").first.getBoolean(0), true)
-    assertEquals(t1.select("isAttempt").first.getBoolean(0), true)
-  }
-
   test("customerName should work") {
     def customerName(): Column = {
       val gMap = getGeoData("customer", PathDB.testPath)

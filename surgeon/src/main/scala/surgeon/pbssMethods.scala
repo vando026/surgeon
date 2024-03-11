@@ -316,11 +316,10 @@ object PbSS {
    * |-3          |0        |1                  | joined, unknown join time, positive life playing time |
    * Any other combination is inconsistent.
   */
-  def isConsistent(
-    joinTime: Column = col("val.sessSummary.joinTimeMs"),
-    joinState: Column = col("val.sessSummary.joinState"), 
-    lifePlayingTime: Column = col("val.sessSummary.lifePlayingTimeMs")): 
-  Column = {
+  def isConsistent(): Column = {
+    val joinTime = col("val.sessSummary.joinTimeMs")
+    val joinState = col("val.sessSummary.joinState")
+    val lifePlayingTime = col("val.sessSummary.lifePlayingTimeMs")
     val isJoinTime = when(joinTime > 0, 1).otherwise(joinTime)
     when(isJoinTime === -1 && joinState  === -1 && isPlay  === false, 1) 
       .when(isJoinTime === 1 && joinState   === 1 && isPlay  === true, 1)

@@ -1,5 +1,5 @@
 ThisBuild / scalaVersion := "2.12.17"
-ThisBuild / version := "0.0.10"
+ThisBuild / version := "0.0.11"
 ThisBuild / organization := "conviva"
 name := "surgeon"
 
@@ -31,5 +31,8 @@ testFrameworks += TestFramework("munit.TestFramework")
 
 lazy val docs = project
   .in(file("conviva-surgeon.wiki"))
+  .settings(
+    mdocVariables := Map("VERSION" -> version.value)
+    )
   .dependsOn(surgeon)
   .enablePlugins(MdocPlugin)

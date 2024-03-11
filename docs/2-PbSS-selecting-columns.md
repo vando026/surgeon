@@ -2,9 +2,7 @@
 // setup code
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-val spark = SparkSession.builder
-  .master("local[*]")
-  .getOrCreate
+val spark = SparkSession.builder.master("local[*]").getOrCreate
 ```
 
 ## Parquet Session Summary  (PbSS)
@@ -19,7 +17,7 @@ import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
 
 // Get data from the test env, not prod env
-val path = Cust(PbSS.prodHourly(year=2023, month=2, day=7, hour=2, 
+val path = Cust(pbssHour(year=2023, month=2, day=7, hour=2, 
   root = PathDB.testPath + "pbss"), id = 1960180360)
 ```
 
@@ -49,7 +47,7 @@ dat.select(
 ```
 Any valid  string name can be used, provided the column exists. The container names are abbreviations of the root paths to the column names, as shown below:
 
-```scala mdoc 
+```scala
 dat.select(
   col("val.sessSummary.playerState"),
   col("val.sessSummary.d3SessSummary.lifePausedTimeMs"),
@@ -58,7 +56,7 @@ dat.select(
   col("val.sessSummary.intvSwitchInfos.networkBufferingTimeMs"),
   col("val.invariant.sessionCreationTimeMs"),
   col("val.invariant.summarizedTags").getItem("c3.video.isAd"),
-).show
+)
 ```
 
 ### Quick selection
@@ -107,12 +105,10 @@ The `isConsistent` column is based on the logic:
 Any other combination is inconsistent.
 
 Another useful shorthand method is `customerName`, which returns the name of
-the `customerId`. On DataBricks, you should be able to the run the command as
-is, since the default folder path for this method is set.
+the `customerId`. On DataBricks production environment, you should be able to the run the command as
+is.
 
 ```scala
-// this code is actually not for this demo, but this is 
-// how you would run it in production env.
 dat.select(
   customerId, 
   customerName
@@ -141,7 +137,7 @@ dat.select(
 
 You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
 
-```scala mdoc
+```scala 
 dat.select(
   isAttempt,
   hasJoined,
@@ -160,7 +156,6 @@ dat.select(
   intvBufferingTimeMs, 
   intvPlayingTimeMs
 ).show
-
 ```
 
 ### Id selection, conversion, formatting
@@ -274,6 +269,7 @@ You can select `GeoInfo` columns and their labels from `val.invariant.geoInfo` (
 
 
 ```scala 
+import conviva.surgeon.GeoInfo._
 hourly_df.select(
   geoInfo("city")      // Int: the city codes
   geoInfo("country")   // Int: the country codes

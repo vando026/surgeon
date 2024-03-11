@@ -235,14 +235,15 @@ object Paths {
     /** Method to get data path using customer names.
      *  @param obj A DataPath object. 
      *  @param name Customer name as String or names as List[String], with `c3.` prefix removed. 
+     *  @param customerMap A scala Map derived from `c3IdMap`. 
      *  @example{{{
      *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
      *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply[A](obj: DataPath, name: A, cmap: Map[Int, String] = c3IdMap()):
+    def apply[A](obj: DataPath, name: A, customerMap: Map[Int, String] = c3IdMap()):
         String = {
-      val cnames = c3NameToId(mkStrList(name), cmap)
+      val cnames = c3NameToId(mkStrList(name), customerMap)
       stitch(obj, cnames.mkString(","))
     }
 
@@ -266,7 +267,7 @@ object Paths {
      *  }}}
     */
     def apply(obj: DataPath, take: Int) = {
-      val cids = c3IdOnPath(obj.toList).take(take)
+      val cids = c3IdOnPath(obj.toList).sorted.take(take)
       stitch(obj, cids.map(_.toString).mkString(","))
     }
 

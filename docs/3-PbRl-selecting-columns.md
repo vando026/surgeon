@@ -3,9 +3,7 @@
 import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-val spark = SparkSession.builder
-  .master("local[*]")
-  .getOrCreate
+val spark = SparkSession.builder.master("local[*]").getOrCreate
 ```
 
 ## Parquet RawLog (PbRl)
@@ -19,14 +17,12 @@ set the file path, and read the data.
 import conviva.surgeon.PbRl._
 import conviva.surgeon.Paths._
 // Read from test env, not from prod env
-val path1 = Cust(PbRl.prodHourly(year=2023, month=5, day=1, hour=9, 
+val path1 = Cust(pbrlHour(year=2023, month=5, day=1, hour=9, 
     root = PathDB.testPath + "pbrl"), id = 1960181845)
 val dat = spark.read.parquet(path1).cache
   .where(sessionId === 701891892)
-val path2 = Cust(PbRl.prodHourly(year=2023, month=12, day=28, hour=12, 
-    root = PathDB.testPath + "pbrl"), id = 1960184661)
-val dat2 = spark.read.parquet(path2)
 ```
+
 ### Quick selection
 
 Quick ways to select frequently used columns:
@@ -109,14 +105,13 @@ dat.select(
 
 The `ipv4` and `ipv6` columns have methods for formatting: 
 
-```scala 
+```scala mdoc
 dat.select(
   ipv4,            // Array asis, payload.heartbeat.publicIp
-  ipv4.concat      // concat values
+  ipv4.concat,      // concat values
   ipv6,            // Array asis, payload.heartbeat.publicipv6
-  ipv6.concat      // concat values 
-  ipv6.concatToHex // concat values and convert to hexadecimal
-)
+  ipv6.concat,     // concat values 
+).show
 
 ```
 ### Time columns

@@ -1,3 +1,10 @@
+<p align="center">
+<img src="./media/surgeon-283.png" alt="" width="200" >
+</p>
+
+<h1 align="center"> conviva-surgeon</h1>
+
+
 ```scala mdoc
 // setup code
 import org.apache.spark.sql.{SparkSession}
@@ -135,7 +142,7 @@ Cust(path, id = 1960184999)
 
 Using more than one customer Id, must be a `List`.
 
-```scala
+```scala mdoc
 Cust(path, id = List(1960184999, 1960180360))
 ``` 
 Take the first n customer Ids
@@ -144,14 +151,31 @@ Take the first n customer Ids
 Cust(path, take  = 3)
 ```
 
-To select by customer name.
+To select by customer name on the DataBricks production environment do:
 
-```scala mdoc
+```scala 
 Cust(path, name = "c3.Yahoo")
-
 ``` 
-To select by more than one customer name, must be a `List`.
+
+However, because we are running this on the test environment, we need to
+provide the fake customer data as an argument to `Cust`:
 
 ```scala mdoc
-Cust(path, name = List("c3.Yahoo", "c3.MLB"))
+Cust(path, name = "c3.Yahoo", custMap)
 ``` 
+
+To select by more than one customer name on the DataBricks production
+environment, do:
+
+```scala 
+Cust(path, name = List("c3.Yahoo", "c3.MLB"), custMap)
+``` 
+
+For the test environment, it is:
+
+```scala mdoc
+Cust(path, name = List("c3.Yahoo", "c3.MLB"), custMap)
+``` 
+
+
+** Compiled using version @VERSION@. 

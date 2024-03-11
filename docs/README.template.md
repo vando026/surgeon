@@ -83,25 +83,22 @@ Below is a brief vignette of Surgeon's many features. Please see the
 [Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
 
-```scala
+```scala mdoc
 // setup code
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@54763380
 val path = Cust(pbssHour(year=2023, month=2, day=7, hour = 2, root = PathDB.testPath + "pbss"),
     id = 1960180360)
-// path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
-// dat: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [key: struct<sessId: struct<customerId: int, clientId: array<struct<element:int>> ... 1 more field>, type: tinyint ... 1 more field>, val: struct<type: tinyint, sessSummary: struct<intvStartTimeSec: int, joinTimeMs: int ... 119 more fields> ... 14 more fields>]
 ```
 
 ### Quick column selection
 
 Surgeon makes it easy to select columns that are frequently used in analysis:
 
-```scala
+```scala mdoc
 dat.select(
   customerId, 
   clientId,
@@ -114,17 +111,11 @@ dat.select(
   joinState, 
   joinTimeMs
 ).show 
-// +----------+--------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
-// |customerId|            clientId|sessionId|shouldProcess|hasEnded|justEnded|justJoined|endedStatus|joinState|joinTimeMs|
-// +----------+--------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
-// |1960180360|[476230728, 12930...| 89057425|         true|   false|    false|      true|          0|        1|      4978|
-// +----------+--------------------+---------+-------------+--------+---------+----------+-----------+---------+----------+
-//
 ``` 
 
 It is also easy to query from structs, maps or arrays in PbSS and PbRl:
 
-```scala
+```scala mdoc
 dat.select(
   sessSum("playerState"), 
   d3SessSum("lifePausedTimeMs"),
@@ -134,12 +125,6 @@ dat.select(
   invTags("sessionCreationTimeMs"), 
   sumTags("c3.video.isAd")
 ).show
-// +-----------+----------------+-------------+-------------+----------------------+---------------------+-------------+
-// |playerState|lifePausedTimeMs|playingTimeMs|sessionTimeMs|networkBufferingTimeMs|sessionCreationTimeMs|c3_video_isAd|
-// +-----------+----------------+-------------+-------------+----------------------+---------------------+-------------+
-// |          3|               0|          [0]|    [1906885]|                [2375]|        1675765692087|            F|
-// +-----------+----------------+-------------+-------------+----------------------+---------------------+-------------+
-//
 ```
 
 These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
@@ -162,18 +147,12 @@ is often constructed from the `clientId` and `sessionId` columns, which is easy
 to do with Surgeon.
 
 
-```scala
+```scala mdoc
 dat.select(
   sid5.concat,   
   sid5.concatToHex, 
   sid5.concatToUnsigned 
 ).show
-// +--------------------+--------------------+--------------------+
-// |                sid5|             sid5Hex|        sid5Unsigned|
-// +--------------------+--------------------+--------------------+
-// |476230728:1293028...|1c62b448:4d120d00...|476230728:1293028...|
-// +--------------------+--------------------+--------------------+
-//
 ```
 
 The same applies for `sid6`, which appends `sessionCreationTimeMs`:
@@ -205,7 +184,7 @@ these columns using the short name, which come with a `stamp` method to format
 values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
 seconds since Unix epoch, and a `toMs` method. 
 
-```scala
+```scala mdoc
 import org.apache.spark.sql.functions._
 dat.select(
   lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
@@ -214,12 +193,6 @@ dat.select(
   dayofweek(lifeFirstRecvTime.stamp).alias("dow"), // get the day of the week (Spark method)
   hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
 ).show
-// +-------------------+--------------------+----------------------+---+----+
-// |lifeFirstRecvTimeMs|lifeFirstRecvTimeSec|lifeFirstRecvTimeStamp|dow|hour|
-// +-------------------+--------------------+----------------------+---+----+
-// |      1675765693115|          1675765693|   2023-02-07 02:28:13|  3|   2|
-// +-------------------+--------------------+----------------------+---+----+
-//
 ```
 
 ### PbSS Core Library metrics
@@ -300,26 +273,11 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. Customers come with
 Hourly, Daily or Monthly data. 
 
-```scala
+```scala mdoc
 import conviva.surgeon.Paths._
 val path1 = pbssHour(year = 2024, month = 2, day = 24, hour = 18)
-// path1: DataPath = Hourly(
-//   2,
-//   24,
-//   18,
-//   2024,
-//   "/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0"
-// )
 val path2 = pbssHour(2, 4, List(18, 19, 20))
-// path2: DataPath = Hourly(
-//   2,
-//   4,
-//   List(18, 19, 20),
-//   2024,
-//   "/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0"
-// )
 val path3 = Cust(pbssHour(12, 24, 18), id = 1960180360)
-// path3: String = "/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180360}"
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
@@ -345,27 +303,15 @@ Surgeon provides some convenient methods for working with Customer data. You
 can use these methods to read in a file with customer Ids and names, get names
 from Ids, and get Ids from names. 
 
-```scala
+```scala mdoc
 import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 val custMap = getGeoData("customer", PathDB.testPath)
-// custMap: Map[Int, String] = Map(
-//   1960181845 -> "c3.DuoFC",
-//   1960003000 -> "c3.Cycling100",
-//   1960184661 -> "c3.FappleTV",
-//   1960003321 -> "c3.SATY",
-//   1960180360 -> "c3.TopServe",
-//   1960002004 -> "c3.PlayFoot"
-// )
 c3IdToName(1960180360, custMap)
-// res4: List[String] = List("c3.TopServe")
 c3IdToName(List(207488736, 744085924), custMap)
-// res5: List[String] = List("Key_missing", "Key_missing")
 c3NameToId("c3.FappleTV", custMap)
-// res6: List[Int] = List(1960184661)
 c3NameToId(List("c3.FappleTV", "c3.SATY"), custMap)
-// res7: List[Int] = List(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.

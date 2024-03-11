@@ -23,6 +23,14 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
 
+
+  test("isAttempt should work as expected") {
+    val t1 = d8905.select(isSessDoneNotJoined, isSessJustJoined, isAttempt)
+    assertEquals(t1.select("isSessDoneNotJoined").first.getBoolean(0), false)
+    assertEquals(t1.select("isSessJustJoined").first.getBoolean(0), true)
+    assertEquals(t1.select("isAttempt").first.getBoolean(0), true)
+  }
+
   test("Core metrics should be expected") {
     val t1 = d8905.select(isEBVS).first.getBoolean(0)
     assertEquals(t1, false)
