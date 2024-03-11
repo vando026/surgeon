@@ -1,10 +1,5 @@
-## Parquet RawLog (PbRl)
-
-Surgeon tries to simply the selection of columns when reading a PbSS or PbRl dataset for the
-first time. To demonstrate,  first import surgeon's `PbRl`  object and other `Spark` necessities,
-set the file path, and read the data. 
-
 ```scala mdoc
+// setup code
 import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
@@ -13,14 +8,24 @@ val spark = SparkSession.builder
   .getOrCreate
 ```
 
+## Parquet RawLog (PbRl)
+
+Surgeon tries to simply the selection of columns when reading a PbSS or PbRl dataset for the
+first time. To demonstrate,  first import surgeon's `PbRl`  object and other `Spark` necessities,
+set the file path, and read the data. 
+
+
 ```scala mdoc
 import conviva.surgeon.PbRl._
-// Read test data
-val pbrlTestPath = "./surgeon/src/test/data" 
-// Select only one client session Id
-val dat = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly1.parquet").cache
+import conviva.surgeon.Paths._
+// Read from test env, not from prod env
+val path1 = Cust(PbRl.prodHourly(year=2023, month=5, day=1, hour=9, 
+    root = PathDB.testPath + "pbrl"), id = 1960181845)
+val dat = spark.read.parquet(path1).cache
   .where(sessionId === 701891892)
-val dat2 = spark.read.parquet(s"${pbrlTestPath}/pbrlHourly2.parquet")
+val path2 = Cust(PbRl.prodHourly(year=2023, month=12, day=28, hour=12, 
+    root = PathDB.testPath + "pbrl"), id = 1960184661)
+val dat2 = spark.read.parquet(path2)
 ```
 ### Quick selection
 

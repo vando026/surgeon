@@ -16,8 +16,8 @@ class PbSS_Suite extends munit.FunSuite {
       .getOrCreate()
 
   val custMap = getGeoData("customer", PathDB.testPath)
-  val path = PbSS.prodHourly(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
-  val pbssPath = Cust(path, names = "c3.TopServe", custMap)
+  val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
+  val pbssPath = Cust(path, name = "c3.TopServe", custMap)
   val dat = spark.read.parquet(pbssPath).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))

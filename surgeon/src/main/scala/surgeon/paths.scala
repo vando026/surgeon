@@ -210,22 +210,17 @@ object Paths {
   }
 
   /** Construct paths specific to PbSS datasets. **/
-  object PbSS {
-    def prodMonthly(year: Int, month: Int = currentYear, root: String = PathDB.pbssProd1M): 
-      DataPath = Monthly(year, month, root)
-    def prodHourly[A](month: Int, day: A,  hour: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
-      DataPath = Hourly(month, day, hour, year, root)
-    def prodDaily[A](month: Int, day: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
-      DataPath = Daily(month, day, year, root)
-    def minute() = "not implemented"
-  }
-
+  def pbssMonth(year: Int, month: Int = currentYear, root: String = PathDB.pbssProd1M): 
+    DataPath = Monthly(year, month, root)
+  def pbssHour[A](month: Int, day: A,  hour: A,  year: Int = currentYear, root: String = PathDB.pbssProd1h()): 
+    DataPath = Hourly(month, day, hour, year, root)
+  def pbssDay[A](month: Int, day: A, year: Int = currentYear, root: String = PathDB.pbssProd1d): 
+    DataPath = Daily(month, day, year, root)
+  def pbssMinute() = "not implemented"
 
   /** Construct paths specific to PbRl datasets. **/
-  object PbRl {
-    def prodHourly[A](month: Int, day: A, hour: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
+  def pbrlHour[A](month: Int, day: A, hour: A, year: Int = currentYear, root: String = PathDB.pbrlProd()):
       DataPath =  Hourly(month, day, hour, year, root)
-  }
 
   /** Construct Product Archive on Databricks for paths based on selection of Customer Ids. 
    @param path Path to the files with customer heartbeats or sessions. 
@@ -239,15 +234,15 @@ object Paths {
 
     /** Method to get data path using customer names.
      *  @param obj A DataPath object. 
-     *  @param names Customer name as String or names as List[String], with `c3.` prefix removed. 
+     *  @param name Customer name as String or names as List[String], with `c3.` prefix removed. 
      *  @example{{{
      *  Cust(Monthly(2023, 2), names = List("MLB", "CBSCom"))
      *  Cust(Monthly(2023, 2), names = "MLB")
      *  }}}
     */
-    def apply[A](obj: DataPath, names: A, cmap: Map[Int, String] = c3IdMap()):
+    def apply[A](obj: DataPath, name: A, cmap: Map[Int, String] = c3IdMap()):
         String = {
-      val cnames = c3NameToId(mkStrList(names), cmap)
+      val cnames = c3NameToId(mkStrList(name), cmap)
       stitch(obj, cnames.mkString(","))
     }
 
@@ -255,12 +250,12 @@ object Paths {
      *  @param obj A DataPath object. 
      *  @param ids customer Id as Int or customer Ids as List[Int]
      *  @example{{{
-     *  Cust(Monthly(2023, 2), ids = List(1960180360, 1960183601))
-     *  Cust(Monthly(2023, 2), ids = 1960180360)
+     *  Cust(Monthly(2023, 2), id = List(1960180360, 1960183601))
+     *  Cust(Monthly(2023, 2), id = 1960180360)
      *  }}}
     */
-    def apply[A](obj: DataPath, ids: A) = {
-      stitch(obj, mkIntList(ids).mkString(","))
+    def apply[A](obj: DataPath, id: A) = {
+      stitch(obj, mkIntList(id).mkString(","))
     }
 
     /** Method to get paths to data for the first n customer IDs.
@@ -285,4 +280,3 @@ object Paths {
 
 
 }
-

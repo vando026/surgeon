@@ -38,7 +38,7 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ``` scala
-val path = Cust(PbSS.hourly(2022, 12, 24, List.range(16, 20)), ids = 1960184999)
+val path = Cust(PbSS.hourly(2022, 12, 24, List.range(16, 20)), id = 1960184999)
 val hourly_df = spark.read.parquet(path)
   .select(
     customerId, 
@@ -298,7 +298,7 @@ val path3 = Cust(PbSS.hourly(12, 24, 18), ids = 1960180360)
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala 
-val path = Cust(PbSS.hourly(month = 12, day = 24, hour = 18), names = "c3.RicksTV")
+val path = Cust(PbSS.hourly(month = 12, day = 24, hour = 18), name = "c3.RicksTV")
 // path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180000}
 ```
 

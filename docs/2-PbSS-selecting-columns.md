@@ -10,26 +10,17 @@ val spark = SparkSession.builder
 ## Parquet Session Summary  (PbSS)
 
 Surgeon simplifies the selection of columns when reading a dataset for the
-first time. 
-
-This demonstration will be run on a test environment, so we have to
-point to the correct PbSS and Customer data sources.  
-
+first time. For this demonstration, set the file paths to the test environment
+and load the data. 
 
 ```scala mdoc
 import conviva.surgeon.PbSS._ 
 import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
-// First point to the customer data in this test env
-val custMap = getGeoData("customer", PathDB.testPath)
-```
 
-```scala mdoc
-// create the path to the test data for a specific customer
-val path = Cust(
-        PbSS.prodHourly(year=2023, month=2, day=7, hour=2, root =
-        PathDB.testPath + "pbss"),
-    names = "c3.TopServe", custMap)
+// Get data from the test env, not prod env
+val path = Cust(PbSS.prodHourly(year=2023, month=2, day=7, hour=2, 
+  root = PathDB.testPath + "pbss"), id = 1960180360)
 ```
 
 ```scala mdoc

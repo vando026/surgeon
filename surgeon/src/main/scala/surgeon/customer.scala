@@ -5,6 +5,8 @@ import conviva.surgeon.GeoInfo._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
 import org.apache.hadoop.fs._
+// needed?
+import org.apache.hadoop.conf._ 
 
 object Customer {
 
@@ -49,14 +51,13 @@ object Customer {
   */
   case class c3IdOnPath() {
     def get(path: String): List[Int] = {
-      val ss = SparkSession.builder
+      val ss = SparkSession.builder.master("local[*]")
         .getOrCreate.sparkContext.hadoopConfiguration
       val dbfs = FileSystem.get(ss)
-      val paths = dbfs.listStatus(new Path(path))
+      val paths = dbfs.listStatus(new Path(s"${path}"))
         .map(_.getPath.toString)
-        .filter(!_.contains("_SUCCESS"))
-        .sorted.drop(1) // drop1 drops cust=0 after sort
-      val pattern = "dbfs.*/cust=([0-9]+)$".r
+        .filter(_.contains("cust"))
+      val pattern = "^.*/cust=([0-9][0-9]+)$".r
       val out = paths.map(f => { val pattern(h) = f; h })
       out.map(_.toInt).toList
     }

@@ -15,8 +15,8 @@ class PbRl_Suite extends munit.FunSuite {
       .getOrCreate()
 
   val custMap = getGeoData("customer", PathDB.testPath)
-  val path = PbRl.prodHourly(year=2023, month=5, day=1, hour=9, root = PathDB.testPath + "pbrl")
-  val pbrlPath = Cust(path, names = "c3.DuoFC", custMap)
+  val path = pbrlHour(year=2023, month=5, day=1, hour=9, root = PathDB.testPath + "pbrl")
+  val pbrlPath = Cust(path, name = "c3.DuoFC", custMap)
   val dat = spark.read.parquet(pbrlPath).cache
   val d701 = dat.where(sessionId === 701891892)
 
@@ -31,8 +31,8 @@ class PbRl_Suite extends munit.FunSuite {
     assertEquals(t1.select("c3_isAd_rc").first.apply(0).toString, "false")
   }
 
-  val path2 = PbRl.prodHourly(year=2023, month=12, day=28, hour=12, root = PathDB.testPath + "pbrl")
-  val pbrlPath2 = Cust(path2, names = "c3.FappleTV", custMap)
+  val path2 = pbrlHour(year=2023, month=12, day=28, hour=12, root = PathDB.testPath + "pbrl")
+  val pbrlPath2 = Cust(path2, name = "c3.FappleTV", custMap)
   val dat2 = spark.read.parquet(pbrlPath2)
 
   test("ipv6 should work as expected") {
