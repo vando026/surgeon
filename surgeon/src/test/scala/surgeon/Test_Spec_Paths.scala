@@ -106,19 +106,13 @@ class PathSuite extends munit.FunSuite {
     assertEquals(t2, PathDB.testPath + "pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
   }
 
-  // import org.apache.hadoop.fs._
-  // import org.apache.hadoop.conf._
-
-    // val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
-    // val ss = SparkSession.builder.master("local[*]")
-    //   .getOrCreate.sparkContext.hadoopConfiguration
-    // val dbfs = FileSystem.get(ss)
-    // val paths = dbfs.listStatus(new Path(s"$path"))
-    //   .map(_.getPath.toString)
-    //   .filter(_.contains("cust"))
-    // val pattern = "^.*/cust=([0-9][0-9]+)$".r
-    // val out = paths.map(f => { val pattern(h) = f; h })
-    // out.map(_.toInt).toList
+  // test("pbssMonth2 is expected") {
+  //   val expect1 = s"${PathDB.pbssProd1M}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
+  //   // val expect2 = s"${PathDB.pbssProd1M}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={1960180360}"
+  //   val t1 = new SetPath().pbss("2023", List(2))
+  //   assertEquals(t1(0), expect1)
+  //   // assertEquals(t2(0), expect2)
+  // }
 
 
 }

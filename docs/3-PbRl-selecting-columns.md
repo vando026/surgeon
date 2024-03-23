@@ -18,9 +18,8 @@ import conviva.surgeon.PbRl._
 import conviva.surgeon.Paths._
 // Read from test env, not from prod env
 val path1 = Cust(pbrlHour(year=2023, month=5, day=1, hour=9, 
-    root = PathDB.testPath + "pbrl"), id = 1960181845)
-val dat = spark.read.parquet(path1).cache
-  .where(sessionId === 701891892)
+  root = PathDB.testPath + "pbrl"), id = 1960181845)
+val dat = spark.read.parquet(path1).where(sessionId === 701891892) 
 ```
 
 ### Quick selection
@@ -161,3 +160,4 @@ dat.select(
 ).show
 ```
 
+> Compiled using version @VERSION@. 

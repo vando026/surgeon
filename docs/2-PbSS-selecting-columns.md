@@ -122,42 +122,6 @@ dat.select(
 ```
 
 
-In this demo, we instead use the test data and so we need to point the path in
-to this data, which is done below. The `customerName` method
-therefore shows its flexibility in that you can pass any valid Map of customer Ids and
-names to it. 
-
-
-```scala mdoc
-dat.select(
-  customerId, 
-  customerName(Some(PathDB.testPath))
-).show
-```
-
-You can also select several columns that are constructed from the `PbSS Core Library` and cannot be found in the PbSS data:
-
-```scala 
-dat.select(
-  isAttempt,
-  hasJoined,
-  isVSF, 
-  isVSFT,
-  isVPF, 
-  isVPFT,
-  isEBVS,
-  lifeAvgBitrateKbps,
-  firstHbTimeMs,
-  isSessDoneNotJoined,
-  isSessJustJoined,
-  isJoinTimeAccurate,
-  justJoinedAndLifeJoinTimeMsIsAccurate,
-  intvAvgBitrateKbps,
-  intvBufferingTimeMs, 
-  intvPlayingTimeMs
-).show
-```
-
 ### Id selection, conversion, formatting
 
 Surgeon an easy way to convert and format ID values or
@@ -300,3 +264,4 @@ dat.select(
 ).show
 ```
 
+> Compiled using version @VERSION@. 

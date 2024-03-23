@@ -27,7 +27,7 @@ import conviva.surgeon.Paths._
 
 ## DataPath class
 
-On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. These methods return a `DataPath` object which has a `.toString` and `.toList` methods. 
+On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. These methods return a `DataPath` object which has a `.toString` and `.toList` method.
 
 ### Monthly 
 For monthly PbSS production data use `pbssMonth`, which has a year and month parameter. So for February 2023:
@@ -62,7 +62,7 @@ daily3.toString
 
 ### Hourly
 
-For the PbSS hourly production data, use `pbssHour`, which has hour parameter.
+For the PbSS hourly production data, use `pbssHour`, which has and added hour parameter.
 
 ```scala mdoc 
 val hourly = pbssHour(year = 2023, month = 2, day = 14, hour = 2)
@@ -110,13 +110,14 @@ data, then you can change the root path like so:
 
 ```scala modc
 val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
+path
 ```
 
 ## Customer methods
 
 Surgeon provides a way to select data for a month, day, or hour for one or more
 customers. This is done using the `Cust` class, which has a `path` as a first parameter.
-For this demonstration, use fake customerIds from surgeon's test data
+For this demonstration, we use fake customerIds from surgeon's test data
 folder. We therefore have to point to this test data first. 
 
 ```scala mdoc
@@ -161,7 +162,7 @@ However, because we are running this on the test environment, we need to
 provide the fake customer data as an argument to `Cust`:
 
 ```scala mdoc
-Cust(path, name = "c3.Yahoo", custMap)
+Cust(path, name = "c3.PlayFoot", custMap)
 ``` 
 
 To select by more than one customer name on the DataBricks production
@@ -174,8 +175,8 @@ Cust(path, name = List("c3.Yahoo", "c3.MLB"), custMap)
 For the test environment, it is:
 
 ```scala mdoc
-Cust(path, name = List("c3.Yahoo", "c3.MLB"), custMap)
+Cust(path, name = List("c3.PlayFoot", "c3.TopServe"), custMap)
 ``` 
 
 
-** Compiled using version @VERSION@. 
+> Compiled using version @VERSION@. 

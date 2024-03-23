@@ -157,7 +157,7 @@ dat.select(
 
 The same applies for `sid6`, which appends `sessionCreationTimeMs`:
 
-```scala 
+```scala mdoc
 dat.select(
   sid6.concat, 
   sid6.concatToHex, 
@@ -172,6 +172,11 @@ dat.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
 )
+// +----------+-------------+
+// |customerId|customerName |                                   
+// +----------+-------------+
+// |1960180360|c3.TopServe  |
+// +----------+-------------+
 ```
 
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 

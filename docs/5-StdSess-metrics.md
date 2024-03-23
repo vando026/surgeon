@@ -26,7 +26,7 @@ val dat0 = spark.read.parquet(path).cache
 val dat = dat0.where(sessionId === 89057425)
 ```
 
-```scala
+```scala mdoc
     val metrics = dat.select(
         isEBVS, 
         isAttempt, 
@@ -47,3 +47,6 @@ val dat = dat0.where(sessionId === 89057425)
         )
     metrics.show
 ```
+
+
+> Compiled using version @VERSION@. 
