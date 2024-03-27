@@ -3,9 +3,10 @@ package conviva.surgeon
 object Paths2 {
 
   import java.time.{LocalDateTime, LocalDate}
-  import java.time.temporal.ChronoUnit
   import java.time.format.DateTimeFormatter
   import org.apache.spark.sql.DataFrame
+  import conviva.surgeon.Customer._
+  import conviva.surgeon.GeoInfo._
 
   /** Database of common paths to the parquet files on Databricks. **/
   object PathDB {
@@ -38,8 +39,6 @@ object Paths2 {
     def ym() = pt("'y='yyyy/'m='MM") 
   }
 
-  // val expect1 = s"${PathDB.pbssProd1M}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
-  // val expect1 = s"${PathDB.pbssProd1M}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
   class Monthly(dt: String, units: List[Int]) extends DataPath {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}-01", ymd))
     val p1 = pt("yyyy_MM_01_08_00")
@@ -47,103 +46,98 @@ object Paths2 {
     def toList() = {
       for (d <- pdates) yield s"${d.format(ym)}/dt=c${d.format(p1)}_to_${d.plusMonths(1).format(p1)}"
     }
-    //   if (units.contains(12) && units.length > 1)
-    //     throw new Exception("Cannot have multiple months if Month=12")
-    //   val yearNext = if (units.contains(12) && units.length == 1) 
-    //     pdates(0).plusYears(1).format(pt("yyyy")) else pdates(0).format(pt("yyyy"))
-    //   val mnths = pdates.map(_.format(pt("MM"))).mkString(",")
-    //   val mnthsNext = pdates.map(_.plusMonths(1).format(pt("MM"))).mkString(",")
-    //   s"y=${dt}/m={${mnths}}/dt=c${dt}_${p2(mnths)}_to_${yearNext}_${p2(mnthsNext)}"
-    // }
   }
 
-  val dt = "2023"
-  val units = List(11, 12)
 
-  val tt = new Monthly("2023", List(11, 10))
-
-
-  // val expect1 = s"${PathDB.pbssProd1d}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
   class Daily(dt: String, units: List[Int]) extends DataPath  {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}", ymd))
     val p1 = pt("yyyy_MM_dd_08_00")
     def toList() = {
       for (d <- pdates) yield s"${d.format(ym)}/dt=d${d.format(p1)}_to_${d.plusDays(1).format(p1)}"
     }
-    // val p2 = pt("yyyy_MM")
-    // override def toString = {
-      // val days = pdates.map(_.format(pt("dd"))).mkString(",")
-      // val daysNext = pdates.map(_.plusDays(1).format(pt("dd"))).mkString(",")
-      // s"${dt.format(ym)}/dt=d${dt.format(p2)}_{${days}}_to_${dt.format(p2)}_{${daysNext}}"
-    // }
   }
 
-  // val dt = "2023-02"
-  // val units = List(28, 29)
-  // val t1 = new Daily("2023-02", List(28, 29))
-
-  // val expect1 = s"${PathDB.pbssProd1h()}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360}"
   class Hourly(dt: String, units: List[Int], st: Int = 0) extends DataPath {
     val p1 = pt("'y='yyyy/'m='MM/'d='dd")
     val p2 = pt("yyyy_MM_dd_HH")
     val p3 = pt("yyyy-MM-dd HH:mm")
     val pdates = units.map(i => LocalDateTime.parse(s"$dt ${fmt02(i)}:00", p3))
     def toList()  = {
-      for (d <- pdates) yield s"st=${st}/${d.format(p1)}/dt=d${d.format(p2)}"
+      for (d <- pdates) yield s"st=${st}/${d.format(p1)}/dt=${d.format(p2)}"
     }
   }
 
-  // val t2 = new Hourly("2023-02-01", List(1, 2))
 
-  def parseCust(x: Any): String = {
+    // private def stitch(obj: DataPath, cnames: String) = 
+    //   s"${obj.toString}/cust={${cnames}}"
+  
+    // val name = List("c3.TopServe", "c3.DuoFC")
+  // val c3Map = getGeoData("customer", PathDB.testPath)
+  // c3NameToId(mkStrList(name), c3Map).mkString(",")
+    //   val cids = c3IdOnPath(obj.toList).sorted.take(take)
+    //   stitch(obj, cids.map(_.toString).mkString(","))
+
+  val datesList  = dates.map(i => s"${rootName}/${bodyName}/${i}")
+    c3IdOnPath(dates).sorted.take(take)
+
+  def parseCust(x: Any, dates: List[String]): String = {
     x match {
       case s: List[Int] => s.mkString(",")
-      case s: List[String] => s.mkString(",")
-      case s: Int if (s < 1000) => "yes"
+      case s: List[String] => c3NameToId(s, c3Map).mkString(",")
+      case s: Int if (s < 1000) => c3IdOnPath(dates).sorted.take(s).mkString(",")
       case s: Int => s.toString
-      case s: String => s
+      case s: String => c3NameToId(s, c3Map).mkString(",")
+      case _ => throw new Exception("Input not accepted")
     }
   }
 
- // class Path {
- //    protected var rname =  PathDB.root
- //    protected var bodyName = ""
- //    def root(root: String = PathDB.root): this.type = {
- //      rname = root
- //      this
- //    }
- //    def body(path: String): this.type = {
- //      bodyName = path
- //      this
- //    }
- //    override def toString = s"${rname}/${bodyName}"
- //  }
+  def mkStrList[A](i: A): List[String] = {
+    val out =  i match {
+      case (i: String) => List(i)
+      case (i: List[String]) => i
+      case (i: Array[String]) => i.toList
+      case _ => throw new Exception("Must be either String, Array[String], List[String]")
+    }
+    out
+  }
 
-  // new Path().root("yy").body("uu")
+  val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
+  val pDayMonth = "^(202[0-9]-[0-9]{2})-(\\{[0-9,-]+\\}|[0-9]{2})$".r
+  val pHourDayMonth = "^(202[0-9]-[0-9]{2}-[0-9]{2})T(\\{[0-9,-]+\\}|[0-9]{2})$".r
 
-  class SetPath(root: String = PathDB.root) {
+  def parseRegex(x: String): List[Int] = {
+    x.toString.replaceAll("[{}]", "")
+      .split(",").map(_.split("-"))
+      // end points are inclusive
+      .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt + 1) else i)
+      .map(_.toString.toInt).toList
+  }
+
+  case class Path(root: String = PathDB.root) {
     var dates = List[String]()
+    var rootName = root
     var bodyName = ""
     var custList = ""
-    val pMonth = "(202[0-9])-\\{?([0-9,-]+)\\}?".r
-    val pDayMonth = "(202[0-9]-[0-9]{2})-\\{?([0-9,-]+)\\}?".r
-    val pHourDayMonth = "(202[0-9]-[0-9]{2}-[0-9]{2})T\\{?([0-9,-]+)\\}?".r
-    def parseRegex(x: String): List[Int] = {
-      x.toString.split(",")
-        .map(_.split("-"))
-        .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt) else i)
-        .map(_.toString.toInt).toList
-    }
+    val c3Map = getGeoData("customer", root)
     def body(path: String): this.type = {
       bodyName = path
       this
     }
     def pbss(dt: String): this.type = {
       dates = dt match {
-        case pMonth(dt, month) => new Monthly(dt, parseRegex(month)).toList
-        case pDayMonth(dt, day) => new Daily(dt, parseRegex(day)).toList
-        // case pHourDayMonth(dt, hour) => new Hourly(dt, parseRegex(hour)).toList
-        case _ => throw new Exception("oops")
+        case pMonth(dt, month) => {
+          if (bodyName.isEmpty) bodyName = PathDB.pbssMonthly
+          new Monthly(dt, parseRegex(month)).toList
+        }
+        case pDayMonth(dt, day) => {
+          if (bodyName.isEmpty) bodyName = PathDB.pbssDaily
+          new Daily(dt, parseRegex(day)).toList
+        }
+        case pHourDayMonth(dt, hour) => {
+          if (bodyName.isEmpty) bodyName = PathDB.pbssHourly
+          new Hourly(dt, parseRegex(hour)).toList
+        }
+        case _ => throw new Exception("Incorrect datetime entry, see surgeon.wiki for examples.")
       }
       this
     }
@@ -157,41 +151,31 @@ object Paths2 {
     //   }
     //   this
     // }
-    // def cust(x: Any): this.type = {
-    //   custList = s"/cust={${parseCust(x)}}"
-    //   this
-    // } 
-    // override def toString = s"${dates.map(i => s"${root}/${bodyName}/${i}").mkString(",")}${custList}"
-    def toList = dates.map(i => s"${root}/${bodyName}/${i}${custList}")
+    def cust(x: Any): this.type = {
+      custList = s"/cust={${parseCust(x)}}"
+      this
+    } 
+    def toList = dates.map(i => s"${rootName}/${bodyName}/${i}${custList}")
+    override def toString() = toList.toString
   }
 
-  // val Prod = new DataPath()
-  // val Test = new DataPath(PathDB.testPath)
-  // Prod.pbss("2024", List(1))
-  // Test.body("pbss").pbss("2023", List(2))
+  val Prod = new Path()
 
-  // val pMonth = "(202[0-9])-\\{?([0-9,-]+)\\}?".r
-  // val pDayMonth = "(202[0-9]-[0-9]{2})-\\{?([0-9,-]+)\\}?".r
-  // val pHourDayMonth = "(202[0-9]-[0-9]{2}-[0-9]{2})T\\{?([0-9,-]+)\\}?".r
-  // // val t1 = "2023-{1-3,5}"
-  // val t1 = "2023-02-{2,4}"
-  // // val t1 = "2023-01-02T{01}"
+    // val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
+    // val pDayMonth = "^(202[0-9]-[0-9]{2})-(\\{[0-9,-]+\\}|[0-9]{2})$".r
+    // val pHourDayMonth = "^(202[0-9]-[0-9]{2}-[0-9]{2})T(\\{[0-9,-]+\\}|[0-9]{2})$".r
 
-  // val out: (String, List[Int]) = t1 match {
-  //   case pMonth(dt, month) => (dt, parseRegex(month))
-  //   case pDayMonth(dt, day) => (dt, parseRegex(day))
-  //   case pHourDayMonth(dt, hour) => (dt, parseRegex(hour))
-  //   case _ => throw new Exception("oops")
+  // "2023_02" match {
+  //   case pMonth(dt, day) => println("this is month")
+  //   case pDayMonth(dt, day) => println("this is day")
+  //   case pHourDayMonth(dt, day) => println("this is hour")
   // }
-  // out
 
-  // val out: DataPath = t1 match {
-  //   case pMonth(dt, month) => new Monthly(dt, parseRegex(month))
-  //   case pDayMonth(dt, day) => new Daily(dt, parseRegex(day))
-  //   case pHourDayMonth(dt, hour) => (dt, parseRegex(hour))
-  //   case _ => throw new Exception("oops")
-  // }
-  // out
-
+    // def parseRegex(x: String): List[Int] = {
+    //   x.toString.replaceAll("[{}]", "")
+    //     .split(",").map(_.split("-"))
+    //     .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt) else i)
+    //     .map(_.toString.toInt).toList
+    // }
 
 }
