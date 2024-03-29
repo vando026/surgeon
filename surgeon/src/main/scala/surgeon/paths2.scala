@@ -32,7 +32,7 @@ object Paths2 {
 
   var PathDB = new SetPaths()
 
-  trait DataPath {
+  trait DateFormats {
     def fmt02(s: Int) = f"${s}%02d"
     def pt(s: String) = DateTimeFormatter.ofPattern(s)
     def toList: List[String]
@@ -41,7 +41,7 @@ object Paths2 {
     def ym() = pt("'y='yyyy/'m='MM") 
   }
 
-  class Monthly(dt: String, units: List[Int]) extends DataPath {
+  class Monthly(dt: String, units: List[Int]) extends DateFormats {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}-01", ymd))
     val p1 = pt("yyyy_MM_01_08_00")
     def p2(s: String) = s"{$s}_01_08_00"
@@ -51,7 +51,7 @@ object Paths2 {
     }
   }
 
-  class Daily(dt: String, units: List[Int]) extends DataPath  {
+  class Daily(dt: String, units: List[Int]) extends DateFormats  {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}", ymd))
     val p1 = pt("yyyy_MM_dd_08_00")
     def toList() = {
@@ -60,7 +60,7 @@ object Paths2 {
     }
   }
 
-  class Hourly(dt: String, units: List[Int]) extends DataPath {
+  class Hourly(dt: String, units: List[Int]) extends DateFormats {
     val p1 = pt("'y='yyyy/'m='MM/'d='dd")
     val p2 = pt("yyyy_MM_dd_HH")
     val p3 = pt("yyyy-MM-dd HH:mm")
@@ -72,26 +72,25 @@ object Paths2 {
   }
 
 
-
-  class PathBuilder(val paths: List[String]) extends CustBuilder {
+  class PathBuilder(val toList: List[String]) extends CustBuilder {
     var i = 0
     i += 1
     def cust(s: Any) = {
       if (i == 1) {
-        val clist = mkCustList(s, paths)
-        val custPaths = paths.map(i => s"${i}/cust={${clist}}")
+        val clist = mkCustList(s, toList)
+        val custPaths = toList.map(i => s"${i}/cust={${clist}}")
         new PathBuilder(custPaths)
       }
       else 
-        new PathBuilder(paths)
+        new PathBuilder(toList)
     }
   }
 
-  val tt = new PathBuilder(List("root/"))
-  tt.cust("Test1").paths
-  tt.paths
-  tt.cust(12345).paths
-  tt.paths
+  // val tt = new PathBuilder(List("root/"))
+  // tt.cust("Test1").paths
+  // tt.paths
+  // tt.cust(12345).paths
+  // tt.paths
 
   class DatesBuilder(dt: String) {
     val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
@@ -104,7 +103,7 @@ object Paths2 {
         .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt + 1) else i)
         .map(_.toString.toInt).toList
     }
-    val dates = dt match {
+    val toList = dt match {
         case pMonth(dt, month) => new Monthly(dt, parseRegex(month)).toList  
         case pDayMonth(dt, day) =>  new Daily(dt, parseRegex(day)).toList  
         case pHourDayMonth(dt, hour) => new Hourly(dt, parseRegex(hour)).toList  
@@ -112,11 +111,11 @@ object Paths2 {
       }
   }
 
-  new DatesBuilder("2023-01").dates
+  // new DatesBuilder("2023-01").dates
 
   class CustBuilder  {
-    // val c3Map = getGeoData("customer", PathDB.testPath)
-    val c3Map = Map(1235 -> "Test1")
+    val c3Map = getGeoData("customer", PathDB.testPath)
+    // val c3Map = Map(1235 -> "Test1")
     def mkCustList(x: Any, paths: List[String]) = x match {
       case s: List[Int] => s.mkString(",")
       case s: List[String] => c3NameToId(s, c3Map).mkString(",")
@@ -129,30 +128,13 @@ object Paths2 {
 
   object Path {
     def pbss(dt: String): PathBuilder = {
-      val datesList = new DatesBuilder(dt).dates
+      val datesList = new DatesBuilder(dt).toList
       new PathBuilder(datesList)
     }
   }
 
-  val tt = Path.pbss("2023-01")
-  tt.cust(12345).paths
-  tt.paths
-
-    // val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
-    // val pDayMonth = "^(202[0-9]-[0-9]{2})-(\\{[0-9,-]+\\}|[0-9]{2})$".r
-    // val pHourDayMonth = "^(202[0-9]-[0-9]{2}-[0-9]{2})T(\\{[0-9,-]+\\}|[0-9]{2})$".r
-
-  // "2023_02" match {
-  //   case pMonth(dt, day) => println("this is month")
-  //   case pDayMonth(dt, day) => println("this is day")
-  //   case pHourDayMonth(dt, day) => println("this is hour")
-  // }
-
-    // def parseRegex(x: String): List[Int] = {
-    //   x.toString.replaceAll("[{}]", "")
-    //     .split(",").map(_.split("-"))
-    //     .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt) else i)
-    //     .map(_.toString.toInt).toList
-    // }
+  // val tt = Path.pbss("2023-01")
+  // tt.cust(12345).paths
+  // tt.paths
 
 }
