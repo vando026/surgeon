@@ -39,7 +39,7 @@ to this:
 
 ```scala
 val path = Path.pbss("2023-02-07T{16-20}").cust(1960180360)
-val hourly_df = spark.read.parquet(path.toList(0))
+val hourly_df = spark.read.parquet(path.toList:_*)
   .select(
     customerId, 
     sessionId, 
@@ -71,10 +71,11 @@ val hourly_df = spark.read.parquet(path.toList(0))
 
 ### Installation 
 
-1. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
-2. Download the latest JAR version from the 
+1. Download the latest JAR from the 
 [target](https://github.com/Conviva-Internal/conviva-surgeon/tree/main/surgeon/target/scala-2.12)
 folder of this repo (`surgeon_2_12_0_0_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
+2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_0_*.jar`. 
+3. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
  
 ### Features
 
@@ -89,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@18cf0b55
+// spark: SparkSession = org.apache.spark.sql.SparkSession@273578b7
 val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
