@@ -1,6 +1,6 @@
 package conviva.surgeon
 
-import conviva.surgeon.Paths2._
+import conviva.surgeon.Paths._
 import conviva.surgeon.GeoInfo._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
@@ -89,7 +89,7 @@ object Customer {
     def apply(paths: List[String]): List[Int] = {
       paths.map(c3IdOnPath().get(_)).flatten.toSet.toList
     }
-    def apply(path: PathBuilder): List[Int] = {
+    def apply(path: SurgeonPath): List[Int] = {
       c3IdOnPath().get(path.toList(0))
     }
   }
@@ -116,7 +116,7 @@ object Customer {
    }
   }
   object c3IdOnBothPaths {
-    def apply(path1: PathBuilder, path2: PathBuilder): List[Int] = {
+    def apply(path1: SurgeonPath, path2: SurgeonPath): List[Int] = {
       c3IdOnBothPaths().get(path1.toList(0), path2.toList(0))
     }
     def apply(path1: String, path2: String): List[Int] = {

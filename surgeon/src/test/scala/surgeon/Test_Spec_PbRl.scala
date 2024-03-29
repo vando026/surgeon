@@ -7,7 +7,7 @@ class PbRl_Suite extends munit.FunSuite {
   import conviva.surgeon.PbRl._
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths2._
+  import conviva.surgeon.Paths._
 
   val spark = SparkSession
       .builder()

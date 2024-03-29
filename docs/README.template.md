@@ -38,9 +38,8 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ```scala
-val path = Cust(pbssHour(year=2023, month=2, day=7, hour = List.range(16, 20)),
-    id = 1960180360)
-val hourly_df = spark.read.parquet(path)
+val path = Path.pbss("2023-02-07T{16-20}").cust(1960180360)
+val hourly_df = spark.read.parquet(path.toList(0))
   .select(
     customerId, 
     sessionId, 
@@ -88,9 +87,9 @@ Below is a brief vignette of Surgeon's many features. Please see the
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
+PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-val path = Cust(pbssHour(year=2023, month=2, day=7, hour = 2, root = PathDB.testPath + "pbss"),
-    id = 1960180360)
+val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
 ```
 
@@ -144,21 +143,14 @@ signed, or hexadecimal across the PbSS and PbRl datasets. Surgeon
 makes it easy to both concat and format these values as is (`concat`), as unsigned
 (`concatToUnsigned`), or as hexadecimal (`concatToHex`). Further,  a `sid5` column
 is often constructed from the `clientId` and `sessionId` columns, which is easy
-to do with Surgeon.
+to do with Surgeon. The same applies for `sid6`, which appends `sessionCreationTimeMs`:
 
 
 ```scala mdoc
 dat.select(
   sid5.concat,   
   sid5.concatToHex, 
-  sid5.concatToUnsigned 
-).show
-```
-
-The same applies for `sid6`, which appends `sessionCreationTimeMs`:
-
-```scala mdoc
-dat.select(
+  sid5.concatToUnsigned,
   sid6.concat, 
   sid6.concatToHex, 
   sid6.concatToUnsigned, 
@@ -167,7 +159,7 @@ dat.select(
 
 You can select the customer column using `customerId` and customer names using `customerName`.
 
-```scala 
+```scala mdoc
 dat.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
@@ -275,28 +267,29 @@ hourly_df.select(
 
 ### Path construction
 
-Surgeon makes constructing the paths to the data easier. Customers come with
-Hourly, Daily or Monthly data. 
+Surgeon makes constructing the paths to the data easier. 
 
 ```scala mdoc
-import conviva.surgeon.Paths._
-val path1 = pbssHour(year = 2024, month = 2, day = 24, hour = 18)
-val path2 = pbssHour(2, 4, List(18, 19, 20))
-val path3 = Cust(pbssHour(12, 24, 18), id = 1960180360)
+Path.pbss("2023-02").toList(0) // monthly
+Path.pbss("2023-{2-5}").toList(0) // monthly
+Path.pbss("2023-02-07").toList(0) // daily
+Path.pbss("2023-02-{7,9,14}").toList(0) // daily
+Path.pbss("2023-02-07T09").toList(0) // hourly
+Path.pbss("2023-02-07T{8,9}").toList(0) // hourly
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
-```scala 
-val path = Cust(pbssHour(month = 12, day = 24, hour = 18), name = "c3.RicksTV")
-// path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180000}
+```scala mdoc
+Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+// To select by more than one customer name 
+Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
 ```
 
 Only want to select any three customers for a given path, then do:
 
-```scala
-val path = Cust(pbssHour(2024, 12, 24, 18)), take = 3)
-// path: String = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=12/d=24/dt=2024_12_24_18/cust={1960180001,1960180360,1960184999}
+```scala mdoc
+Path.pbss("2023-02-07T02").cust(3).toList
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
@@ -312,11 +305,10 @@ from Ids, and get Ids from names.
 import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
-val custMap = getGeoData("customer", PathDB.testPath)
-c3IdToName(1960180360, custMap)
-c3IdToName(List(207488736, 744085924), custMap)
-c3NameToId("c3.FappleTV", custMap)
-c3NameToId(List("c3.FappleTV", "c3.SATY"), custMap)
+c3IdToName(1960180360)
+c3IdToName(List(207488736, 744085924))
+c3NameToId("c3.FappleTV")
+c3NameToId(List("c3.FappleTV", "c3.SATY"))
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.

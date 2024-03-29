@@ -2,7 +2,7 @@ package conviva.surgeon
 
 object GeoInfo {
 
-  import conviva.surgeon.Paths2._
+  import conviva.surgeon.Paths._
   import org.apache.hadoop.fs._
   import org.apache.hadoop.conf._
   import scala.xml._

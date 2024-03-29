@@ -27,156 +27,104 @@ import conviva.surgeon.Paths._
 
 ## DataPath class
 
-On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. These methods return a `DataPath` object which has a `.toString` and `.toList` method.
+On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. These methods return a `SurgeonPath` object which has a `.toList` method.
 
 ### Monthly 
-For monthly PbSS production data use `pbssMonth`, which has a year and month parameter. So for February 2023:
+For monthly PbSS production data use `Path.pbss`, which takes a string of format `yyyy-MM`, for example "2024-02". You can also specify a list or range of months like so: "2023-{2,4,5}" or "2024-{3-8}" (do not include spaces).
 
 ```scala mdoc
-val monthly = pbssMonth(year = 2023, month = 2)
-monthly.toString
+Path.pbss("2024-02").toList
+Path.pbss("2023-{2,4,5}").toList
+Path.pbss("2023-{3-8}").toList
 ```
 
 ### Daily
 
-For the daily PbSS production data use the `pbssDay`, which has year, month and
-day parameter. The first example below is for February 16, 2023; the second
-example is for the 16th and 17th day of that month.  Therefore, the day
-parameter can take an Int or List[Int].
+For the daily PbSS production data, provide a string argument of format
+`yyyy-MM-dd`. Again, you can specify a list or range of days. You cannot
+specify both a list or days and months. 
 
 ```scala mdoc 
-val daily = pbssDay(year = 2023, month = 2, day = 16)
-daily.toString
-val daily2 = pbssDay(year = 2023, month = 2, day = List(16, 17))
-daily2.toString
-daily2.toList
-```
-
-The year defaults to the current year, so you can omit it as long as
-the parameters are in the order of month then day.
-
-```scala mdoc
-val daily3 = pbssDay(2, List(16, 17))
-daily3.toString
+Path.pbss("2024-02-01").toList
+Path.pbss("2023-12-{2,4,5}").toList
+Path.pbss("2023-12-{3-8}").toList
 ```
 
 ### Hourly
 
-For the PbSS hourly production data, use `pbssHour`, which has and added hour parameter.
+For the PbSS hourly production data, provide a string argument of format
+`yyyy-MM-ddTHH`. You can specify a list or range of hours, but not a range of hours, days,
+and/or months. 
 
 ```scala mdoc 
-val hourly = pbssHour(year = 2023, month = 2, day = 14, hour = 2)
-hourly.toString
-val hourly2 = pbssHour(month = 2, day = 14, hour = List.range(2, 10))
-hourly2.toString
-val hourly3 = pbssHour(month = 2, day = List(14, 15), hour = 2)
-hourly3.toString
-hourly3.toList
+Path.pbss("2024-02-01T09").toList
+Path.pbss("2023-12-10T{2,4,5}").toList
+Path.pbss("2023-12-10T{3-8}").toList
 ```
-Again, the year argument defaults to the current year, which you can omit so
-long as the parameters are in order of month, day(s), and hour(s). The day and hour parameters
-can be an Int or List[Int] so that you can select multiple days or hours. 
-
-###  RawLog
-For the PbRl production data, use `pbrlHour`:
+For the PbRl production data, use `Path.pbrl("yyyy-MM-ddTHH")`
 
 ```scala mdoc 
-val pbraw = pbrlHour(year = 2023, month = 2, day = 14, hour = List.range(2, 8))
-pbraw.toString
+Path.pbrl("2023-12-10T09")
 ```
 
 ## File paths
 
-The methods above use the `PathDB` object to construct the root paths to various production datasets.
+The methods above use the mutable `PathDB` object to modift the paths to various production datasets.
 
 ```scala mdoc 
-PathDB.prodArchive
-PathDB.pbssProd1h()  // production 1 hour
-PathDB.pbssProd1d    // production 1 day   
-PathDB.pbssProd1M    // production 1 month
-PathDB.pbrlProd()    // rawlog production
+PathDB.root
+PathDB.pbssHourly    // production 1 hour
+PathDB.pbssDaily     // production 1 day   
+PathDB.pbssMonthly   // production 1 month
+PathDB.pbrlHourly    // rawlog production
+PathDB.testPath      // surgeon test path
 ```
-The `pbssProd1h` and `pbrlProd` root paths default to `st=1`, so you can set the `st`
-flag using the relevant interger, provided it exists:
 
+I typically mutate these paths to the surgeon test path, for example:
+
+```scala mdoc
+PathDB.root = PathDB.testPath // set new path
+PathDB.pbssHourly = "pbss"    // set new path
+PathDB.root                   // print the new paths
+PathDB.pbssHourly             // print the new paths
+```
+
+
+
+The `pbssHourly` and `pbrlHourly`  paths default to `st=0` and `lt=0`, so you can set the `st`
+flag using the relevant value:
 
 ```scala mdoc 
-val ss = pbssHour(year = 2023, month = 2, day = 14, hour = List(2), root = PathDB.pbssProd1h(2))
-ss.toString
-```
-
-If you wish to construct a path to a different folder, for example surgeon's test
-data, then you can change the root path like so:
-
-```scala modc
-val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
-path
+PathDB.st = 1
+PathDB.lt = 17
 ```
 
 ## Customer methods
 
 Surgeon provides a way to select data for a month, day, or hour for one or more
-customers. This is done using the `Cust` class, which has a `path` as a first parameter.
-For this demonstration, we use fake customerIds from surgeon's test data
-folder. We therefore have to point to this test data first. 
+customers. This is done using the `cust` method. For this demonstration, we use
+fake customerIds from surgeon's test data folder, which we have to point to.
 
 ```scala mdoc
 import conviva.surgeon.GeoInfo._
-// read the customer id Map
-val custMap = getGeoData("customer", PathDB.testPath)
-// construct the path to the test data
-val path = pbssHour(year = 2023, month = 2, day = 7, 
-    hour = 2, root = PathDB.testPath + "pbss")
+import conviva.surgeon.Paths._
+// Set path to fake data in Test folder
+PathDB.geoUtilPath = PathDB.testPath
+PathDB.root = PathDB.testPath
+PathDB.pbssHourly = "pbss"
+PathDB.pbrlHourly = "pbrl"
+// To construct the path for all customers on this date:
+Path.pbss("2023-02-07T02").toList
+// To construct the path for one customer using the customer Id. 
+Path.pbss("2023-02-07T02").cust(1960184999).toList
+// Using more than one customer Id, must be a `List`.
+Path.pbss("2023-02-07T02").cust(List(1960184999, 1960180360)).toList
+// Take the first n customer Ids
+Path.pbss("2023-02-07T02").cust(3).toList
+// To select by customer name:
+Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+// To select by more than one customer name 
+Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
 ``` 
-
-To construct the path for all customers.
-
-```scala mdoc
-Cust(path)
-```
-
-To construct the path for one customer using the customer Id. 
-
-```scala mdoc
-Cust(path, id = 1960184999)
-```
-
-Using more than one customer Id, must be a `List`.
-
-```scala mdoc
-Cust(path, id = List(1960184999, 1960180360))
-``` 
-Take the first n customer Ids
-
-```scala mdoc
-Cust(path, take  = 3)
-```
-
-To select by customer name on the DataBricks production environment do:
-
-```scala 
-Cust(path, name = "c3.Yahoo")
-``` 
-
-However, because we are running this on the test environment, we need to
-provide the fake customer data as an argument to `Cust`:
-
-```scala mdoc
-Cust(path, name = "c3.PlayFoot", custMap)
-``` 
-
-To select by more than one customer name on the DataBricks production
-environment, do:
-
-```scala 
-Cust(path, name = List("c3.Yahoo", "c3.MLB"), custMap)
-``` 
-
-For the test environment, it is:
-
-```scala mdoc
-Cust(path, name = List("c3.PlayFoot", "c3.TopServe"), custMap)
-``` 
-
 
 > Compiled using version @VERSION@. 

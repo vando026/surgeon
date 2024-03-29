@@ -3,7 +3,7 @@ package conviva.surgeon
 class CustomerSuite extends munit.FunSuite { 
 
   import conviva.surgeon.Sanitize._
-  import conviva.surgeon.Paths2._
+  import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
   import org.apache.spark.sql.functions.{col}
   import org.apache.spark.sql.{SparkSession, Row}

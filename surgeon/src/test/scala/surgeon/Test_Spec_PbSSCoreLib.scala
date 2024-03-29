@@ -8,7 +8,7 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
   import conviva.surgeon.PbSS._
   import conviva.surgeon.PbSSCoreLib._
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths2._
+  import conviva.surgeon.Paths._
   
 
   val spark = SparkSession
