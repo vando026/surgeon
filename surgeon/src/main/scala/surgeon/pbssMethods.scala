@@ -95,9 +95,9 @@ object PbSS {
    * )
    * }}}
   */ 
-  def customerName(path: Option[String] = None): Column = {
-    val gPath = path.getOrElse(PathDB.geoUtil)
-    val gMap = getGeoData("customer", gPath)
+  def customerName(): Column = {
+    // val gPath = path.getOrElse(PathDB.geoUtil)
+    val gMap = getGeoData("customer")
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }
@@ -235,6 +235,15 @@ object PbSS {
       col("val.sessSummary.joinTimeMs")).otherwise(null))
   }
   */
+
+  /** Extract `sessionState` field as is from $ss. 
+   * @example{{{
+   * df.select(
+   *   sessionState
+   * )
+   * }}}
+  */
+ def sessionState(): Column = sessSum("sessionState")
 
   /** Extract `lifePlayingTime` field as is from $ss. 
    * @example{{{

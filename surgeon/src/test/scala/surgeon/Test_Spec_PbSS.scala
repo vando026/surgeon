@@ -8,17 +8,19 @@ class PbSS_Suite extends munit.FunSuite {
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.GeoInfo._
   import conviva.surgeon.PbSSCoreLib._
-  import conviva.surgeon.Paths._
+  import conviva.surgeon.Paths2._
 
   val spark = SparkSession
       .builder()
       .master("local[*]")
       .getOrCreate()
 
-  val custMap = getGeoData("customer", PathDB.testPath)
-  val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
-  val pbssPath = Cust(path, name = "c3.TopServe", custMap)
-  val dat = spark.read.parquet(pbssPath).cache
+  PathDB.geoUtilPath = PathDB.testPath 
+  PathDB.root = PathDB.testPath
+  PathDB.pbssHourly = "pbss"
+
+  val path = Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+  val dat = spark.read.parquet(path:_*).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
 
@@ -39,8 +41,7 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("CustomerName should be expected") {
-    val cdat = d8905.select(customerName(Some(PathDB.testPath)))
-      .first.getString(0)
+    val cdat = d8905.select(customerName).first.getString(0)
     assertEquals(cdat, "c3.TopServe")
   }
 
@@ -211,7 +212,7 @@ class PbSS_Suite extends munit.FunSuite {
 
   test("customerName should work") {
     def customerName(): Column = {
-      val gMap = getGeoData("customer", PathDB.testPath)
+      val gMap = getGeoData("customer")
       val gLit: Column = typedLit(gMap) 
       gLit(customerId).alias(s"customerName")
     }

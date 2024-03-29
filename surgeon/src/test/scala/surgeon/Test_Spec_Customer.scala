@@ -3,7 +3,7 @@ package conviva.surgeon
 class CustomerSuite extends munit.FunSuite { 
 
   import conviva.surgeon.Sanitize._
-  import conviva.surgeon.Paths._
+  import conviva.surgeon.Paths2._
   import conviva.surgeon.Customer._
   import org.apache.spark.sql.functions.{col}
   import org.apache.spark.sql.{SparkSession, Row}
@@ -14,21 +14,20 @@ class CustomerSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val pbssTestPath = "./surgeon/src/test/data" 
-  val custData = getGeoData("customer", pbssTestPath)
+  PathDB.geoUtilPath = PathDB.testPath 
 
   test("ServiceConfig data is expected") {
-    assertEquals(custData(1960180360), "c3.TopServe")
+    assertEquals(getGeoData("customer")(1960180360), "c3.TopServe")
   }
 
   test("Customer list is expected") {
-    val t1 = custData.filter(x => x._2 == "c3.TopServe").map(_._1).toList
+    val t1 = getGeoData("customer").filter(x => x._2 == "c3.TopServe").map(_._1).toList
     assertEquals(t1, List(1960180360))
   }
 
   test("customerNameToId is expected") {
-    val t1 = c3NameToId("c3.TopServe", custData)
-    val t2 = c3NameToId(List("c3.PlayFoot", "c3.TopServe"), custData)
+    val t1 = c3NameToId("c3.TopServe")
+    val t2 = c3NameToId(List("c3.PlayFoot", "c3.TopServe"))
     assertEquals(t1, List(1960180360))
     assertEquals(t2, List(1960002004, 1960180360))
   }

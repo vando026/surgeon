@@ -14,7 +14,8 @@ class PathSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val custData = getGeoData("customer", PathDB.testPath)
+  PathDB.geoUtilPath = PathDB.testPath
+  val custData = getGeoData("customer")
 
   test("pbssMonth is expected") {
     val expect1 = s"${PathDB.pbssProd1M}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"

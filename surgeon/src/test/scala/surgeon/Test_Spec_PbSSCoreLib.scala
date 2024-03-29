@@ -8,7 +8,7 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
   import conviva.surgeon.PbSS._
   import conviva.surgeon.PbSSCoreLib._
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths._
+  import conviva.surgeon.Paths2._
   
 
   val spark = SparkSession
@@ -16,10 +16,10 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  val custMap = getGeoData("customer", PathDB.testPath)
-  val path = pbssHour(year=2023, month=2, day=7, hour=2, root = PathDB.testPath + "pbss")
-  val pbssPath = Cust(path, name = "c3.TopServe", custMap)
-  val dat = spark.read.parquet(pbssPath).cache
+  PathDB.geoUtilPath = PathDB.testPath
+
+  val path = Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+  val dat = spark.read.parquet(path:_*).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
 

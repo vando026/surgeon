@@ -2,7 +2,7 @@ package conviva.surgeon
 
 object GeoInfo {
 
-  import conviva.surgeon.Paths._
+  import conviva.surgeon.Paths2._
   import org.apache.hadoop.fs._
   import org.apache.hadoop.conf._
   import scala.xml._
@@ -24,14 +24,14 @@ object GeoInfo {
   )
 
   // Read GEO file, convert it to Scala Map and load to geoMap
-    def getGeoData(geoName: String, path: String = PathDB.geoUtil): Map[Int, String] = {
+    def getGeoData(geoName: String): Map[Int, String] = {
       val fileName = getGeoTypes.getOrElse(geoName, "Unknown")
       val result = fileName match {
         // if there is no match, make an dummy map
         case "Unknown" => Map(9999 -> "Unknown")
         case _ => {
           val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
-          val xpath = new Path(path + "/" + fileName)
+          val xpath = new Path(PathDB.geoUtilPath + "/" + fileName)
           val fs = xpath.getFileSystem(new Configuration)
           val dat = scala.io.Source.fromInputStream(fs.open(xpath)).getLines
           val out = geoName match {

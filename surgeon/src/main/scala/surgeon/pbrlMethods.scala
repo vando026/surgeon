@@ -83,9 +83,9 @@ object PbRl {
    * df.select(customerName)
    * }}}
   */ 
-  def customerName(path: Option[String] = None): Column = {
-    val gPath = path.getOrElse(PathDB.geoUtil)
-    val gMap = getGeoData("customer", gPath)
+  def customerName(): Column = {
+    // val gPath = path.getOrElse(PathDB.geoUtil)
+    val gMap = getGeoData("customer")
     val gLit: Column = typedLit(gMap) 
     gLit(customerId).alias(s"customerName")
   }

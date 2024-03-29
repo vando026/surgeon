@@ -1,6 +1,6 @@
 package conviva.surgeon
 
-import conviva.surgeon.Paths._
+import conviva.surgeon.Paths2._
 import conviva.surgeon.GeoInfo._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
@@ -9,6 +9,26 @@ import org.apache.hadoop.fs._
 import org.apache.hadoop.conf._ 
 
 object Customer {
+
+  // Set Int to List[Int] for generic methods
+  def mkIntList[A](i: A): List[Int] = {
+    val out =  i match {
+      case (i: Int) => List(i)
+      case (i: List[Int]) => i
+      case (i: Array[Int]) => i.toList
+      case _ => throw new Exception("Must be either Int, Array[Int], List[Int]")
+    }
+    out
+  }
+  def mkStrList[A](i: A): List[String] = {
+    val out =  i match {
+      case (i: String) => List(i)
+      case (i: List[String]) => i
+      case (i: Array[String]) => i.toList
+      case _ => throw new Exception("Must be either String, Array[String], List[String]")
+    }
+    out
+  }
 
   /** Read the `/FileStore/Geo_Utils/c3ServiceConfig*.cvs` from Databricks, which
    *  contains customer names and ids. */
@@ -23,8 +43,8 @@ object Customer {
    *  c3IdToName(196300090)
    *  }}}
    */
-  def c3IdToName[A](ids: A, customerMap: Map[Int, String] = c3IdMap()): List[String] = {
-    mkIntList(ids).map(customerMap.getOrElse(_, "Key_missing"))
+  def c3IdToName[A](ids: A): List[String] = {
+    mkIntList(ids).map(getGeoData("customer").getOrElse(_, "Key_missing"))
   }
   
   /** Get the ID of the customer name. 
@@ -35,8 +55,8 @@ object Customer {
    *  c3NameToId("c3.MLB")
    *  }}}
    */
-  def c3NameToId[A](names: A, customerMap: Map[Int, String] = c3IdMap()): List[Int] = {
-    mkStrList(names).map(i => customerMap.filter(_._2 == i)).map(_.keys).flatten
+  def c3NameToId[A](names: A): List[Int] = {
+    mkStrList(names).map(i => getGeoData("customer").filter(_._2 == i)).map(_.keys).flatten
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 
@@ -69,8 +89,8 @@ object Customer {
     def apply(paths: List[String]): List[Int] = {
       paths.map(c3IdOnPath().get(_)).flatten.toSet.toList
     }
-    def apply(path: DataPath): List[Int] = {
-      c3IdOnPath().get(path.toString)
+    def apply(path: PathBuilder): List[Int] = {
+      c3IdOnPath().get(path.toList(0))
     }
   }
 
@@ -96,8 +116,8 @@ object Customer {
    }
   }
   object c3IdOnBothPaths {
-    def apply(path1: DataPath, path2: DataPath): List[Int] = {
-      c3IdOnBothPaths().get(path1.toString, path2.toString)
+    def apply(path1: PathBuilder, path2: PathBuilder): List[Int] = {
+      c3IdOnBothPaths().get(path1.toList(0), path2.toList(0))
     }
     def apply(path1: String, path2: String): List[Int] = {
       c3IdOnBothPaths().get(path1, path2)

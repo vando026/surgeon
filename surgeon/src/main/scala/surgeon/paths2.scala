@@ -60,17 +60,28 @@ object Paths2 {
     }
   }
 
-  class Hourly(dt: String, units: List[Int]) extends DateFormats {
+  class Hourly(dt: String, units: List[Int], path: String = PathDB.pbssHourly) extends DateFormats {
     val p1 = pt("'y='yyyy/'m='MM/'d='dd")
     val p2 = pt("yyyy_MM_dd_HH")
     val p3 = pt("yyyy-MM-dd HH:mm")
     val pdates = units.map(i => LocalDateTime.parse(s"$dt ${fmt02(i)}:00", p3))
     def toList()  = {
       for (d <- pdates) yield 
-        s"${PathDB.root}/${PathDB.pbssHourly}/${d.format(p1)}/dt=${d.format(p2)}"
+        s"${PathDB.root}/${path}/${d.format(p1)}/dt=${d.format(p2)}"
     }
   }
 
+  class CustBuilder  {
+    // val c3Map = getGeoData("customer")
+    def mkCustList(x: Any, paths: List[String]) = x match {
+      case s: List[Int] => s.mkString(",")
+      case s: List[String] => c3NameToId(s).mkString(",")
+      case s: Int if (s < 1000) => c3IdOnPath(paths).sorted.take(s).mkString(",")
+      case s: Int => s.toString
+      case s: String => c3NameToId(s).mkString(",")
+      case _ => "*" // if error assume all customers
+    }
+  }
 
   class PathBuilder(val toList: List[String]) extends CustBuilder {
     var i = 0
@@ -92,7 +103,7 @@ object Paths2 {
   // tt.cust(12345).paths
   // tt.paths
 
-  class DatesBuilder(dt: String) {
+  class DatesBuilder(dt: String, path: String) {
     val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
     val pDayMonth = "^(202[0-9]-[0-9]{2})-(\\{[0-9,-]+\\}|[0-9]{2})$".r
     val pHourDayMonth = "^(202[0-9]-[0-9]{2}-[0-9]{2})T(\\{[0-9,-]+\\}|[0-9]{2})$".r
@@ -106,29 +117,18 @@ object Paths2 {
     val toList = dt match {
         case pMonth(dt, month) => new Monthly(dt, parseRegex(month)).toList  
         case pDayMonth(dt, day) =>  new Daily(dt, parseRegex(day)).toList  
-        case pHourDayMonth(dt, hour) => new Hourly(dt, parseRegex(hour)).toList  
+        case pHourDayMonth(dt, hour) => new Hourly(dt, parseRegex(hour), path).toList  
         case _ => throw new Exception("Incorrect datetime entry, see surgeon.wiki for examples.")
       }
   }
 
-  // new DatesBuilder("2023-01").dates
-
-  class CustBuilder  {
-    val c3Map = getGeoData("customer", PathDB.testPath)
-    // val c3Map = Map(1235 -> "Test1")
-    def mkCustList(x: Any, paths: List[String]) = x match {
-      case s: List[Int] => s.mkString(",")
-      case s: List[String] => c3NameToId(s, c3Map).mkString(",")
-      case s: Int if (s < 1000) => c3IdOnPath(paths).sorted.take(s).mkString(",")
-      case s: Int => s.toString
-      case s: String => c3NameToId(s, c3Map).mkString(",")
-      case _ => "*" // if error assume all customers
-    }
-  }
-
   object Path {
     def pbss(dt: String): PathBuilder = {
-      val datesList = new DatesBuilder(dt).toList
+      val datesList = new DatesBuilder(dt, PathDB.pbssHourly).toList
+      new PathBuilder(datesList)
+    }
+    def pbrl(dt: String): PathBuilder = {
+      val datesList = new DatesBuilder(dt, PathDB.pbrlHourly).toList
       new PathBuilder(datesList)
     }
   }
