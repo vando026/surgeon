@@ -7,11 +7,10 @@ val spark = SparkSession.builder
 
 ### Customer names data
 
-The `c3IdMap` method reads in a
-`/FileStore/Geo_Utils/c3ServiceConfig*.csv` file from Databricks, and converts
-it to a `Map[Int, String]` with the customer Ids and names, respectively. 
+The customer names and ids are read from the
+`/FileStore/Geo_Utils/c3ServiceConfig*.csv` file from Databricks, which is converted to a `Map[Int, String]`.
 
-For this demonstration, I use toy customer data from the Test folder. 
+For this demonstration, I use fake customer data from the Test folder. 
 
 ```scala mdoc
 import conviva.surgeon.Customer._
@@ -28,8 +27,8 @@ customer data as the second.
 
 ```scala mdoc 
 // can be Int or List[Int]
-c3IdToName(207488736)
-c3IdToName(List(207488736, 744085924))
+c3IdToName(1960181845)
+c3IdToName(List(1960181845, 1960002004))
 ```
 ### Convert customer name to Id
 
@@ -43,9 +42,9 @@ c3NameToId(List("TV2", "BASC"))
 
 ### Customer Ids and names on Databricks path
 
-Another useful method is to get all the customer Ids from a data path on
+Another useful method is to get all the customer ids or names from a path on
 Databricks. You can do so using the `customerIds` method, which takes a path
-argument.  For example, you want to know all the customer Ids for a given hour
+argument.  For example, you want to know all the customer ids for a given hour
 for PbSS data. 
 
 ```scala mdoc

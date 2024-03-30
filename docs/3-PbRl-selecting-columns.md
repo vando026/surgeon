@@ -94,11 +94,11 @@ dat.select(
 
 Another useful column is `customerName`, which returns the name of the `customerId`. 
 
-```scala
+```scala mdoc
 dat.select(
   customerId, 
   customerName 
-)
+).show
 ```
 
 The `ipv4` and `ipv6` columns have methods for formatting: 
@@ -137,7 +137,7 @@ dat.select(
 Surgeon has a method to extract geoInfo data and provides a convenient
 method called `label` to assign labels to the numeric coded geo fields. 
 
-```scala
+```scala 
 dat.select(
   geoInfo("city"),    
   geoInfo("country"),
@@ -146,17 +146,5 @@ dat.select(
 ).show
 ```
 
-You can also assign your own labels to Ids using a custom Map.
-
-```scala mdoc
-val cityMap = Some(Map(289024 -> "Epernay"))
-val countryMap = Some(Map(165 -> "Norway"))
-dat.select(
-  geoInfo("city", cityMap),    
-  geoInfo("country", countryMap),
-  geoInfo("city", cityMap).label,
-  geoInfo("country", countryMap).label
-).show
-```
 
 > Compiled using version @VERSION@. 

@@ -41,7 +41,7 @@ Path.pbss("2023-{3-8}").toList
 ### Daily
 
 For the daily PbSS production data, provide a string argument of format
-`yyyy-MM-dd`. Again, you can specify a list or range of days. You cannot
+`yyyy-MM-dd`. Again, you can specify a list of range of days. You cannot
 specify both a list or days and months. 
 
 ```scala mdoc 
@@ -61,7 +61,7 @@ Path.pbss("2024-02-01T09").toList
 Path.pbss("2023-12-10T{2,4,5}").toList
 Path.pbss("2023-12-10T{3-8}").toList
 ```
-For the PbRl production data, use `Path.pbrl("yyyy-MM-ddTHH")`
+For the PbRl production data, use `Path.pbrl`
 
 ```scala mdoc 
 Path.pbrl("2023-12-10T09")
@@ -69,24 +69,31 @@ Path.pbrl("2023-12-10T09")
 
 ## File paths
 
-The methods above use the mutable `PathDB` object to modift the paths to various production datasets.
+The methods above use the mutable `PathDB` object to modify path components to various production datasets.
 
 ```scala mdoc 
 PathDB.root
-PathDB.pbssHourly    // production 1 hour
-PathDB.pbssDaily     // production 1 day   
-PathDB.pbssMonthly   // production 1 month
-PathDB.pbrlHourly    // rawlog production
-PathDB.testPath      // surgeon test path
+// production 1 hour
+PathDB.pbssHourly    
+// production 1 day   
+PathDB.pbssDaily     
+// production 1 month
+PathDB.pbssMonthly   
+// rawlog production
+PathDB.pbrlHourly    
+// surgeon test path
+PathDB.testPath      
 ```
 
 I typically mutate these paths to the surgeon test path, for example:
 
 ```scala mdoc
-PathDB.root = PathDB.testPath // set new path
-PathDB.pbssHourly = "pbss"    // set new path
-PathDB.root                   // print the new paths
-PathDB.pbssHourly             // print the new paths
+PathDB.root = PathDB.testPath 
+PathDB.pbssHourly = "pbss"    
+// print the new paths
+PathDB.root                   
+// print the new paths
+PathDB.pbssHourly             
 ```
 
 
@@ -113,17 +120,31 @@ PathDB.geoUtilPath = PathDB.testPath
 PathDB.root = PathDB.testPath
 PathDB.pbssHourly = "pbss"
 PathDB.pbrlHourly = "pbrl"
-// To construct the path for all customers on this date:
+```
+
+ To construct the path for all customers on this date:
+```scala mdoc
 Path.pbss("2023-02-07T02").toList
-// To construct the path for one customer using the customer Id. 
+```
+
+To construct the path for one customer using the customer Id. 
+```scala mdoc
 Path.pbss("2023-02-07T02").cust(1960184999).toList
-// Using more than one customer Id, must be a `List`.
+```
+Using more than one customer Id, must be a `List`.
+```scala mdoc
 Path.pbss("2023-02-07T02").cust(List(1960184999, 1960180360)).toList
-// Take the first n customer Ids
+```
+Take the first n customer Ids
+```scala mdoc
 Path.pbss("2023-02-07T02").cust(3).toList
-// To select by customer name:
+```
+To select by customer name:
+```scala mdoc
 Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
-// To select by more than one customer name 
+```
+To select by more than one customer name 
+```scala mdoc
 Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
 ``` 
 

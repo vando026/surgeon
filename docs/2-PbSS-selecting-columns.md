@@ -46,7 +46,7 @@ dat.select(
 ```
 Any valid  string name can be used, provided the column exists. The container names are abbreviations of the root paths to the column names, as shown below:
 
-```scala
+```scala mdoc
 dat.select(
   col("val.sessSummary.playerState"),
   col("val.sessSummary.d3SessSummary.lifePausedTimeMs"),
@@ -55,7 +55,7 @@ dat.select(
   col("val.sessSummary.intvSwitchInfos.networkBufferingTimeMs"),
   col("val.invariant.sessionCreationTimeMs"),
   col("val.invariant.summarizedTags").getItem("c3.video.isAd"),
-)
+).show
 ```
 
 ### Quick selection

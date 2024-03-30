@@ -73,8 +73,8 @@ val hourly_df = spark.read.parquet(path.toList:_*)
 
 1. Download the latest JAR from the 
 [target](https://github.com/Conviva-Internal/conviva-surgeon/tree/main/surgeon/target/scala-2.12)
-folder of this repo (`surgeon_2_12_0_0_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
-2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_0_*.jar`. 
+folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
+2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_1_*.jar`. 
 3. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
  
 ### Features
@@ -155,7 +155,7 @@ dat.select(
   sid6.concat, 
   sid6.concatToHex, 
   sid6.concatToUnsigned, 
-).show
+).show(false)
 ```
 
 You can select the customer column using `customerId` and customer names using `customerName`.
@@ -164,12 +164,7 @@ You can select the customer column using `customerId` and customer names using `
 dat.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
-)
-// +----------+-------------+
-// |customerId|customerName |                                   
-// +----------+-------------+
-// |1960180360|c3.TopServe  |
-// +----------+-------------+
+).show(false)
 ```
 
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
@@ -271,12 +266,12 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 
 ```scala mdoc
-Path.pbss("2023-02").toList(0) // monthly
-Path.pbss("2023-{2-5}").toList(0) // monthly
-Path.pbss("2023-02-07").toList(0) // daily
-Path.pbss("2023-02-{7,9,14}").toList(0) // daily
-Path.pbss("2023-02-07T09").toList(0) // hourly
-Path.pbss("2023-02-07T{8,9}").toList(0) // hourly
+Path.pbss("2023-02").toList // monthly
+Path.pbss("2023-{2-5}").toList // monthly
+Path.pbss("2023-02-07").toList // daily
+Path.pbss("2023-02-{7,9,14}").toList // daily
+Path.pbss("2023-02-07T09").toList // hourly
+Path.pbss("2023-02-07T{8,9}").toList // hourly
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
@@ -307,7 +302,7 @@ import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
-c3IdToName(List(207488736, 744085924))
+c3IdToName(List(1960184661, 1960003321))
 c3NameToId("c3.FappleTV")
 c3NameToId(List("c3.FappleTV", "c3.SATY"))
 ```
