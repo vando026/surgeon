@@ -17,7 +17,7 @@ object Paths {
     /** Path to the daily session summary parquet files. */
     var pbssDaily = "conviva-prod-archive-pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    var pbssHourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st_$st"
+    var pbssHourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st=$st"
     /** Path to the monthly session summary parquet files. */
     var pbssMonthly = "conviva-prod-archive-pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */

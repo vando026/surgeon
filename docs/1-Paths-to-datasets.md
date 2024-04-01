@@ -97,7 +97,7 @@ PathDB.pbssHourly
 
 
 
-The `pbssHourly` and `pbrlHourly`  paths default to `st=0` and `lt=0`, so you can set the `st`
+The `pbssHourly` and `pbrlHourly`  paths default to `st_0` and `lt_1`, so you can set the `st`
 flag using the relevant value:
 
 ```scala mdoc 
