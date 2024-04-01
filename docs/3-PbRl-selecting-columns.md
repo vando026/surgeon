@@ -17,7 +17,7 @@ set the file path, and read the data.
 import conviva.surgeon.PbRl._
 import conviva.surgeon.Paths._
 // Read from test env, not from prod env
-val path = Path.pbrl("2023-05-01T09").cust(1960181845).toList(0)
+val path = Path.pbrl("2023-05-01T09").c3id(1960181845).toList(0)
 val dat = spark.read.parquet(path).where(sessionId === 701891892) 
 ```
 

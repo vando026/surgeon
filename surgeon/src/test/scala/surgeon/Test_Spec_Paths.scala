@@ -21,7 +21,7 @@ class PathSuite extends munit.FunSuite {
     val expect1 = s"${mroot}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
     val expect2 = s"${mroot}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={1960180360}"
     val t1 = Path.pbss("2023-02")
-    val t2 = Path.pbss("2022-12").cust(1960180360)
+    val t2 = Path.pbss("2022-12").c3id(1960180360)
     assertEquals(t1.toList(0), expect1)
     assertEquals(t2.toList(0), expect2)
   }
@@ -35,7 +35,7 @@ class PathSuite extends munit.FunSuite {
     val expect4 =  s"${droot}/y=2023/m=12/dt=d2023_12_31_08_00_to_2024_01_01_08_00"
     val expect5 =  s"${droot}/y=2023/m=10/dt=d2023_10_31_08_00_to_2023_11_01_08_00"
     val t1 = Path.pbss("2023-02-22")
-    val t2 = Path.pbss("2023-02-22").cust(1960180360)
+    val t2 = Path.pbss("2023-02-22").c3id(1960180360)
     val t3 = Path.pbss("2023-02-{22,23}")
     val t4 = Path.pbss("2023-12-31")
     val t5 = Path.pbss("2023-10-31")
@@ -79,9 +79,9 @@ class PathSuite extends munit.FunSuite {
     val expect2 = s"${hroot}/y=2023/m=02/d=22/dt=2023_02_22_23"
     val expect3 = s"${hroot}/y=2023/m=02/d=22/dt=2023_02_22_23/cust={1960180360,19000200}"
     val expect4 = s"${hroot}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00/cust={1960180361,1960180418}"
-    val t1 = Path.pbss("2023-02-22T23").cust(1960180360)
+    val t1 = Path.pbss("2023-02-22T23").c3id(1960180360)
     val t2 = Path.pbss("2023-02-22T23")
-    val t3 = Path.pbss("2023-02-22T23").cust(List(1960180360, 19000200))
+    val t3 = Path.pbss("2023-02-22T23").c3ids(List(1960180360, 19000200))
     assertEquals(t1.toList(0), expect1)
     assertEquals(t2.toList(0), expect2)
     assertEquals(t3.toList(0), expect3)
@@ -89,22 +89,36 @@ class PathSuite extends munit.FunSuite {
 
   test("pbrlHour is expected") {
     val expect1 = s"${PathDB.root}/${PathDB.pbrlHourly}/y=2024/m=02/d=01/dt=2024_02_01_00/cust={1960180442}"
-    val t1 = Path.pbrl("2024-02-01T00").cust(1960180442)
+    val t1 = Path.pbrl("2024-02-01T00").c3id(1960180442)
     assertEquals(t1.toList(0), expect1)
   }
 
   test("Test data path should work as expected") {
     PathDB.root = PathDB.testPath
     PathDB.pbssHourly = "pbss"
-    val path = Path.pbss("2023-02-07T02").cust("c3.TopServe")
+    val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe")
     assertEquals(path.toList(0), "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
   }
 
   test("Take should work as expected") {
-    val t1 = Path.pbss("2023-02-07T02").cust(3).toList(0)
-    assertEquals(t1, PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}")
-    val t2 = Path.pbss("2023-02-07T02").cust(1).toList(0)
+    val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
+    val t1 = Path.pbss("2023-02-07T02").c3take(3).toList(0)
+    assertEquals(t1, expect1)
+    val t2 = Path.pbss("2023-02-07T02").c3take(1).toList(0)
     assertEquals(t2, PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
+  }
+
+  test("c3 methods should work as expected") {
+    val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+    val expect2 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
+    val t1 = Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList(0)
+    assertEquals(t1, expect1)
+    val t2 = Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.FappleTV")).toList(0)
+    assertEquals(t2, expect2)
+    val t3 = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
+    assertEquals(t3, expect1)
+    val t4 = Path.pbss("2023-02-07T02").c3ids(List(1960180360, 1960184661)).toList(0)
+    assertEquals(t4, expect2)
   }
 
 }

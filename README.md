@@ -38,7 +38,7 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ```scala
-val path = Path.pbss("2023-02-07T{16-20}").cust(1960180360)
+val path = Path.pbss("2023-02-07T{16-20}").c3id(1960180360)
 val hourly_df = spark.read.parquet(path.toList:_*)
   .select(
     customerId, 
@@ -90,8 +90,8 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@6b310ddc
-val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
+// spark: SparkSession = org.apache.spark.sql.SparkSession@6e0be4d0
+val path = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
 // dat: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [key: struct<sessId: struct<customerId: int, clientId: array<struct<element:int>> ... 1 more field>, type: tinyint ... 1 more field>, val: struct<type: tinyint, sessSummary: struct<intvStartTimeSec: int, joinTimeMs: int ... 119 more fields> ... 14 more fields>]
@@ -299,32 +299,37 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 
 ```scala
-Path.pbss("2023-02").toList // monthly
+// monthly
+Path.pbss("2023-02").toList 
 // res6: List[String] = List(
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
-// ) // monthly
-Path.pbss("2023-{2-5}").toList // monthly
+// ) 
+Path.pbss("2023-{2-5}").toList 
 // res7: List[String] = List(
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00",
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=03/dt=c2023_03_01_08_00_to_2023_04_01_08_00",
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=04/dt=c2023_04_01_08_00_to_2023_05_01_08_00",
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=05/dt=c2023_05_01_08_00_to_2023_06_01_08_00"
-// ) // monthly
-Path.pbss("2023-02-07").toList // daily
+// ) 
+
+// daily
+Path.pbss("2023-02-07").toList 
 // res8: List[String] = List(
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00"
-// ) // daily
-Path.pbss("2023-02-{7,9,14}").toList // daily
+// ) 
+Path.pbss("2023-02-{7,9,14}").toList 
 // res9: List[String] = List(
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00",
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_09_08_00_to_2023_02_10_08_00",
 //   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_14_08_00_to_2023_02_15_08_00"
-// ) // daily
-Path.pbss("2023-02-07T09").toList // hourly
+// ) 
+
+// hourly
+Path.pbss("2023-02-07T09").toList 
 // res10: List[String] = List(
 //   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09"
-// ) // hourly
-Path.pbss("2023-02-07T{8,9}").toList // hourly
+// ) 
+Path.pbss("2023-02-07T{8,9}").toList
 // res11: List[String] = List(
 //   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_08",
 //   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09"
@@ -334,21 +339,21 @@ Path.pbss("2023-02-07T{8,9}").toList // hourly
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala
-Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
 // res12: List[String] = List(
 //   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 // )
 // To select by more than one customer name 
-Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
+Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot")).toList
 // res13: List[String] = List(
-//   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={*}"
+//   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
 // )
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala
-Path.pbss("2023-02-07T02").cust(3).toList
+Path.pbss("2023-02-07T02").c3take(3).toList
 // res14: List[String] = List(
 //   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
 // )

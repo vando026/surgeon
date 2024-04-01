@@ -18,7 +18,7 @@ import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
 
 // First point to the customer data in this test env
-val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
+val path = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
 // Read in the test data
 val dat0 = spark.read.parquet(path).cache
 // Select only one client session Id

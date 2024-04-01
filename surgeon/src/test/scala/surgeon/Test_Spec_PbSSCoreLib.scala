@@ -18,7 +18,7 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
 
   PathDB.geoUtilPath = PathDB.testPath
 
-  val path = Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+  val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
   val dat = spark.read.parquet(path:_*).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))

@@ -38,7 +38,7 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ```scala
-val path = Path.pbss("2023-02-07T{16-20}").cust(1960180360)
+val path = Path.pbss("2023-02-07T{16-20}").c3id(1960180360)
 val hourly_df = spark.read.parquet(path.toList:_*)
   .select(
     customerId, 
@@ -90,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
+val path = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
 ```
 
@@ -266,26 +266,31 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 
 ```scala mdoc
-Path.pbss("2023-02").toList // monthly
-Path.pbss("2023-{2-5}").toList // monthly
-Path.pbss("2023-02-07").toList // daily
-Path.pbss("2023-02-{7,9,14}").toList // daily
-Path.pbss("2023-02-07T09").toList // hourly
-Path.pbss("2023-02-07T{8,9}").toList // hourly
+// monthly
+Path.pbss("2023-02").toList 
+Path.pbss("2023-{2-5}").toList 
+
+// daily
+Path.pbss("2023-02-07").toList 
+Path.pbss("2023-02-{7,9,14}").toList 
+
+// hourly
+Path.pbss("2023-02-07T09").toList 
+Path.pbss("2023-02-07T{8,9}").toList
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
 // To select by more than one customer name 
-Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
+Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot")).toList
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust(3).toList
+Path.pbss("2023-02-07T02").c3take(3).toList
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.

@@ -6,7 +6,6 @@ val spark = SparkSession.builder
   .getOrCreate
 ```
 
-
 ## Introduction and import
 
 Surgeon provides classes for constructing Databricks paths to the parquet Rawlog (PbRl) and
@@ -54,10 +53,10 @@ Path.pbss("2024-02-01T09").toList
 Path.pbss("2023-12-10T{2,4,5}").toList
 Path.pbss("2023-12-10T{3-8}").toList
 ```
-For the PbRl production data, use `Path.pbrl`
+For the hourly PbRl production data, use `Path.pbrl`
 
 ```scala mdoc 
-Path.pbrl("2023-12-10T09")
+Path.pbrl("2023-12-10T09").toList
 ```
 
 ## File paths
@@ -65,15 +64,20 @@ Path.pbrl("2023-12-10T09")
 The methods above use the mutable `PathDB` object to modify path components to various production datasets.
 
 ```scala mdoc 
+// root path
 PathDB.root
+
 // production 1 hour
 PathDB.pbssHourly    
+
 // production 1 day   
 PathDB.pbssDaily     
+
 // production 1 month
 PathDB.pbssMonthly   
 // rawlog production
 PathDB.pbrlHourly    
+
 // surgeon test path
 PathDB.testPath      
 ```
@@ -83,8 +87,10 @@ I typically mutate these paths to the surgeon test path, for example:
 ```scala mdoc
 PathDB.root = PathDB.testPath 
 PathDB.pbssHourly = "pbss"    
+
 // print the new paths
 PathDB.root                   
+
 // print the new paths
 PathDB.pbssHourly             
 ```
@@ -122,23 +128,23 @@ Path.pbss("2023-02-07T02").toList
 
 To construct the path for one customer using the customer Id. 
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust(1960184999).toList
+Path.pbss("2023-02-07T02").c3id(1960184999).toList
 ```
-Using more than one customer Id, must be a `List`.
+Using more than one customer Id, use `c3ids` with a `List`.
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust(List(1960184999, 1960180360)).toList
+Path.pbss("2023-02-07T02").c3ids(List(1960184999, 1960180360)).toList
 ```
 Take the first n customer Ids
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust(3).toList
+Path.pbss("2023-02-07T02").c3take(3).toList
 ```
 To select by customer name:
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
+Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
 ```
 To select by more than one customer name 
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust(List("c3.TopServe", "c3.PlayFoot")).toList
+Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot")).toList
 ``` 
 
 > Compiled using version @VERSION@. 

@@ -76,28 +76,36 @@ object Paths {
   }
 
   class CustBuilder  {
-    def mkCustList(x: Any, paths: List[String]) = x match {
-      case s: List[Int] => s.mkString(",")
-      case s: List[String] => c3NameToId(s).mkString(",")
-      case s: Int if (s < 1000) => c3IdOnPath(paths).sorted.take(s).mkString(",")
-      case s: Int => s.toString
-      case s: String => c3NameToId(s).mkString(",")
-      case _ => "*" // if error assume all customers
+    def idToString(s: Any): String = {
+      val out = s match {
+        case s: Int => s.toString
+        case s: String => s
+        case _ => throw new Exception("Argument be either Int or String")
+      } 
+      out
+    }
+    def idsToString(s: List[Any]): String = {
+      val out = s match {
+        case s: List[Int] => s.mkString(",")
+        case s: List[String] => s.mkString(",")
+        case _ => throw new Exception("Argument be either List[Int] or List[String]")
+      } 
+      out
     }
   }
 
   class SurgeonPath(val toList: List[String]) extends CustBuilder {
     var i = 0
     i += 1
-    def cust(s: Any) = {
-      if (i == 1) {
-        val clist = mkCustList(s, toList)
-        val custPaths = toList.map(i => s"${i}/cust={${clist}}")
-        new SurgeonPath(custPaths)
-      }
-      else 
-        new SurgeonPath(toList)
+    private def returnPath(clist: String): SurgeonPath = {
+      if (i == 1)  new SurgeonPath(toList.map(i => s"${i}/cust={${clist}}"))
+      else new SurgeonPath(toList)
     }
+    def c3name(name: String) = returnPath(c3NameToId(name)(0).toString)
+    def c3names(names: List[String]) = returnPath(c3NameToId(names).mkString(","))
+    def c3id(id: Any) = returnPath(idToString(id))
+    def c3ids(ids: List[Any]) = returnPath(idsToString(ids))
+    def c3take(n: Int) = returnPath(c3IdOnPath(toList).sorted.take(n).mkString(","))
   }
 
   class DatesBuilder(dt: String, path: String) {
