@@ -17,6 +17,8 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
       .getOrCreate()
 
   PathDB.geoUtilPath = PathDB.testPath
+  PathDB.root = PathDB.testPath
+  PathDB.pbssHourly = "pbss"
 
   val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
   val dat = spark.read.parquet(path:_*).cache
