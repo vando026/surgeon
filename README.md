@@ -73,8 +73,8 @@ val hourly_df = spark.read.parquet(path.toList:_*)
 
 1. Download the latest JAR from the 
 [target](https://github.com/Conviva-Internal/conviva-surgeon/tree/main/surgeon/target/scala-2.12)
-folder of this repo (`surgeon_2_12_0_0_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
-2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_0_*.jar`. 
+folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
+2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_1_*.jar`. 
 3. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
  
 ### Features
@@ -90,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@273578b7
+// spark: SparkSession = org.apache.spark.sql.SparkSession@6b310ddc
 val path = Path.pbss("2023-02-07T02").cust(1960180360).toList(0)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
@@ -170,12 +170,12 @@ dat.select(
   sid6.concat, 
   sid6.concatToHex, 
   sid6.concatToUnsigned, 
-).show
-// +--------------------+--------------------+--------------------+--------------------+--------------------+--------------------+
-// |                sid5|             sid5Hex|        sid5Unsigned|                sid6|             sid6Hex|        sid6Unsigned|
-// +--------------------+--------------------+--------------------+--------------------+--------------------+--------------------+
-// |476230728:1293028...|1c62b448:4d120d00...|476230728:1293028...|476230728:1293028...|1c62b448:4d120d00...|476230728:1293028...|
-// +--------------------+--------------------+--------------------+--------------------+--------------------+--------------------+
+).show(false)
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+// |sid5                                                 |sid5Hex                                    |sid5Unsigned                                       |sid6                                                               |sid6Hex                                             |sid6Unsigned                                                 |
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
+// |476230728:1293028608:-1508640558:-1180571212:89057425|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|476230728:1293028608:2786326738:3114396084:89057425|476230728:1293028608:-1508640558:-1180571212:89057425:1675765692087|1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891:2b6b36b7|476230728:1293028608:2786326738:3114396084:89057425:728446647|
+// +-----------------------------------------------------+-------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------+----------------------------------------------------+-------------------------------------------------------------+
 //
 ```
 
@@ -185,8 +185,13 @@ You can select the customer column using `customerId` and customer names using `
 dat.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
-)
-// res4: org.apache.spark.sql.package.DataFrame = [customerId: int, customerName: string]
+).show(false)
+// +----------+------------+
+// |customerId|customerName|
+// +----------+------------+
+// |1960180360|c3.TopServe |
+// +----------+------------+
+//
 ```
 
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
@@ -294,18 +299,36 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 
 ```scala
-Path.pbss("2023-02").toList(0) // monthly
-// res6: String = "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00" // monthly
-Path.pbss("2023-{2-5}").toList(0) // monthly
-// res7: String = "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00" // monthly
-Path.pbss("2023-02-07").toList(0) // daily
-// res8: String = "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00" // daily
-Path.pbss("2023-02-{7,9,14}").toList(0) // daily
-// res9: String = "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00" // daily
-Path.pbss("2023-02-07T09").toList(0) // hourly
-// res10: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09" // hourly
-Path.pbss("2023-02-07T{8,9}").toList(0) // hourly
-// res11: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_08"
+Path.pbss("2023-02").toList // monthly
+// res6: List[String] = List(
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
+// ) // monthly
+Path.pbss("2023-{2-5}").toList // monthly
+// res7: List[String] = List(
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00",
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=03/dt=c2023_03_01_08_00_to_2023_04_01_08_00",
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=04/dt=c2023_04_01_08_00_to_2023_05_01_08_00",
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=05/dt=c2023_05_01_08_00_to_2023_06_01_08_00"
+// ) // monthly
+Path.pbss("2023-02-07").toList // daily
+// res8: List[String] = List(
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00"
+// ) // daily
+Path.pbss("2023-02-{7,9,14}").toList // daily
+// res9: List[String] = List(
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00",
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_09_08_00_to_2023_02_10_08_00",
+//   "./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_14_08_00_to_2023_02_15_08_00"
+// ) // daily
+Path.pbss("2023-02-07T09").toList // hourly
+// res10: List[String] = List(
+//   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09"
+// ) // hourly
+Path.pbss("2023-02-07T{8,9}").toList // hourly
+// res11: List[String] = List(
+//   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_08",
+//   "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09"
+// )
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
@@ -346,8 +369,8 @@ import conviva.surgeon.GeoInfo._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
 // res15: List[String] = List("c3.TopServe")
-c3IdToName(List(207488736, 744085924))
-// res16: List[String] = List("Key_missing", "Key_missing")
+c3IdToName(List(1960184661, 1960003321))
+// res16: List[String] = List("c3.FappleTV", "c3.SATY")
 c3NameToId("c3.FappleTV")
 // res17: List[Int] = List(1960184661)
 c3NameToId(List("c3.FappleTV", "c3.SATY"))

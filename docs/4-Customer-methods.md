@@ -5,12 +5,11 @@ val spark = SparkSession.builder
   .getOrCreate
 ```
 
-### Customer names data
 
 The customer names and ids are read from the
-`/FileStore/Geo_Utils/c3ServiceConfig*.csv` file from Databricks, which is converted to a `Map[Int, String]`.
-
-For this demonstration, I use fake customer data from the Test folder. 
+`/FileStore/Geo_Utils/c3ServiceConfig*.csv` file from Databricks, which is
+converted to a `Map[Int, String]`. For this demonstration, I use fake customer
+data from the Test folder.
 
 ```scala mdoc
 import conviva.surgeon.Customer._
@@ -52,12 +51,10 @@ val path = Path.pbss("2023-02-07T02").toList(0)
 c3IdOnPath(path)
 ```
 
-You can go one step further and convert the IDs to names, like so (using PbRl
-data):
+You can go one step further and convert the IDs to names, like so.
 
 ```scala mdoc
-val path2 = Path.pbrl("2023-05-01T09").toList(0)
-c3IdToName(c3IdOnPath(path2))
+c3IdToName(c3IdOnPath(path))
 ```
 
 

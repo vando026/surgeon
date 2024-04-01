@@ -1,10 +1,3 @@
-<p align="center">
-<img src="./media/surgeon-283.png" alt="" width="200" >
-</p>
-
-<h1 align="center"> conviva-surgeon</h1>
-
-
 ```scala mdoc
 // setup code
 import org.apache.spark.sql.{SparkSession}
@@ -145,7 +138,7 @@ Path.pbss("2023-02-07T02").cust("c3.TopServe").toList
 ```
 To select by more than one customer name 
 ```scala mdoc
-Path.pbss("2023-02-07T02").cust("c3.TopServe", "c3.PlayFoot").toList
+Path.pbss("2023-02-07T02").cust(List("c3.TopServe", "c3.PlayFoot")).toList
 ``` 
 
 > Compiled using version @VERSION@. 

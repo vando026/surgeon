@@ -8,7 +8,7 @@ object Paths {
   import conviva.surgeon.Customer._
   import conviva.surgeon.GeoInfo._
 
-  /** Database of common paths to the parquet files on Databricks. **/
+  /** Class for setting components of path names to files. **/
   class SetPaths {
     var root =  "/mnt"
     var st = 0;  var lt = 0
@@ -32,6 +32,7 @@ object Paths {
 
   var PathDB = new SetPaths()
 
+  /** Formats for dates **/
   trait DateFormats {
     def fmt02(s: Int) = f"${s}%02d"
     def pt(s: String) = DateTimeFormatter.ofPattern(s)
@@ -41,6 +42,7 @@ object Paths {
     def ym() = pt("'y='yyyy/'m='MM") 
   }
 
+  /** Defines path for monthly data **/
   class Monthly(dt: String, units: List[Int]) extends DateFormats {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}-01", ymd))
     val p1 = pt("yyyy_MM_01_08_00")
@@ -51,6 +53,7 @@ object Paths {
     }
   }
 
+  /** Defines path for daily data **/
   class Daily(dt: String, units: List[Int]) extends DateFormats  {
     val pdates = units.sorted.map(i => LocalDate.parse(s"$dt-${fmt02(i)}", ymd))
     val p1 = pt("yyyy_MM_dd_08_00")
@@ -60,6 +63,7 @@ object Paths {
     }
   }
 
+  /** Defines path for hourly data **/
   class Hourly(dt: String, units: List[Int], path: String = PathDB.pbssHourly) extends DateFormats {
     val p1 = pt("'y='yyyy/'m='MM/'d='dd")
     val p2 = pt("yyyy_MM_dd_HH")
@@ -72,7 +76,6 @@ object Paths {
   }
 
   class CustBuilder  {
-    // val c3Map = getGeoData("customer")
     def mkCustList(x: Any, paths: List[String]) = x match {
       case s: List[Int] => s.mkString(",")
       case s: List[String] => c3NameToId(s).mkString(",")
