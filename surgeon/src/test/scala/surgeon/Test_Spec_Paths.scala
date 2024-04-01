@@ -119,6 +119,10 @@ class PathSuite extends munit.FunSuite {
     assertEquals(t3, expect1)
     val t4 = Path.pbss("2023-02-07T02").c3ids(List(1960180360, 1960184661)).toList(0)
     assertEquals(t4, expect2)
+    val t5 = Path.pbss("2023-02-07T02").c3ids(List("1960180360", "1960184661")).toList(0)
+    assertEquals(t5, expect2)
+    val t6 = Path.pbss("2023-02-07T02").c3id("1960180360").toList(0)
+    assertEquals(t6, expect1)
   }
 
 }

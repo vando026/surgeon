@@ -11,17 +11,17 @@ object Paths {
   /** Class for setting components of path names to files. **/
   class SetPaths {
     var root =  "/mnt"
-    var st = 0;  var lt = 0
+    var st = 0;  var lt = 1
     /** Root path to `databricks-user-share`. */
     var dbUserShare = "/mnt/databricks-user-share"
     /** Path to the daily session summary parquet files. */
     var pbssDaily = "conviva-prod-archive-pbss-daily/pbss/daily"
     /** Path to the hourly session summary parquet files. */
-    var pbssHourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st=$st"
+    var pbssHourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st_$st"
     /** Path to the monthly session summary parquet files. */
     var pbssMonthly = "conviva-prod-archive-pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
-    var pbrlHourly = s"pbrl/3d/rawlogs/pbrl/lt=$lt"
+    var pbrlHourly = s"conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
     /** Path to Geo_Utils folder on Databricks. */
     var geoUtilPath = "dbfs:/FileStore/Geo_Utils"
     /** Path to personally updated files */
