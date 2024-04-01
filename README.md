@@ -90,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@6e0be4d0
+// spark: SparkSession = org.apache.spark.sql.SparkSession@1ac9dc01
 val path = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
