@@ -101,7 +101,7 @@ The `pbssHourly` and `pbrlHourly`  paths default to `st_0` and `lt_1`, so you ca
 flag using the relevant value:
 
 ```scala mdoc 
-PathDB.st = 1
+PathDB.st = 2
 PathDB.lt = 17
 ```
 

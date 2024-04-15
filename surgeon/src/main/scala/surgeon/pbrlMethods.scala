@@ -32,8 +32,9 @@ object PbRl {
 
   /** Method for extracting fields from `payload.heartbeat.pbSdmEvents`. Fields
    *  with periods are replaced with underscores by default.*/
-  def pbSdm(field: String): Column = { 
-    col(s"$pbsdm").getItem(field).alias(field.replaceAll("\\.", "_"))
+  def pbSdm(field: String = ""): Column = { 
+    if (field.isEmpty) col(s"$pbsdm")
+    else col(s"$pbsdm").getItem(field).alias(field.replaceAll("\\.", "_"))
   }
 
   def payload(name: String): Column = col(s"payload.heartbeat.$name")
@@ -58,13 +59,28 @@ object PbRl {
   }
 
   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
-  def cwsPlayer(name: String): ArrayCol =  {
+  def cwsPlayerEvent(name: String): ArrayCol =  {
     new ArrayCol(col(s"$pbsdm.cwsPlayerMeasurementEvent.$name"), s"$name")
   }
   /** Method to extract fields from the `cwsStateChangeEvent` container.*/
   def cwsStateChangeNew(name: String): ArrayCol = {
       new ArrayCol(col(s"$pbsdm.cwsStateChangeEvent.newCwsState.$name"), s"$name")
   }
+
+  /** Method to extract the type of pbSdm event.*/
+  def pbSdmType(): Column = col(s"$pbsdm.type")
+
+  class CWSStateChangeEvent(name: String) {
+    def newState(): Column = {
+      col(s"${pbsdm}.cwsStateChangeEvent.newCwsState.${name}")
+    }
+    /** Remove nulls, keep the same name. */
+    def oldState(): Column = {
+      col(s"${pbsdm}.cwsStateChangeEvent.oldCwsState.${name}")
+    }
+  }
+
+  def cwsStateChangeEvent(name: String) = new CWSStateChangeEvent(name)
 
   /** Method to extract seek timeline from CWS. */ 
   def cwsSeekEvent(): Column = {
@@ -160,12 +176,12 @@ object PbRl {
 
   /** Extract dropped frames total. */
   def dftot(): Column = 
-    cwsPlayer("genericDictLong")
+    cwsPlayerEvent("genericDictLong")
       .apply(0).getItem("dftot").alias("dftot")
 
   /** Extract dropped frames count. */
   def dfcnt(): Column = {
-    cwsPlayer("genericDictLong")
+    cwsPlayerEvent("genericDictLong")
       .apply(0).getItem("dfcnt").alias("dfcnt")
   }
 

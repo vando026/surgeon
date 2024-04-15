@@ -22,6 +22,8 @@ object Paths {
     var pbssMonthly = "conviva-prod-archive-pbss-monthly/pbss/monthly"
     /** Path to the parquet heartbeat (raw log) files. */
     var pbrlHourly = s"conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
+    /** Path to the minute session summary parquet files. */
+    var pbssMinute = "databricks-user-share/avandormael/tlb1min"
     /** Path to Geo_Utils folder on Databricks. */
     var geoUtilPath = "dbfs:/FileStore/Geo_Utils"
     /** Path to personally updated files */
@@ -119,11 +121,12 @@ object Paths {
         .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt + 1) else i)
         .map(_.toString.toInt).toList
     }
-    val toList = dt match {
-        case pMonth(dt, month) => new Monthly(dt, parseRegex(month)).toList  
-        case pDayMonth(dt, day) =>  new Daily(dt, parseRegex(day)).toList  
-        case pHourDayMonth(dt, hour) => new Hourly(dt, parseRegex(hour), path).toList  
-        case _ => throw new Exception("Incorrect datetime entry, see surgeon.wiki for examples.")
+    val dtTrim = dt.replaceAll("[\\s]+", "")
+    val toList = dtTrim match {
+        case pMonth(dtTrim, month) => new Monthly(dtTrim, parseRegex(month)).toList  
+        case pDayMonth(dtTrim, day) =>  new Daily(dtTrim, parseRegex(day)).toList  
+        case pHourDayMonth(dtTrim, hour) => new Hourly(dtTrim, parseRegex(hour), path).toList  
+        case _ => throw new Exception("Incorrect date-time format, see surgeon.wiki for examples.")
       }
   }
 
