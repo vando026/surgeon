@@ -1,5 +1,5 @@
 ThisBuild / scalaVersion := "2.12.17"
-ThisBuild / version := "0.1.2"
+ThisBuild / version := "0.1.3"
 ThisBuild / organization := "conviva"
 name := "surgeon"
 
@@ -14,7 +14,7 @@ lazy val surgeon = project
           exclude("org.slf4j", "slf4j-log4j12"),
         "org.scalameta" %% "munit" % "0.7.29" % Test,
         "com.conviva.packetbrain" % "parquet-pb" % "10.0.0" ,
-        "com.conviva.3d" % "3dReports_2.12" % "2.245.0.6974" 
+        "com.conviva.3d" % "3dReports_2.12" % "2.242.0.6956" 
           exclude("org.apache.kafka", "kafka_2.12")
           exclude("org.slf4j", "slf4j-log4j12")
           exclude("com.conviva", "connectionMetadata_2.12")
