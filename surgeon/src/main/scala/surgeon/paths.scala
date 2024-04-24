@@ -4,6 +4,7 @@ object Paths {
 
   import java.time.{LocalDateTime, LocalDate}
   import java.time.format.DateTimeFormatter
+  import java.time.temporal.ChronoUnit
   import org.apache.spark.sql.DataFrame
   import conviva.surgeon.Customer._
   import conviva.surgeon.GeoInfo._
@@ -40,8 +41,12 @@ object Paths {
     def pt(s: String) = DateTimeFormatter.ofPattern(s)
     def toList: List[String]
     // def toString: String
+    def ymdh() = pt("yyyy-MM-dd HH:mm")
     def ymd() = pt("yyyy-MM-dd")
     def ym() = pt("'y='yyyy/'m='MM") 
+    def ymdd() = pt("'y='yyyy/'m='MM/'d='dd")
+    def ymd_h() = pt("yyyy_MM_dd_HH")
+    def ym_d() = pt("yyyy_MM_dd_")
   }
 
   /** Defines path for monthly data **/
@@ -66,15 +71,48 @@ object Paths {
   }
 
   /** Defines path for hourly data **/
-  class Hourly(dt: String, units: List[Int], path: String = PathDB.pbssHourly) extends DateFormats {
-    val p1 = pt("'y='yyyy/'m='MM/'d='dd")
-    val p2 = pt("yyyy_MM_dd_HH")
-    val p3 = pt("yyyy-MM-dd HH:mm")
-    val pdates = units.map(i => LocalDateTime.parse(s"$dt ${fmt02(i)}:00", p3))
-    def toList()  = {
-      for (d <- pdates) yield 
-        s"${PathDB.root}/${path}/${d.format(p1)}/dt=${d.format(p2)}"
+  class Hourly(date: String, hours: Array[Array[String]], path: String = PathDB.pbssHourly) extends DateFormats {
+    val base = LocalDateTime.parse(s"${date} 00:00", ymdh)
+    def toDateTime(d: String, trange: Array[String]): List[java.time.LocalDateTime] = {
+      val start = LocalDateTime.parse(s"${date} ${fmt02(trange(0).toInt)}:00", ymdh)
+      if (trange.length == 2) {
+        val end = LocalDateTime.parse(s"${d} ${fmt02(trange(1).toInt)}:00", ymdh)
+        val hrs = ChronoUnit.HOURS.between(start, end) 
+        val res = if (hrs < 0) 24L + hrs else hrs
+        List.range(trange(0).toInt, trange(0).toInt + res).map(i => base.plusHours(i)) 
+      } else {
+        List(base.plusHours(trange(0).toInt))
+      }
     }
+    def singlePath(dt: java.time.LocalDateTime) = {
+      s"${PathDB.root}/${path}/${base.format(ymdd)}/dt=${base.format(ymd_h)}"
+    }
+
+    def multiPath(dt: List[java.time.LocalDateTime]): String = {
+      val hrs = dt.map(_.getDayOfMonth).filter(_ == base.getDayOfMonth)
+        .map(fmt02).mkString(",")
+      s"${PathDB.root}/${path}/${base.format(ymdd)}/dt=${base.format(ym_d)}_${hrs}"
+    }
+    val dates = hours.flatMap(toDateTime(date, _)).toList
+    def toList(): List[String] = dates.map(singlePath)
+    override def toString() = multiPath(dates)
+  }
+
+  class DatesBuilder(dt: String, path: String) {
+    val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{1,2})$".r
+    val pDayMonth = "^(202[0-9]-[0-9]{1,2})-(\\{[0-9,-]+\\}|[0-9]{1,2})$".r
+    val pHourDayMonth = "^(202[0-9]-[0-9]{1,2}-[0-9]{1,2})T(\\{[0-9,-]+\\}|[0-9]{1,2})$".r
+    def parseRegex(x: String): Array[Array[String]] = {
+      x.toString.replaceAll("[{}]", "")
+        .split(",").map(_.split("-"))
+    }
+    val dtTrim = dt.replaceAll("[\\s]+", "")
+    val toList = dtTrim match {
+        // case pMonth(dtTrim, month) => new Monthly(dtTrim, parseRegex(month)).toList  
+        // case pDayMonth(dtTrim, day) =>  new Daily(dtTrim, parseRegex(day)).toList  
+        case pHourDayMonth(dtTrim, hour) => new Hourly(dtTrim, parseRegex(hour), path).toList  
+        case _ => throw new Exception("Incorrect date-time format, see surgeon.wiki for examples.")
+      }
   }
 
   class CustBuilder  {
@@ -108,26 +146,6 @@ object Paths {
     def c3id(id: Any) = returnPath(idToString(id))
     def c3ids(ids: List[Any]) = returnPath(idsToString(ids))
     def c3take(n: Int) = returnPath(c3IdOnPath(toList).sorted.take(n).mkString(","))
-  }
-
-  class DatesBuilder(dt: String, path: String) {
-    val pMonth = "^(202[0-9])-(\\{[0-9,-]+\\}|[0-9]{2})$".r
-    val pDayMonth = "^(202[0-9]-[0-9]{2})-(\\{[0-9,-]+\\}|[0-9]{2})$".r
-    val pHourDayMonth = "^(202[0-9]-[0-9]{2}-[0-9]{2})T(\\{[0-9,-]+\\}|[0-9]{2})$".r
-    def parseRegex(x: String): List[Int] = {
-      x.toString.replaceAll("[{}]", "")
-        .split(",").map(_.split("-"))
-        // end points are inclusive
-        .flatMap(i => if (i.length == 2) List.range(i(0).toInt, i(1).toInt + 1) else i)
-        .map(_.toString.toInt).toList
-    }
-    val dtTrim = dt.replaceAll("[\\s]+", "")
-    val toList = dtTrim match {
-        case pMonth(dtTrim, month) => new Monthly(dtTrim, parseRegex(month)).toList  
-        case pDayMonth(dtTrim, day) =>  new Daily(dtTrim, parseRegex(day)).toList  
-        case pHourDayMonth(dtTrim, hour) => new Hourly(dtTrim, parseRegex(hour), path).toList  
-        case _ => throw new Exception("Incorrect date-time format, see surgeon.wiki for examples.")
-      }
   }
 
   object Path {

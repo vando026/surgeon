@@ -13,8 +13,8 @@ lazy val surgeon = project
         "org.apache.spark" % "spark-sql_2.12" % "3.4.0" 
           exclude("org.slf4j", "slf4j-log4j12"),
         "org.scalameta" %% "munit" % "0.7.29" % Test,
-        "com.conviva.packetbrain" % "parquet-pb" % "10.0.0" ,
-        "com.conviva.3d" % "3dReports_2.12" % "2.242.0.6956" 
+        "com.conviva.packetbrain" % "parquet-pb" % "9.1.0" ,
+        "com.conviva.3d" % "3dReports_2.12" % "2.246.0.6962" 
           exclude("org.apache.kafka", "kafka_2.12")
           exclude("org.slf4j", "slf4j-log4j12")
           exclude("com.conviva", "connectionMetadata_2.12")
@@ -23,7 +23,6 @@ lazy val surgeon = project
           exclude("com.conviva.platform", "utils_2.12"),
      ), 
 )
-
 
 publishArtifact := false
 testFrameworks += TestFramework("munit.TestFramework")
