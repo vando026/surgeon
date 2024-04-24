@@ -77,9 +77,9 @@ object Customer {
       val paths = dbfs.listStatus(new Path(s"${path}"))
         .map(_.getPath.toString)
         .filter(_.contains("cust"))
-      val pattern = "^.*/cust=([0-9][0-9]+)$".r
+      val pattern = "^.*/cust=([0-9]+)$".r
       val out = paths.map(f => { val pattern(h) = f; h })
-      out.map(_.toInt).toList
+      out.map(_.toInt).toList.filter(_ != 0).sorted // drop cust=0
     }
   }
   object c3IdOnPath {

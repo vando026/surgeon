@@ -104,6 +104,7 @@ class PathSuite extends munit.FunSuite {
   }
 
   test("Take should work as expected") {
+    PathDB.root = PathDB.testPath
     val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
     val t1 = Path.pbss("2023-02-07T02").c3take(3).toList(0)
     assertEquals(t1, expect1)
@@ -111,6 +112,7 @@ class PathSuite extends munit.FunSuite {
     assertEquals(t2, PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
   }
 
+    val t1 = Path.pbss("2023-02-07T02")
   test("c3 methods should work as expected") {
     val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
     val expect2 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
