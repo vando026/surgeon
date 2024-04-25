@@ -90,7 +90,7 @@ object Customer {
       paths.map(c3IdOnPath().get(_)).flatten.toSet.toList
     }
     def apply(path: SurgeonPath): List[Int] = {
-      c3IdOnPath().get(path.toList(0))
+      c3IdOnPath().get(path.toString)
     }
   }
 
@@ -117,7 +117,7 @@ object Customer {
   }
   object c3IdOnBothPaths {
     def apply(path1: SurgeonPath, path2: SurgeonPath): List[Int] = {
-      c3IdOnBothPaths().get(path1.toList(0), path2.toList(0))
+      c3IdOnBothPaths().get(path1.toString, path2.toString)
     }
     def apply(path1: String, path2: String): List[Int] = {
       c3IdOnBothPaths().get(path1, path2)
