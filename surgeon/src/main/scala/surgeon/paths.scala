@@ -72,30 +72,30 @@ object Paths {
 
   /** Defines path for hourly data **/
   class Hourly(date: String, hours: Array[Array[String]], path: String = PathDB.pbssHourly) extends DateFormats {
-    val base = LocalDateTime.parse(s"${date} 00:00", ymdh)
+    val baseDate = LocalDateTime.parse(s"${date} 00:00", ymdh)
     def toDateTime(d: String, trange: Array[String]): List[java.time.LocalDateTime] = {
       val start = LocalDateTime.parse(s"${date} ${fmt02(trange(0).toInt)}:00", ymdh)
       if (trange.length == 2) {
         val end = LocalDateTime.parse(s"${d} ${fmt02(trange(1).toInt)}:00", ymdh)
         val hrs = ChronoUnit.HOURS.between(start, end) 
         val res = if (hrs < 0) 24L + hrs else hrs
-        List.range(trange(0).toInt, trange(0).toInt + res).map(i => base.plusHours(i)) 
+        List.range(trange(0).toInt, trange(0).toInt + res).map(i => baseDate.plusHours(i)) 
       } else {
-        List(base.plusHours(trange(0).toInt))
+        List(baseDate.plusHours(trange(0).toInt))
       }
     }
-    def singlePath(dt: java.time.LocalDateTime) = {
-      s"${PathDB.root}/${path}/${base.format(ymdd)}/dt=${base.format(ymd_h)}"
+    def mkPath(dt: java.time.LocalDateTime) = {
+      s"${PathDB.root}/${path}/${dt.format(ymdd)}/dt=${dt.format(ymd_h)}"
     }
-
-    def multiPath(dt: List[java.time.LocalDateTime]): String = {
-      val hrs = dt.map(_.getDayOfMonth).filter(_ == base.getDayOfMonth)
-        .map(fmt02).mkString(",")
-      s"${PathDB.root}/${path}/${base.format(ymdd)}/dt=${base.format(ym_d)}_${hrs}"
+    def mkBaseDatePaths(dt: List[java.time.LocalDateTime]): String = {
+      // only get hours in baseDate; ignore if hours cross into next 24 hour day
+      val hrs = dt.filter(_.getDayOfMonth == baseDate.getDayOfMonth)
+        .map(i => fmt02(i.getHour)).distinct.mkString(",")
+      mkPath(baseDate) + s"_{${hrs}}"
     }
     val dates = hours.flatMap(toDateTime(date, _)).toList
-    def toList(): List[String] = dates.map(singlePath)
-    override def toString() = multiPath(dates)
+    def toList(): List[String] = dates.map(mkPath)
+    override def toString() = mkBaseDatePaths(dates)
   }
 
   class DatesBuilder(dt: String, path: String) {
@@ -107,10 +107,10 @@ object Paths {
         .split(",").map(_.split("-"))
     }
     val dtTrim = dt.replaceAll("[\\s]+", "")
-    val toList = dtTrim match {
-        // case pMonth(dtTrim, month) => new Monthly(dtTrim, parseRegex(month)).toList  
+    override def toString() = dtTrim match {
+        // case pMonth(dtTrim, month) => new Monthly(dtTrim, parseRegex(month)).toLis
         // case pDayMonth(dtTrim, day) =>  new Daily(dtTrim, parseRegex(day)).toList  
-        case pHourDayMonth(dtTrim, hour) => new Hourly(dtTrim, parseRegex(hour), path).toList  
+        case pHourDayMonth(dtTrim, hour) => new Hourly(dtTrim, parseRegex(hour), path).toString
         case _ => throw new Exception("Incorrect date-time format, see surgeon.wiki for examples.")
       }
   }
@@ -120,7 +120,7 @@ object Paths {
       val out = s match {
         case s: Int => s.toString
         case s: String => s
-        case _ => throw new Exception("Argument be either Int or String")
+        case _ => throw new Exception("Argument must be either Int or String")
       } 
       out
     }
@@ -128,38 +128,34 @@ object Paths {
       val out = s match {
         case s: List[Int] => s.mkString(",")
         case s: List[String] => s.mkString(",")
-        case _ => throw new Exception("Argument be either List[Int] or List[String]")
+        case _ => throw new Exception("Argument must be either List[Int] or List[String]")
       } 
       out
     }
   }
 
-  class SurgeonPath(val toList: List[String]) extends CustBuilder {
-    var i = 0
-    i += 1
-    private def returnPath(clist: String): SurgeonPath = {
-      if (i == 1)  new SurgeonPath(toList.map(i => s"${i}/cust={${clist}}"))
-      else new SurgeonPath(toList)
-    }
+  class SurgeonPath(val date: String) extends CustBuilder {
+    private def returnPath(clist: String): String = date + s"/cust={${clist}}" 
     def c3name(name: String) = returnPath(c3NameToId(name)(0).toString)
     def c3names(names: List[String]) = returnPath(c3NameToId(names).mkString(","))
     def c3id(id: Any) = returnPath(idToString(id))
     def c3ids(ids: List[Any]) = returnPath(idsToString(ids))
-    def c3take(n: Int) = returnPath(c3IdOnPath(toList).sorted.take(n).mkString(","))
+    def c3take(n: Int) = returnPath(c3IdOnPath(date.toString).sorted.take(n).mkString(","))
+    def c3all() = returnPath("*")
   }
 
   object Path {
     def pbss(dt: String): SurgeonPath = {
-      val datesList = new DatesBuilder(dt, PathDB.pbssHourly).toList
-      new SurgeonPath(datesList)
+      val date = new DatesBuilder(dt, PathDB.pbssHourly).toString
+      new SurgeonPath(date)
     }
-    def pbrl(dt: String): SurgeonPath = {
-      val datesList = new DatesBuilder(dt, PathDB.pbrlHourly).toList
-      new SurgeonPath(datesList)
-    }
+    // def pbrl(dt: String): String = {
+      // val datesList = new DatesBuilder(dt, PathDB.pbrlHourly).toStrings
+      // new SurgeonPath(datesList)
+    // }
   }
 
-  // val tt = Path.pbss("2023-01")
+  val t2 = Path.pbss("2023-01-01T02").c3id(2000)
   // tt.cust(12345).paths
   // tt.paths
 
