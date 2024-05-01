@@ -60,8 +60,6 @@ object Paths {
     val s = "_01_08_00"
     var l = "{"; var r = "}"
     if (units.length == 1) {l = ""; r = ""}
-    println(s"left is $l")
-    println(s"units length is ${units.length}")
     val dates = units.distinct.map(i => baseDate.plusMonths(i - 1))
     val nextDates = dates.map(i => i.plusMonths(1))
     val mnths = dates.map(i => fmt02(i.getMonthValue)).mkString(",")
