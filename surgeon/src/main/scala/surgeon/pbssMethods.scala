@@ -408,6 +408,9 @@ object PbSS {
     */
   def intvStartTime = new TimeSecCol(sessSum("intvStartTimeSec"), "intvStartTime")
 
+  /** Creates the intvStartTimeSec column $timestamp. */
+  def intvStartTimeSec = new TimeSecCol(sessSum("intvStartTimeSec"), "intvStartTimeSec")
+
   /**
     * Parse the lifeFirstRecvTime column $timestamp.
     * @example {{{

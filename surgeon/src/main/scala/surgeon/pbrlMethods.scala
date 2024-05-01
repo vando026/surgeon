@@ -60,11 +60,11 @@ object PbRl {
 
   /** Method to extract fields from the `cwsPlayerMeasurementEvent` container.*/
   def cwsPlayerEvent(name: String): ArrayCol =  {
-    new ArrayCol(col(s"$pbsdm.cwsPlayerMeasurementEvent.$name"), s"$name")
+    new ArrayCol(col(s"$pbsdm.cwsPlayerMeasurementEvent.${name}"), s"$name")
   }
   /** Method to extract fields from the `cwsStateChangeEvent` container.*/
   def cwsStateChangeNew(name: String): ArrayCol = {
-      new ArrayCol(col(s"$pbsdm.cwsStateChangeEvent.newCwsState.$name"), s"$name")
+      new ArrayCol(col(s"$pbsdm.cwsStateChangeEvent.newCwsState.${name}"), s"$name")
   }
 
   /** Method to extract the type of pbSdm event.*/
@@ -76,7 +76,7 @@ object PbRl {
     }
     /** Remove nulls, keep the same name. */
     def oldState(): Column = {
-      col(s"${pbsdm}.cwsStateChangeEvent.oldCwsState.${name}")
+      col(s"${pbsdm}.cwsStateChangeEvent.oldCwsState.${name}").alias(s"${name}Old")
     }
   }
 

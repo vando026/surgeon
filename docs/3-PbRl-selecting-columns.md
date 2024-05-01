@@ -17,7 +17,9 @@ set the file path, and read the data.
 import conviva.surgeon.PbRl._
 import conviva.surgeon.Paths._
 // Read from test env, not from prod env
-val path = Path.pbrl("2023-05-01T09").c3id(1960181845).toList(0)
+PathDB.root = PathDB.testPath
+PathDB.pbrlHourly = "pbrl"
+val path = Path.pbrl("2023-05-01T09").c3id(1960181845)
 val dat = spark.read.parquet(path).where(sessionId === 701891892) 
 ```
 
@@ -50,7 +52,7 @@ dat.select(
   pbSdm("cwsSeekEvent"),             // root: payload.heartbeat.pbSdmEvents
   c3Tags("c3.client.osf"),           // root: payload.heartbeat.c3Tags
   clientTags("serviceName"),         // root: payload.heartbeat.clientTag
-  cwsPlayer("playerState"),          // root: payload.heartbeat.cwsPlayerMeasurementEvent
+  cwsPlayerEvent("playerState"),     // root: payload.heartbeat.cwsPlayerMeasurementEvent
   cwsStateChangeNew("playingState")  // root: payload.heartbeat.cwsStateChangeEvent.newCwsState
   ).show(false)
 ```

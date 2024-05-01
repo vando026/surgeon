@@ -47,7 +47,7 @@ argument.  For example, you want to know all the customer ids for a given hour
 for PbSS data. 
 
 ```scala mdoc
-val path = Path.pbss("2023-02-07T02").toList(0)
+val path = Path.pbss("2023-02-07T02")
 c3IdOnPath(path)
 ```
 

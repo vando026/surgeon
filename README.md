@@ -90,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@5998a594
+// spark: SparkSession = org.apache.spark.sql.SparkSession@5af7672f
 val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
@@ -301,12 +301,8 @@ Surgeon makes constructing the paths to the data easier.
 ```scala
 // monthly
 Path.pbss("2023-02")
-// left is 
-// units length is 1
 // res6: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 Path.pbss("2023-{2-5}")
-// left is {
-// units length is 4
 // res7: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
