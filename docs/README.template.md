@@ -39,7 +39,7 @@ to this:
 
 ```scala
 val path = Path.pbss("2023-02-07T{16-20}").c3id(1960180360)
-val hourly_df = spark.read.parquet(path.toList:_*)
+val hourly_df = spark.read.parquet(path)
   .select(
     customerId, 
     sessionId, 
@@ -90,7 +90,7 @@ import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-val path = Path.pbss("2023-02-07T02").c3id(1960180360).toList(0)
+val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
 ```
 
@@ -267,30 +267,30 @@ Surgeon makes constructing the paths to the data easier.
 
 ```scala mdoc
 // monthly
-Path.pbss("2023-02").toList 
-Path.pbss("2023-{2-5}").toList 
+Path.pbss("2023-02")
+Path.pbss("2023-{2-5}")
 
 // daily
-Path.pbss("2023-02-07").toList 
-Path.pbss("2023-02-{7,9,14}").toList 
+Path.pbss("2023-02-07")
+Path.pbss("2023-02-{7,9,14}")
 
 // hourly
-Path.pbss("2023-02-07T09").toList 
-Path.pbss("2023-02-07T{8,9}").toList
+Path.pbss("2023-02-07T09")
+Path.pbss("2023-02-07T{8,9}")
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala mdoc
-Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
+Path.pbss("2023-02-07T02").c3name("c3.TopServe")
 // To select by more than one customer name 
-Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot")).toList
+Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala mdoc
-Path.pbss("2023-02-07T02").c3take(3).toList
+Path.pbss("2023-02-07T02").c3take(3)
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.

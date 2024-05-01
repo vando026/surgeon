@@ -20,8 +20,8 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
   PathDB.root = PathDB.testPath
   PathDB.pbssHourly = "pbss"
 
-  val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe").toList
-  val dat = spark.read.parquet(path:_*).cache
+  val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe")
+  val dat = spark.read.parquet(path).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
 

@@ -18,8 +18,8 @@ class PbRl_Suite extends munit.FunSuite {
   PathDB.root = PathDB.testPath
   PathDB.pbrlHourly = "pbrl"
 
-  val path = Path.pbrl("2023-05-01T09").c3name("c3.DuoFC").toList
-  val dat = spark.read.parquet(path:_*).cache
+  val path = Path.pbrl("2023-05-01T09").c3name("c3.DuoFC")
+  val dat = spark.read.parquet(path).cache
   val d701 = dat.where(sessionId === 701891892)
 
   test("Data nrow should be expected") {
@@ -33,8 +33,8 @@ class PbRl_Suite extends munit.FunSuite {
     assertEquals(t1.select("c3_isAd_rc").first.apply(0).toString, "false")
   }
 
-  val path2 = Path.pbrl("2023-12-28T12").c3name("c3.FappleTV").toList
-  val dat2 = spark.read.parquet(path2:_*)
+  val path2 = Path.pbrl("2023-12-28T12").c3name("c3.FappleTV")
+  val dat2 = spark.read.parquet(path2)
 
   test("ipv6 should work as expected") {
     val e1 = "38:1:5:137:3:1:84:96:13:29:190:184:171:173:248:37"
