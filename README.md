@@ -88,9 +88,12 @@ Below is a brief vignette of Surgeon's many features. Please see the
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
+// point paths to test folder 
 PathDB.geoUtilPath = PathDB.testPath
+PathDB.root = PathDB.testPath
+PathDB.pbssHourly = "pbss"
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@5af7672f
+// spark: SparkSession = org.apache.spark.sql.SparkSession@7b94455d
 val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
@@ -297,42 +300,48 @@ hourly_df.select(
 ### Path construction
 
 Surgeon makes constructing the paths to the data easier. 
+The production paths on Databricks are shown below. 
 
 ```scala
+import conviva.surgeon.Paths._
+
 // monthly
 Path.pbss("2023-02")
-// res6: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
+// res8: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 Path.pbss("2023-{2-5}")
-// res7: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
+// res9: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
 Path.pbss("2023-02-07")
-// res8: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
+// res10: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
 Path.pbss("2023-02-{7,9,14}")
-// res9: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
+// res11: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
 
 // hourly
 Path.pbss("2023-02-07T09")
-// res10: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09
+// res12: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09
 Path.pbss("2023-02-07T{8,9}")
-// res11: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
+// res13: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
-```scala
-Path.pbss("2023-02-07T02").c3name("c3.TopServe")
-// res12: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+```scala 
+Path.pbss("2024-02-01T09").c3name("c3.TopServe")
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360}
+``` 
+
 // To select by more than one customer name 
-Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
-// res13: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
+```scala
+Path.pbss("2024-02-01T09").c3names(List("c3.TopServe", "c3.PlayFoot"))
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
 ```
 
 Only want to select any three customers for a given path, then do:
 
-```scala
-Path.pbss("2023-02-07T02").c3take(3)
-// res14: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
+```scala 
+Path.pbss("2024-02-01T09").c3take(2)
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
@@ -349,13 +358,13 @@ import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
-// res15: List[String] = List("c3.TopServe")
+// res14: List[String] = List("c3.TopServe")
 c3IdToName(List(1960184661, 1960003321))
-// res16: List[String] = List("c3.FappleTV", "c3.SATY")
+// res15: List[String] = List("c3.FappleTV", "c3.SATY")
 c3NameToId("c3.FappleTV")
-// res17: List[Int] = List(1960184661)
+// res16: List[Int] = List(1960184661)
 c3NameToId(List("c3.FappleTV", "c3.SATY"))
-// res18: List[Int] = List(1960184661, 1960003321)
+// res17: List[Int] = List(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
