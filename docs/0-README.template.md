@@ -88,7 +88,10 @@ Below is a brief vignette of Surgeon's many features. Please see the
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
+// point paths to test folder 
 PathDB.geoUtilPath = PathDB.testPath
+PathDB.root = PathDB.testPath
+PathDB.pbssHourly = "pbss"
 val spark = SparkSession.builder.master("local[*]").getOrCreate
 val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
@@ -264,8 +267,11 @@ hourly_df.select(
 ### Path construction
 
 Surgeon makes constructing the paths to the data easier. 
+The production paths on Databricks are shown below. 
 
 ```scala mdoc
+import conviva.surgeon.Paths._
+
 // monthly
 Path.pbss("2023-02")
 Path.pbss("2023-{2-5}")
@@ -281,16 +287,22 @@ Path.pbss("2023-02-07T{8,9}")
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
-```scala mdoc
-Path.pbss("2023-02-07T02").c3name("c3.TopServe")
+```scala 
+Path.pbss("2024-02-01T09").c3name("c3.TopServe")
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360}
+``` 
+
 // To select by more than one customer name 
-Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
+```scala
+Path.pbss("2024-02-01T09").c3names(List("c3.TopServe", "c3.PlayFoot"))
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
 ```
 
 Only want to select any three customers for a given path, then do:
 
-```scala mdoc
-Path.pbss("2023-02-07T02").c3take(3)
+```scala 
+Path.pbss("2024-02-01T09").c3take(2)
+// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
