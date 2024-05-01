@@ -15,6 +15,7 @@ First import the `Paths` object.
 
 ```scala mdoc 
 import conviva.surgeon.Paths._
+PathDB = new SetPaths
 ```
 
 ## DataPath class

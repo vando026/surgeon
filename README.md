@@ -93,7 +93,7 @@ PathDB.geoUtilPath = PathDB.testPath
 PathDB.root = PathDB.testPath
 PathDB.pbssHourly = "pbss"
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-// spark: SparkSession = org.apache.spark.sql.SparkSession@7b94455d
+// spark: SparkSession = org.apache.spark.sql.SparkSession@4ea69c1
 val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 // path: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 val dat = spark.read.parquet(path).filter(sessionId === 89057425)
@@ -303,25 +303,25 @@ Surgeon makes constructing the paths to the data easier.
 The production paths on Databricks are shown below. 
 
 ```scala
-import conviva.surgeon.Paths._
+PathDB = new SetPaths()
 
 // monthly
 Path.pbss("2023-02")
-// res8: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
+// res9: SurgeonPath = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 Path.pbss("2023-{2-5}")
-// res9: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
+// res10: SurgeonPath = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
 Path.pbss("2023-02-07")
-// res10: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
+// res11: SurgeonPath = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
 Path.pbss("2023-02-{7,9,14}")
-// res11: SurgeonPath = ./surgeon/src/test/data/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
+// res12: SurgeonPath = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
 
 // hourly
 Path.pbss("2023-02-07T09")
-// res12: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09
+// res13: SurgeonPath = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
 Path.pbss("2023-02-07T{8,9}")
-// res13: SurgeonPath = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
+// res14: SurgeonPath = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
@@ -356,15 +356,16 @@ from Ids, and get Ids from names.
 ```scala
 import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
+PathDB.geoUtilPath = PathDB.testPath
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
-// res14: List[String] = List("c3.TopServe")
+// res16: List[String] = List("c3.TopServe")
 c3IdToName(List(1960184661, 1960003321))
-// res15: List[String] = List("c3.FappleTV", "c3.SATY")
+// res17: List[String] = List("c3.FappleTV", "c3.SATY")
 c3NameToId("c3.FappleTV")
-// res16: List[Int] = List(1960184661)
+// res18: List[Int] = List(1960184661)
 c3NameToId(List("c3.FappleTV", "c3.SATY"))
-// res17: List[Int] = List(1960184661, 1960003321)
+// res19: List[Int] = List(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.

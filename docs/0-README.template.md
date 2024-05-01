@@ -270,7 +270,7 @@ Surgeon makes constructing the paths to the data easier.
 The production paths on Databricks are shown below. 
 
 ```scala mdoc
-import conviva.surgeon.Paths._
+PathDB = new SetPaths()
 
 // monthly
 Path.pbss("2023-02")
@@ -317,6 +317,7 @@ from Ids, and get Ids from names.
 ```scala mdoc
 import conviva.surgeon.Customer._
 import conviva.surgeon.GeoInfo._
+PathDB.geoUtilPath = PathDB.testPath
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
 c3IdToName(List(1960184661, 1960003321))
