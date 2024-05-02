@@ -198,10 +198,10 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("geoInfo select and label should work as expected") {
-    assertEquals(t1.select(geoInfo("city")).first.getInt(0), 289024)
-    assertEquals(t1.select(geoInfo("city").label).first.getString(0), "NewYark")
-    assertEquals(t2.select(geoInfo("country")).first.getShort(0).toInt, 165)
-    assertEquals(t2.select(geoInfo("country").label).first.getString(0), "Norway")
+    assertEquals(d8905.select(geoInfo("city")).first.getInt(0), 289024)
+    assertEquals(d8905.select(geoInfo("city").label).first.getString(0), "NewYark")
+    assertEquals(d8905.select(geoInfo("country")).first.getShort(0).toInt, 165)
+    assertEquals(d8905.select(geoInfo("country").label).first.getString(0), "Norway")
   }
 
   test("customerName should work") {
