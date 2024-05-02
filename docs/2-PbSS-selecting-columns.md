@@ -1,29 +1,24 @@
-```scala mdoc
+```scala mdoc:invisible
 // setup code
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import conviva.surgeon.Paths._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
+PathDB = TestProfile()
+import conviva.surgeon.GeoInfo._
 ```
 
 ## Parquet Session Summary  (PbSS)
 
 Surgeon simplifies the selection of columns when reading a dataset for the
-first time. For this demonstration, set the file paths to the test environment
-and load the data. 
+first time. Data from Surgeon's test data (on Github) is used for this
+demonstration. 
+
 
 ```scala mdoc
-import conviva.surgeon.PbSS._ 
-import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
-
-// Get data from the test env, not prod env
-PathDB.root = PathDB.testPath
-PathDB.pbssHourly = "pbss"    
+import conviva.surgeon.PbSS._ 
 val path = Path.pbss("2023-02-07T02").c3id(1960180360)
-```
-
-```scala mdoc
-// now we can read the pbss data
 val dat0 = spark.read.parquet(path).cache
 // Select only one client session Id
 val dat = dat0.where(sessionId === 89057425)
@@ -44,7 +39,7 @@ dat.select(
   intvSwitch("networkBufferingTimeMs"), 
   invTags("sessionCreationTimeMs"), 
   sumTags("c3.video.isAd"), 
-).show
+).show(false)
 ```
 Any valid  string name can be used, provided the column exists. The container names are abbreviations of the root paths to the column names, as shown below:
 
@@ -57,7 +52,7 @@ dat.select(
   col("val.sessSummary.intvSwitchInfos.networkBufferingTimeMs"),
   col("val.invariant.sessionCreationTimeMs"),
   col("val.invariant.summarizedTags").getItem("c3.video.isAd"),
-).show
+).show(false)
 ```
 
 ### Quick selection
@@ -109,17 +104,12 @@ Another useful shorthand method is `customerName`, which returns the name of
 the `customerId`. On DataBricks production environment, you should be able to the run the command as
 is.
 
-```scala
+```scala mdoc
 dat.select(
   customerId, 
   customerName
-).show
+).show(false)
 
-// +----------+-------------+
-// |customerId|customerName |                                   
-// +----------+-------------+
-// |1960180360|c3.TopServe  |
-// +----------+-------------+
 ```
 
 
@@ -233,21 +223,19 @@ dat.select(
 You can select `GeoInfo` columns and their labels from `val.invariant.geoInfo` (of class `geoInfo`) like so:
 
 
-```scala 
-import conviva.surgeon.GeoInfo._
-hourly_df.select(
-  geoInfo("city")      // Int: the city codes
+```scala mdoc
+dat.select(
+  geoInfo("city"),      // Int: the city codes
   geoInfo("country")   // Int: the country codes
 )
 ```
 To see the labels rather than the numeric codes, you can do:
 
-```scala 
-hourly_df.select(
-  geoInfo("city").label      // Int: the city codes
+```scala mdoc
+dat.select(
+  geoInfo("city").label,      // Int: the city codes
   geoInfo("country").label   // Int: the country codes
 )
-
 ```
 
 
@@ -255,13 +243,13 @@ You can provide your own custom Map of labels for the `geoInfo` codes. Make sure
 pass it to `Some`. 
 
 ```scala mdoc
-val cityMap = Some(Map(289024 -> "Epernay"))
-val countryMap = Some(Map(165 -> "Norway"))
+val customCity = Some(Map(289024 -> "North Tarland"))
+val customCountry = Some(Map(165 -> "Redland"))
 dat.select(
-  geoInfo("city", cityMap),    
-  geoInfo("country", countryMap),
-  geoInfo("city", cityMap).label,
-  geoInfo("country", countryMap).label
+  geoInfo("city", customCity),    
+  geoInfo("country", customCountry),
+  geoInfo("city", customCity).label,
+  geoInfo("country", customCountry).label
 ).show
 ```
 

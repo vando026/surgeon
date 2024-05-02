@@ -3,6 +3,8 @@ import org.apache.spark.sql.{SparkSession}
 val spark = SparkSession.builder
   .master("local[*]")
   .getOrCreate
+import conviva.surgeon.Paths._
+PathDB = TestProfile()
 ```
 
 
@@ -14,8 +16,6 @@ data from the Test folder.
 ```scala mdoc
 import conviva.surgeon.Customer._
 import conviva.surgeon.Paths._
-// Point to the fake customer data
-PathDB.geoUtilPath = PathDB.testPath
 ```
 
 ### Convert customer Id to name

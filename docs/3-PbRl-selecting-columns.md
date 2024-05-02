@@ -1,9 +1,11 @@
-```scala mdoc
+```scala mdoc:invisible
 // setup code
 import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
+import conviva.surgeon.Paths._
+PathDB = TestProfile()
 ```
 
 ## Parquet RawLog (PbRl)
@@ -16,9 +18,6 @@ set the file path, and read the data.
 ```scala mdoc
 import conviva.surgeon.PbRl._
 import conviva.surgeon.Paths._
-// Read from test env, not from prod env
-PathDB.root = PathDB.testPath
-PathDB.pbrlHourly = "pbrl"
 val path = Path.pbrl("2023-05-01T09").c3id(1960181845)
 val dat = spark.read.parquet(path).where(sessionId === 701891892) 
 ```

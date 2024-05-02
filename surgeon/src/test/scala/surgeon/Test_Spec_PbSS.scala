@@ -15,9 +15,7 @@ class PbSS_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB.geoUtilPath = PathDB.testPath 
-  PathDB.root = PathDB.testPath
-  PathDB.pbssHourly = "pbss"
+  PathDB = TestProfile()
 
   val path = Path.pbss("2023-02-07T02").c3name("c3.TopServe")
   val dat = spark.read.parquet(path).cache
@@ -200,14 +198,10 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("geoInfo select and label should work as expected") {
-    val gcol = geoInfo("city", Some(Map(289024 -> "Epernay")))
-    val gcol2 = geoInfo("country", Some(Map(165 -> "Norway")))
-    val t1 = d8905.select(gcol, gcol.label())
-    val t2 = d8905.select(gcol2, gcol2.label())
-    assertEquals(t1.select("city").first.getInt(0), 289024)
-    assertEquals(t1.select("cityLabel").first.getString(0), "Epernay")
-    assertEquals(t2.select("country").first.getShort(0).toInt, 165)
-    assertEquals(t2.select("countryLabel").first.getString(0), "Norway")
+    assertEquals(t1.select(geoInfo("city")).first.getInt(0), 289024)
+    assertEquals(t1.select(geoInfo("city").label).first.getString(0), "NewYark")
+    assertEquals(t2.select(geoInfo("country")).first.getShort(0).toInt, 165)
+    assertEquals(t2.select(geoInfo("country").label).first.getString(0), "Norway")
   }
 
   test("customerName should work") {

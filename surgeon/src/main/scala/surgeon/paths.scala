@@ -10,7 +10,7 @@ object Paths {
   import conviva.surgeon.GeoInfo._
 
   /** Class for setting components of path names to files. **/
-  class SetPaths {
+  class SurgeonPathDB {
     var root =  "/mnt"
     var st = 0;  var lt = 1
     /** Root path to `databricks-user-share`. */
@@ -33,7 +33,16 @@ object Paths {
     val testPath = "./surgeon/src/test/data" 
   }
 
-  var PathDB = new SetPaths()
+  /** Default filepaths saved in mutable SurgeonPathDB object. */
+  var PathDB = new SurgeonPathDB()
+
+  /** Class to create default paths for Surgeon test files. **/
+  case class TestProfile() extends SurgeonPathDB {
+    root = PathDB.testPath
+    pbrlHourly = "pbrl"
+    pbssHourly = "pbss"
+    geoUtilPath = PathDB.testPath
+  }
 
   /** Formats for dates **/
   trait DateFormats {

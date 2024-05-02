@@ -15,7 +15,6 @@ First import the `Paths` object.
 
 ```scala mdoc 
 import conviva.surgeon.Paths._
-PathDB = new SetPaths
 ```
 
 ## DataPath class
@@ -96,14 +95,18 @@ PathDB.root
 PathDB.pbssHourly             
 ```
 
-
-
 The `pbssHourly` and `pbrlHourly`  paths default to `st_0` and `lt_1`, so you can set the `st`
 flag using the relevant value:
 
 ```scala mdoc 
 PathDB.st = 2
 PathDB.lt = 17
+```
+
+You can get the default paths to Surgeon test files using the shorthand:
+
+```scala mdoc
+PathDB = TestProfile()
 ```
 
 ## Customer methods
@@ -116,10 +119,7 @@ fake customerIds from surgeon's test data folder, which we have to point to.
 import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
 // Set path to fake data in Test folder
-PathDB.geoUtilPath = PathDB.testPath
-PathDB.root = PathDB.testPath
-PathDB.pbssHourly = "pbss"
-PathDB.pbrlHourly = "pbrl"
+PathDB = TestProfile()
 ```
 
  To construct the path for all customers on this date:

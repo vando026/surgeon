@@ -8,7 +8,7 @@ A Scala library with that makes it easy to read and query parquet Session Summar
 
 ```scala
 val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
-  st=0/y=2023/m=02/d=07/dt=2023_02_07_{16,17,18,19}/cust={1960180360}")
+  st=0/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
 hourly_df.createOrReplaceTempView("hourly_df")
 
 val sessionSummary_simplified = sqlContext.sql(s"""
@@ -37,10 +37,21 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 
 to this:
 
-```scala
-val path = Path.pbss("2023-02-07T{16-20}").c3id(1960180360)
+```scala mdoc:invisible 
+import org.apache.spark.sql.{SparkSession}
+import conviva.surgeon.Paths._
+import conviva.surgeon.PbSS._
+PathDB = TestProfile()
+// PathDB.root = PathDB.testPath
+// PathDB.pbssHourly = "pbss"    
+// PathDB.geoUtilPath = PathDB.testPath
+val spark = SparkSession.builder.master("local[*]").getOrCreate
+```
+
+```scala mdoc
+val path = Path.pbss("2023-02-07T02").c3id(1960180360)
 val hourly_df = spark.read.parquet(path)
-  .select(
+hourly_df.select(
     customerId, 
     sessionId, 
     sid5.concatToHex, 
@@ -56,18 +67,8 @@ val hourly_df = spark.read.parquet(path)
     endedStatus, 
     shouldProcess, 
     intvStartTime
-  )
+  ).show(false)
 ``` 
-
-```scala 
-
-// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-// |customerId|sessionId|sid5Hex                                    |intvStartTimeStamp |lifeFirstRecvTimeStamp|c3_viewer_id|c3_video_isAd|lifeFirstRecvTimeMs|hasEnded|justJoined|lifePlayingTimeMs|lifeFirstRecvTimeMs|endedStatus|shouldProcess|intvStartTimeSec|
-// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-// |1960180360|89057425 |1c62b448:4d120d00:a613f8d2:b9a1e9b4:54ee891|2023-02-07 02:00:00|2023-02-07 02:28:13   |2640043     |F            |1675765693115      |false   |true      |1742812          |1675765693115      |0          |true         |1675764000      |
-// +----------+---------+-------------------------------------------+-------------------+----------------------+------------+-------------+-------------------+--------+----------+-----------------+-------------------+-----------+-------------+----------------+
-```
-
 
 ### Installation 
 
@@ -82,27 +83,12 @@ folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your lo
 Below is a brief vignette of Surgeon's many features. Please see the 
 [Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
-
-```scala mdoc
-// setup code
-import org.apache.spark.sql.{SparkSession}
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
-// point paths to test folder 
-PathDB.geoUtilPath = PathDB.testPath
-PathDB.root = PathDB.testPath
-PathDB.pbssHourly = "pbss"
-val spark = SparkSession.builder.master("local[*]").getOrCreate
-val path = Path.pbss("2023-02-07T02").c3id(1960180360)
-val dat = spark.read.parquet(path).filter(sessionId === 89057425)
-```
-
 ### Quick column selection
 
 Surgeon makes it easy to select columns that are frequently used in analysis:
 
 ```scala mdoc
-dat.select(
+hourly_df.select(
   customerId, 
   clientId,
   sessionId,
@@ -119,7 +105,7 @@ dat.select(
 It is also easy to query from structs, maps or arrays in PbSS and PbRl:
 
 ```scala mdoc
-dat.select(
+hourly_df.select(
   sessSum("playerState"), 
   d3SessSum("lifePausedTimeMs"),
   joinSwitch("playingTimeMs"),
@@ -151,7 +137,7 @@ to do with Surgeon. The same applies for `sid6`, which appends `sessionCreationT
 
 
 ```scala mdoc
-dat.select(
+hourly_df.select(
   sid5.concat,   
   sid5.concatToHex, 
   sid5.concatToUnsigned,
@@ -164,7 +150,7 @@ dat.select(
 You can select the customer column using `customerId` and customer names using `customerName`.
 
 ```scala mdoc
-dat.select(
+hourly_df.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
 ).show(false)
@@ -182,7 +168,7 @@ seconds since Unix epoch, and a `toMs` method.
 
 ```scala mdoc
 import org.apache.spark.sql.functions._
-dat.select(
+hourly_df.select(
   lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
   lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
@@ -194,8 +180,8 @@ dat.select(
 ### PbSS Core Library metrics
 Surgeon makes it easy to select columns that are constructed from the PbSS Core Library, which cannot be found in the PbSS data:
 
-```scala
-dat.select(
+```scala mdoc
+hourly_df.select(
   isAttempt,
   hasJoined,
   isVSF, 
@@ -212,7 +198,7 @@ dat.select(
   intvAvgBitrateKbps,
   intvBufferingTimeMs, 
   intvPlayingTimeMs
-).show
+).show(false)
 ```
 
 Previously, to achieve this functionality, one had to run a chain of Notebooks
@@ -223,28 +209,20 @@ on Databricks, which took long and produced much verbose output.
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
 columns like so:
 
-```scala 
+```scala mdoc
 hourly_df.select(
   geoInfo("city"),        // Int: the city codes
   geoInfo("country"),     // Int: the country codes
   geoInfo("continent")    // Int: the continent codes
-)
-// +------+-------+---------+
-// |  city|country|continent|
-// +------+-------+---------+
-// | 12141|    229|        4|
-// |107527|    229|        4|
-// | 21233|    229|        4|
-// | 94082|    229|        4|
-// |  4773|    229|        4|
-// +------+-------+---------+
+).show(false)
 ```
 
 It is hard to decipher what these codes mean, so Surgeon makes it easy by
 providing a `label` method to map the codes to names: 
 
 
-```scala 
+
+```scala mdoc
 hourly_df.select(
   geoInfo("city"),            // Int: the city codes
   geoInfo("city").label,      // String: the city names
@@ -252,16 +230,7 @@ hourly_df.select(
   geoInfo("country").label,   // String: the country names
   geoInfo("continent"),       // Int: the continent codes
   geoInfo("continent").label  // String: the continent names
-)
-// +------+------------+-------+-------------+---------+--------------+
-// |  city|   cityLabel|country| countryLabel|continent|continentLabel|
-// +------+------------+-------+-------------+---------+--------------+
-// | 12141|      Boston|    229|united states|        4| north america|
-// |107527|West Chester|    229|united states|        4| north america|
-// | 21233|    Columbus|    229|united states|        4| north america|
-// | 94082|    Spanaway|    229|united states|        4| north america|
-// |  4773|     Ashburn|    229|united states|        4| north america|
-// +------+------------+-------+-------------+---------+--------------+
+).show(false)
 ```
 
 ### Path construction
@@ -269,9 +238,11 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 The production paths on Databricks are shown below. 
 
-```scala mdoc
-PathDB = new SetPaths()
+```scala mdoc:invisible
+PathDB = new SurgeonPathDB()
+```
 
+```scala mdoc
 // monthly
 Path.pbss("2023-02")
 Path.pbss("2023-{2-5}")
@@ -287,22 +258,28 @@ Path.pbss("2023-02-07T{8,9}")
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
-```scala 
-Path.pbss("2024-02-01T09").c3name("c3.TopServe")
-// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360}
+```scala mdoc:invisible 
+PathDB.root = PathDB.testPath
+PathDB.geoUtilPath = PathDB.testPath
+PathDB.pbssHourly = "pbss"
+```
+
+```scala mdoc
+// demonstrate using paths to Surgeon test data
+Path.pbss("2023-02-07T02").c3name("c3.TopServe")
 ``` 
 
 // To select by more than one customer name 
-```scala
-Path.pbss("2024-02-01T09").c3names(List("c3.TopServe", "c3.PlayFoot"))
-// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
+```scala mdoc:invisible
+// demonstrate using paths to Surgeon test data
+Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
 ```
 
 Only want to select any three customers for a given path, then do:
 
-```scala 
-Path.pbss("2024-02-01T09").c3take(2)
-// /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2024/m=02/d=01/dt=2024_02_01_09/cust={1960180360,1960002004}
+```scala mdoc:invisible
+// demonstrate using paths to Surgeon test data
+Path.pbss("2023-02-07T02").c3take(2)
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
@@ -316,8 +293,6 @@ from Ids, and get Ids from names.
 
 ```scala mdoc
 import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-PathDB.geoUtilPath = PathDB.testPath
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
 c3IdToName(List(1960184661, 1960003321))
