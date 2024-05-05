@@ -134,46 +134,13 @@ object Paths {
       }
   }
 
-  def idToString(s: Any): String = {
-    val out = s match {
-      case s: Int => s.toString
-      case s: String => s
-      case _ => throw new Exception("Argument must be either Int or String")
-    } 
-    out
-  }
-  def idsToString(s: List[Any]): String = {
-    val out = s match {
-      case s: List[Int] => s.mkString(",")
-      case s: List[String] => s.mkString(",")
-      case _ => throw new Exception("Argument must be either List[Int] or List[String]")
-    } 
-    out
-  }
-
   class SurgeonPath(val date: String) {
     private def returnPath(clist: String): String = date + s"/cust={${clist}}" 
-    def c3name(name: String) = returnPath(c3NameToId(name)(0).toString)
-    def c3names(names: List[String]) = returnPath(c3NameToId(names).mkString(","))
-    def c3id(id: Any) = returnPath(idToString(id))
-    def c3ids(ids: List[Any]) = returnPath(idsToString(ids))
+    def c3name(name: String*) = returnPath(c3NameToId(name:_*).mkString(","))
+    def c3id(id: Int*) = returnPath(id.mkString(","))
     def c3take(n: Int) = returnPath(c3IdOnPath(date.toString).sorted.take(n).mkString(","))
     def c3all() = returnPath("*")
     override def toString = date
   }
-
-  object Path {
-    def pbss(dt: String): SurgeonPath = {
-      val path = new DatesBuilder(dt, PathDB.pbssHourly).toString
-      new SurgeonPath(path)
-    }
-    def pbrl(dt: String): SurgeonPath = {
-      val path = new DatesBuilder(dt, PathDB.pbrlHourly).toString
-      new SurgeonPath(path)
-    }
-  }
-
-  // tt.cust(12345).paths
-  // tt.paths
 
 }

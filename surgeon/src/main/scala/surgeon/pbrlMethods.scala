@@ -22,7 +22,12 @@ object PbRl {
   import org.apache.spark.sql.functions.{lower, col, when, typedLit, array_join, array_remove, split}
   import org.apache.spark.sql.{Column}
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths.PathDB
+  import conviva.surgeon.Paths._
+
+  def pbrl(dt: String): SurgeonPath = {
+    val path = new DatesBuilder(dt, PathDB.pbrlHourly).toString
+    new SurgeonPath(path)
+  }
   
   val pbsdm = "payload.heartbeat.pbSdmEvents"
 

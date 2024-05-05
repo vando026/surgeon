@@ -29,6 +29,11 @@ import com.conviva.vmaStdMetrics.sess.StdSess
 
 object PbSS {
 
+  def pbss(dt: String): SurgeonPath = {
+    val path = new DatesBuilder(dt, PathDB.pbssHourly).toString
+    new SurgeonPath(path)
+  }
+
   /** Method to extract fields from the `lifeSwitchInfos` container. */
   def lifeSwitch(name: String): ArrayCol = {
     new ArrayCol(col(s"val.sessSummary.lifeSwitchInfos.$name"), name)

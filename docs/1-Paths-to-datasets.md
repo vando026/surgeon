@@ -133,9 +133,9 @@ To construct the path for one customer using the customer Id.
 ```scala mdoc
 Path.pbss("2023-02-07T02").c3id(1960184999)
 ```
-Using more than one customer Id, use `c3ids` with a `List`.
+Or more than one. 
 ```scala mdoc
-Path.pbss("2023-02-07T02").c3ids(List(1960184999, 1960180360))
+Path.pbss("2023-02-07T02").c3id(1960184999, 1960180360)
 ```
 Take the first n customer Ids
 ```scala mdoc
@@ -145,9 +145,9 @@ To select by customer name:
 ```scala mdoc
 Path.pbss("2023-02-07T02").c3name("c3.TopServe")
 ```
-To select by more than one customer name 
+Or more than one. 
 ```scala mdoc
-Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
+Path.pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
 ``` 
 
 > Compiled using version @VERSION@. 

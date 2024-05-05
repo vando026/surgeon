@@ -10,26 +10,6 @@ import org.apache.hadoop.conf._
 
 object Customer {
 
-  // Set Int to List[Int] for generic methods
-  def mkIntList[A](i: A): List[Int] = {
-    val out =  i match {
-      case (i: Int) => List(i)
-      case (i: List[Int]) => i
-      case (i: Array[Int]) => i.toList
-      case _ => throw new Exception("Must be either Int, Array[Int], List[Int]")
-    }
-    out
-  }
-  def mkStrList[A](i: A): List[String] = {
-    val out =  i match {
-      case (i: String) => List(i)
-      case (i: List[String]) => i
-      case (i: Array[String]) => i.toList
-      case _ => throw new Exception("Must be either String, Array[String], List[String]")
-    }
-    out
-  }
-
   /** Read the `/FileStore/Geo_Utils/c3ServiceConfig*.cvs` from Databricks, which
    *  contains customer names and ids. */
   def c3IdMap(): Map[Int, String] = getGeoData("customer")
@@ -38,25 +18,25 @@ object Customer {
    *  @param ids The ids of the customer.
    *  @param customerMap A map derived from `c3IdMap`.
    *  @example{{{
-   *  c3IdToName(List(196900922, 196300090), c3IdMap = c3IdMap()) 
-   *  c3IdToName(List(196900922, 196300090)) 
-   *  c3IdToName(196300090)
+   *  c3IdToName(196300090) 
+   *  c3IdToName(196900922, 196300090) 
+   *  c3IdToName(196900922, 196300090, c3IdMap = c3IdMap()) 
    *  }}}
    */
-  def c3IdToName[A](ids: A): List[String] = {
-    mkIntList(ids).map(getGeoData("customer").getOrElse(_, "Key_missing"))
+  def c3IdToName(ids: Int*): Seq[String] = { 
+    ids.map(i => getGeoData("customer").getOrElse(i, "Id_missing"))
   }
-  
+
   /** Get the ID of the customer name. 
    *  @param names The names of the customer.
    *  @param customerMap A map derived from `c3IdMap`.
    *  @example{{{
-   *  c3NameToId(List("c3.MLB", "c3.CBNS"))
    *  c3NameToId("c3.MLB")
+   *  c3NameToId("c3.MLB", "c3.CBNS")
    *  }}}
-   */
-  def c3NameToId[A](names: A): List[Int] = {
-    mkStrList(names).map(i => getGeoData("customer").filter(_._2 == i)).map(_.keys).flatten
+  */
+  def c3NameToId(names: String*): Seq[Int] = {
+    names.map(i => getGeoData("customer").filter(_._2 == i)).map(_.keys).flatten
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 
@@ -94,34 +74,5 @@ object Customer {
     }
   }
 
-
-  /* Get customer Ids that are in both paths. 
-   * @param path1 The first path
-   * @param path2 The second path
-   * @example{{{
-   * c3IdOnBothPaths(
-   *   HourlyRaw(2023, 5, 20, 10).toString, 
-   *   Hourly(2023, 5, 20, 10).toString
-   * )
-   * // without toString method
-   * c3IdOnBothPaths(
-   *   HourlyRaw(2023, 5, 20, 10), 
-   *   Hourly(2023, 5, 20, 10)
-   * )
-   * }}}
-  */
- case class c3IdOnBothPaths() {
-   def get(path1: String, path2: String): List[Int] = {
-    c3IdOnPath(path1).intersect(c3IdOnPath(path2))
-   }
-  }
-  object c3IdOnBothPaths {
-    def apply(path1: SurgeonPath, path2: SurgeonPath): List[Int] = {
-      c3IdOnBothPaths().get(path1.toString, path2.toString)
-    }
-    def apply(path1: String, path2: String): List[Int] = {
-      c3IdOnBothPaths().get(path1, path2)
-    }
-  }
 
 }

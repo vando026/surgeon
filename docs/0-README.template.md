@@ -38,7 +38,8 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 to this:
 
 ```scala mdoc:invisible 
-import org.apache.spark.sql.{SparkSession}
+import org.apache.spark.sql.{SparkSession, Column}
+import org.apache.spark.sql.functions._
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
 PathDB = TestProfile()
@@ -67,7 +68,7 @@ hourly_df.select(
     endedStatus, 
     shouldProcess, 
     intvStartTime
-  ).show(false)
+  ).show(3, false)
 ``` 
 
 ### Installation 
@@ -99,7 +100,7 @@ hourly_df.select(
   endedStatus,
   joinState, 
   joinTimeMs
-).show 
+).show(3) 
 ``` 
 
 It is also easy to query from structs, maps or arrays in PbSS and PbRl:
@@ -113,7 +114,7 @@ hourly_df.select(
   intvSwitch("networkBufferingTimeMs"), 
   invTags("sessionCreationTimeMs"), 
   sumTags("c3.video.isAd")
-).show
+).show(3)
 ```
 
 These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
@@ -122,6 +123,16 @@ These `Column` classes come with their own methods. See for example `geoInfo` be
 and 
 [PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
 for more details about this functionality.
+
+You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
+
+```scala mdoc
+hourly_df.select(
+  sessionId,
+  col("val.sessSummary.intvFirstBufferLengthMs"),
+  sessionState
+).show(3, false)
+```
 
 ### ID selction, formatting and conversion
 
@@ -144,7 +155,7 @@ hourly_df.select(
   sid6.concat, 
   sid6.concatToHex, 
   sid6.concatToUnsigned, 
-).show(false)
+).show(3, false)
 ```
 
 You can select the customer column using `customerId` and customer names using `customerName`.
@@ -153,7 +164,7 @@ You can select the customer column using `customerId` and customer names using `
 hourly_df.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
-).show(false)
+).show(1, false)
 ```
 
 See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
@@ -174,7 +185,7 @@ hourly_df.select(
   lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
   dayofweek(lifeFirstRecvTime.stamp).alias("dow"), // get the day of the week (Spark method)
   hour(lifeFirstRecvTime.stamp).alias("hour")      // get hour of the time (Spark method)
-).show
+).show(3, false)
 ```
 
 ### PbSS Core Library metrics
@@ -198,7 +209,7 @@ hourly_df.select(
   intvAvgBitrateKbps,
   intvBufferingTimeMs, 
   intvPlayingTimeMs
-).show(false)
+).show(3, false)
 ```
 
 Previously, to achieve this functionality, one had to run a chain of Notebooks
@@ -214,7 +225,7 @@ hourly_df.select(
   geoInfo("city"),        // Int: the city codes
   geoInfo("country"),     // Int: the country codes
   geoInfo("continent")    // Int: the continent codes
-).show(false)
+).show(3, false)
 ```
 
 It is hard to decipher what these codes mean, so Surgeon makes it easy by
@@ -272,7 +283,7 @@ Path.pbss("2023-02-07T02").c3name("c3.TopServe")
 // To select by more than one customer name 
 ```scala mdoc:invisible
 // demonstrate using paths to Surgeon test data
-Path.pbss("2023-02-07T02").c3names(List("c3.TopServe", "c3.PlayFoot"))
+Path.pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
 ```
 
 Only want to select any three customers for a given path, then do:
@@ -295,9 +306,9 @@ from Ids, and get Ids from names.
 import conviva.surgeon.Customer._
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3IdToName(1960180360)
-c3IdToName(List(1960184661, 1960003321))
+c3IdToName(1960184661, 1960003321)
 c3NameToId("c3.FappleTV")
-c3NameToId(List("c3.FappleTV", "c3.SATY"))
+c3NameToId("c3.FappleTV", "c3.SATY")
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.

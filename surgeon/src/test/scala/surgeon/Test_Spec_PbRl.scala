@@ -14,11 +14,8 @@ class PbRl_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB.geoUtilPath = PathDB.testPath
-  PathDB.root = PathDB.testPath
-  PathDB.pbrlHourly = "pbrl"
-
-  val path = Path.pbrl("2023-05-01T09").c3name("c3.DuoFC")
+  PathDB = TestProfile()
+  val path = pbrl("2023-05-01T09").c3name("c3.DuoFC")
   val dat = spark.read.parquet(path).cache
   val d701 = dat.where(sessionId === 701891892)
 
@@ -33,7 +30,7 @@ class PbRl_Suite extends munit.FunSuite {
     assertEquals(t1.select("c3_isAd_rc").first.apply(0).toString, "false")
   }
 
-  val path2 = Path.pbrl("2023-12-28T12").c3name("c3.FappleTV")
+  val path2 = pbrl("2023-12-28T12").c3name("c3.FappleTV")
   val dat2 = spark.read.parquet(path2)
 
   test("ipv6 should work as expected") {
