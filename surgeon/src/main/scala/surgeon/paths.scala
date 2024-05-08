@@ -5,7 +5,6 @@ object Paths {
   import java.time.{LocalDateTime, LocalDate}
   import java.time.format.DateTimeFormatter
   import java.time.temporal.ChronoUnit
-
   import org.apache.spark.sql.DataFrame
   import conviva.surgeon.Customer._
   import conviva.surgeon.GeoInfo._
@@ -145,13 +144,14 @@ object Paths {
       }
   }
 
-  class Builder(val date: String) {
-    def returnPath(clist: String): String = date + s"/cust={${clist}}" 
-    def c3name(name: String*) = returnPath(c3NameToId(name:_*).mkString(","))
+  class Builder(dt: String, paths: PathDB) {
+    val c3 = C3(paths)
+    def returnPath(clist: String): String = dt + s"/cust={${clist}}" 
+    def c3name(name: String*) = returnPath(c3.nameToId(name:_*).mkString(","))
     def c3id(id: Int*) = returnPath(id.mkString(","))
-    def c3take(n: Int) = returnPath(c3IdOnPath(date.toString).sorted.take(n).mkString(","))
+    def c3take(n: Int) = returnPath(c3.idOnPath(dt).sorted.take(n).mkString(","))
     def c3all() = returnPath("*")
-    override def toString = date
+    override def toString = dt
   }
 
   case class ProdPbSS() extends PathDB
@@ -181,19 +181,8 @@ object Paths {
   case class SurgeonPath(paths: PathDB) {
     def make(dt: String) = {
       val path = new DatesBuilder(dt, paths).toString
-      new Builder(path)
+      new Builder(path, paths)
     }
   }
-
-  // def pbss(date: String) = Path(ProdPbSS()).make(date)
-  // pbss("2023-02-02")
-  // def pbss(date: String) = Path(TestPbSS()).make(date)
-  // pbss("2023-02-02")
-
-
-  // def pbrl(date: String) = Path(ProdPbRl()).make(date)
-  // pbrl("2023-02-02")
-  // def pbss(date: String) = Path(TestPbSS()).pbssMake(date)
-  // pbss("2023-02-02")
 
 }

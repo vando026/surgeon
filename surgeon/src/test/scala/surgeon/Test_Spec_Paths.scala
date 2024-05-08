@@ -63,7 +63,6 @@ class PathSuite extends munit.FunSuite {
 
   val hroot = s"${ProdPbSS().root}/${ProdPbSS().hourly}"
   test("PbSS.Hourly is expected") {
-    import conviva.surgeon.PbSS._
     val expect1 = s"${hroot}/y=2023/m=02/d=04/dt=2023_02_04_23"
     val expect2 = s"${hroot}/y=2023/m=02/d=22/dt=2023_02_22_{00,01,02,03}"
     val expect3 = s"${hroot}/y=2023/m=02/d=22/dt=2023_02_22_{10,11,12}"
@@ -96,21 +95,24 @@ class PathSuite extends munit.FunSuite {
 
 
   test("Test data path should work as expected") {
+    def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
     val path = pbss("2023-02-07T02").c3name("c3.TopServe")
     assertEquals(path, "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
   }
 
   test("Take should work as expected") {
-    val expect1 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
+    def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
+    val expect1 = TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
     val t1 = pbss("2023-02-07T02").c3take(3)
     assertEquals(t1, expect1)
     val t2 = pbss("2023-02-07T02").c3take(1)
-    assertEquals(t2, ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
+    assertEquals(t2, TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
   }
 
   test("c3 methods should work as expected") {
-    val expect1 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
-    val expect2 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
+    def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
+    val expect1 = TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+    val expect2 = TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
     val t1 = pbss("2023-02-07T02").c3name("c3.TopServe")
     assertEquals(t1, expect1)
     val t2 = pbss("2023-02-07T02").c3name("c3.TopServe", "c3.FappleTV")

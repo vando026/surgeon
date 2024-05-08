@@ -2,6 +2,9 @@
 // setup code
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import conviva.surgeon.Paths._
+import conviva.surgeon.GeoInfo._
+import conviva.surgeon.Customer._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
 ```
 
@@ -16,7 +19,9 @@ import conviva.surgeon.PbSS._
 ```
 
 ```scala mdoc:invisible 
-PathDB = TestProfile()
+def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
+def customerName() = CustomerName(TestPbSS().geoUtilPath).make(customerId)
+def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
 ```
 
 ```scala mdoc
@@ -238,21 +243,6 @@ dat.select(
   geoInfo("city").label,      // Int: the city codes
   geoInfo("country").label   // Int: the country codes
 )
-```
-
-
-You can provide your own custom Map of labels for the `geoInfo` codes. Make sure to
-pass it to `Some`. 
-
-```scala mdoc
-val customCity = Some(Map(289024 -> "North Tarland"))
-val customCountry = Some(Map(165 -> "Redland"))
-dat.select(
-  geoInfo("city", customCity),    
-  geoInfo("country", customCountry),
-  geoInfo("city", customCity).label,
-  geoInfo("country", customCountry).label
-).show
 ```
 
 > Compiled using version @VERSION@. 

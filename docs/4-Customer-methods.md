@@ -1,10 +1,10 @@
-```scala mdoc
+```scala mdoc:invisible
 import org.apache.spark.sql.{SparkSession}
 val spark = SparkSession.builder
   .master("local[*]")
   .getOrCreate
 import conviva.surgeon.Paths._
-PathDB = TestProfile()
+import conviva.surgeon.PbSS._ 
 ```
 
 
@@ -15,7 +15,11 @@ data from the Test folder.
 
 ```scala mdoc
 import conviva.surgeon.Customer._
-import conviva.surgeon.Paths._
+```
+
+```scala mdoc:invisible
+val c3 = C3(TestPbSS())
+def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 ```
 
 ### Convert customer Id to name
@@ -26,8 +30,8 @@ customer data as the second.
 
 ```scala mdoc 
 // must be Int 
-c3IdToName(1960181845)
-c3IdToName(1960181845, 1960002004)
+c3.idToName(1960181845)
+c3.idToName(1960181845, 1960002004)
 ```
 ### Convert customer name to Id
 
@@ -35,8 +39,8 @@ Conversely, you can get a customer name from an Id from the customer data.
 
 ```scala mdoc 
 // can be String 
-c3NameToId("TV2")
-c3NameToId("TV2", "BASC")
+c3.nameToId("TV2")
+c3.nameToId("TV2", "BASC")
 ```
 
 ### Customer Ids and names on Databricks path
@@ -47,14 +51,14 @@ argument.  For example, you want to know all the customer ids for a given hour
 for PbSS data. 
 
 ```scala mdoc
-val path = Path.pbss("2023-02-07T02") 
-c3IdOnPath(path)
+val path = pbss("2023-02-07T02") 
+c3.idOnPath(path.toString)
 ```
 
 You can go one step further and convert the IDs to names, like so.
 
 ```scala mdoc
-c3IdToName(c3IdOnPath(path):_*)
+c3.idToName(c3.idOnPath(path.toString):_*)
 ```
 
 

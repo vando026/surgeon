@@ -4,22 +4,28 @@ import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
+import conviva.surgeon.Customer._
+import conviva.surgeon.GeoInfo._
+import conviva.surgeon.Paths._
 ```
 
 ## Parquet RawLog (PbRl)
 
 Surgeon tries to simply the selection of columns when reading a PbSS or PbRl dataset for the
-first time. To demonstrate,  first import surgeon's `PbRl`  object and other `Spark` necessities,
+first time. To demonstrate,  first import surgeon's `PbRl`  object, 
 set the file path, and read the data. 
 
-```scala mdoc:invisible
+```scala mdoc 
 import conviva.surgeon.PbRl._
-import conviva.surgeon.Paths._
-PathDB = TestProfile()
+```
+
+```scala mdoc:invisible 
+def pbrl(date: String) = SurgeonPath(TestPbRl()).make(date)
+def customerName() = CustomerName(TestPbRl().geoUtilPath).make(customerId)
+def geoInfo(field: String) = GeoBuilder(TestPbRl().geoUtilPath).make(field)
 ```
 
 ```scala mdoc
-import conviva.surgeon.PbRl._
 val path = pbrl("2023-05-01T09").c3id(1960181845)
 val dat = spark.read.parquet(path).where(sessionId === 701891892) 
 ```

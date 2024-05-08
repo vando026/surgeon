@@ -39,7 +39,7 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("CustomerName should be expected") {
-    def customerName() = CustomerName(ProdPbSS()).make(customerId)
+    def customerName() = CustomerName(TestPbSS().geoUtilPath).make(customerId)
     val cdat = d8905.select(customerName).first.getString(0)
     assertEquals(cdat, "c3.TopServe")
   }
@@ -199,6 +199,7 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("geoInfo select and label should work as expected") {
+    def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
     assertEquals(d8905.select(geoInfo("city")).first.getInt(0), 289024)
     assertEquals(d8905.select(geoInfo("city").label).first.getString(0), "NewYark")
     assertEquals(d8905.select(geoInfo("country")).first.getShort(0).toInt, 165)
@@ -229,6 +230,7 @@ class PbSS_Suite extends munit.FunSuite {
  }
 
  test("select containers cols should run without issues") {
+  def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
   val dat2 = dat.select(
     sessSum("playerState"), 
     d3SessSum("lifePausedTimeMs"),
@@ -237,7 +239,7 @@ class PbSS_Suite extends munit.FunSuite {
     intvSwitch("networkBufferingTimeMs"), 
     invTags("sessionCreationTimeMs"), 
     sumTags("c3.video.isAd"), 
-    geoInfo("city", Some(Map(1 -> "Test"))),
+    geoInfo("city"),
   )
  }
 
