@@ -16,8 +16,8 @@ class PbSSCoreLib_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB = TestProfile()
 
+  def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
   val path = pbss("2023-02-07T02").c3name("c3.TopServe")
   val dat = spark.read.parquet(path).cache
   val d8905 = dat.where(sessionId === 89057425)

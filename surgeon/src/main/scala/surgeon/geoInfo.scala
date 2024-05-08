@@ -6,7 +6,8 @@ object GeoInfo {
   import org.apache.hadoop.fs._
   import org.apache.hadoop.conf._
   import scala.xml._
-  import org.apache.spark.sql.{SparkSession, Row}
+  import org.apache.spark.sql.{SparkSession, Row, Column}
+  import org.apache.spark.sql.functions.{col, typedLit}
     
   def getGeoTypes = Map(
       ("continent" -> "continents_dat.gp"), 
@@ -24,14 +25,15 @@ object GeoInfo {
   )
 
   // Read GEO file, convert it to Scala Map and load to geoMap
-    def getGeoData(geoName: String): Map[Int, String] = {
+  case class GetGeoData(path: String) {
+    def data(geoName: String): Map[Int, String] = {
       val fileName = getGeoTypes.getOrElse(geoName, "Unknown")
       val result = fileName match {
         // if there is no match, make an dummy map
         case "Unknown" => Map(9999 -> "Unknown")
         case _ => {
           val ss = SparkSession.builder.getOrCreate.sparkContext.hadoopConfiguration
-          val xpath = new Path(PathDB.geoUtilPath + "/" + fileName)
+          val xpath = new Path(s"${path}/${fileName}")
           val fs = xpath.getFileSystem(new Configuration)
           val dat = scala.io.Source.fromInputStream(fs.open(xpath)).getLines
           val out = geoName match {
@@ -46,7 +48,35 @@ object GeoInfo {
 
           }
       }
-      result
+      result 
     }
+  }
+
+  class GeoCol(col: Column, field: String, labels: Map[Int, String]) extends Column(col.expr) {
+    def label(): Column  = {
+      val gLit: Column = typedLit(labels) 
+      gLit(col).alias(s"${field}Label")
+    }
+  }
+
+  /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
+  case class GeoBuilder(path: String) {
+    def make(field: String): GeoCol = {
+      val gcol = col(s"val.invariant.geoInfo.$field")
+      val gMap = GetGeoData(path).data(field)
+      new GeoCol(gcol, field, gMap)
+    }
+  }
+
+
+  case class CustomerName(path: String) {
+    def make(field: Column): Column = {
+      val gMap = GetGeoData(path).data("customer")
+      val gLit: Column = typedLit(gMap) 
+      gLit(field).alias(s"customerName")
+    }
+  }
+
+
 
 }

@@ -1,14 +1,5 @@
 package conviva.surgeon
 
-import conviva.surgeon.Sanitize._
-import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
-import org.apache.spark.sql.{Column, Row}
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.PbSSCoreLib._
-import conviva.surgeon.Paths._
-import conviva.surgeon.Customer._
-import org.apache.spark.sql.{functions => F}
-import com.conviva.vmaStdMetrics.sess.StdSess
   
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -29,10 +20,17 @@ import com.conviva.vmaStdMetrics.sess.StdSess
 
 object PbSS {
 
-  def pbss(dt: String): SurgeonPath = {
-    val path = new DatesBuilder(dt, PathDB.pbssHourly).toString
-    new SurgeonPath(path)
-  }
+  import conviva.surgeon.Sanitize._
+  import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
+  import org.apache.spark.sql.{Column, Row}
+  import conviva.surgeon.GeoInfo._
+  import conviva.surgeon.PbSSCoreLib._
+  import conviva.surgeon.Paths._
+  import conviva.surgeon.Customer._
+  import org.apache.spark.sql.{functions => F}
+  import com.conviva.vmaStdMetrics.sess.StdSess
+
+  def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 
   /** Method to extract fields from the `lifeSwitchInfos` container. */
   def lifeSwitch(name: String): ArrayCol = {
@@ -80,11 +78,7 @@ object PbSS {
   }
 
   /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
-  def geoInfo(field: String, geomap: Option[Map[Int, String]] = None): GeoCol = {
-    val gcol = col(s"val.invariant.geoInfo.$field")
-    val gMap = geomap.getOrElse(getGeoData(field))
-    new GeoCol(gcol, field, gMap)
-  }
+  def geoInfo(field: String) = GeoBuilder(ProdPbSS().geoUtilPath).make(field)
 
   /** Extract the `customerId` column as is.
    * @example{{{
@@ -101,12 +95,7 @@ object PbSS {
    * )
    * }}}
   */ 
-  def customerName(): Column = {
-    // val gPath = path.getOrElse(PathDB.geoUtil)
-    val gMap = getGeoData("customer")
-    val gLit: Column = typedLit(gMap) 
-    gLit(customerId).alias(s"customerName")
-  }
+  def customerName(): Column = CustomerName(ProdPbSS().geoUtilPath).make(customerId)
 
   /** Extract the `clientSessionId` column as is or $signed. The field is
    *  renamed to `sessionId`.

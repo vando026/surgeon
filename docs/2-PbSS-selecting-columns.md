@@ -2,10 +2,7 @@
 // setup code
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import conviva.surgeon.Paths._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-PathDB = TestProfile()
-import conviva.surgeon.GeoInfo._
 ```
 
 ## Parquet Session Summary  (PbSS)
@@ -14,11 +11,16 @@ Surgeon simplifies the selection of columns when reading a dataset for the
 first time. Data from Surgeon's test data (on Github) is used for this
 demonstration. 
 
+```scala mdoc
+import conviva.surgeon.PbSS._ 
+```
+
+```scala mdoc:invisible 
+PathDB = TestProfile()
+```
 
 ```scala mdoc
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._ 
-val path = Path.pbss("2023-02-07T02").c3id(1960180360)
+val path = pbss("2023-02-07T02").c3id(1960180360)
 val dat0 = spark.read.parquet(path).cache
 // Select only one client session Id
 val dat = dat0.where(sessionId === 89057425)

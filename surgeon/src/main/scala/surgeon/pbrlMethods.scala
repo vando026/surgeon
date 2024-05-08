@@ -23,11 +23,9 @@ object PbRl {
   import org.apache.spark.sql.{Column}
   import conviva.surgeon.GeoInfo._
   import conviva.surgeon.Paths._
+  import conviva.surgeon.Customer._
 
-  def pbrl(dt: String): SurgeonPath = {
-    val path = new DatesBuilder(dt, PathDB.pbrlHourly).toString
-    new SurgeonPath(path)
-  }
+  def pbrl(date: String) = SurgeonPath(ProdPbRl()).make(date)
   
   val pbsdm = "payload.heartbeat.pbSdmEvents"
 
@@ -51,11 +49,7 @@ object PbRl {
   }
 
   /** Method for extracting fields from `payload.heartbeat.geoInfo`. */
-  def geoInfo(field: String, geomap: Option[Map[Int, String]] = None): GeoCol = {
-    val gcol = col(s"payload.heartbeat.geoInfo.$field")
-    val gMap = geomap.getOrElse(getGeoData(field))
-    new GeoCol(gcol, field, gMap)
-  }
+  def geoInfo(field: String) = GeoBuilder(ProdPbRl().geoUtilPath).make(field)
 
   /** Method for extracting fields from `payload.heartbeat.clientTags`. Fields
    *  with periods are replaced with underscores by default.*/
@@ -104,12 +98,7 @@ object PbRl {
    * df.select(customerName)
    * }}}
   */ 
-  def customerName(): Column = {
-    // val gPath = path.getOrElse(PathDB.geoUtil)
-    val gMap = getGeoData("customer")
-    val gLit: Column = typedLit(gMap) 
-    gLit(customerId).alias(s"customerName")
-  }
+  def customerName(): Column = CustomerName(ProdPbRl().geoUtilPath).make(customerId)
 
   /** Extract the `clientSessionId` column as is.
    * @example{{{

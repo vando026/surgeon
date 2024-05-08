@@ -40,17 +40,19 @@ to this:
 ```scala mdoc:invisible 
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
-PathDB = TestProfile()
-// PathDB.root = PathDB.testPath
-// PathDB.pbssHourly = "pbss"    
-// PathDB.geoUtilPath = PathDB.testPath
 val spark = SparkSession.builder.master("local[*]").getOrCreate
 ```
 
+```scala mdoc 
+import conviva.surgeon.PbSS._
+```
+
+```scala mdoc:invisible
+PathDB = conviva.surgeon.Test.Profile()
+```
+
 ```scala mdoc
-val path = Path.pbss("2023-02-07T02").c3id(1960180360)
+val path = pbss("2023-02-07T02").c3id(1960180360)
 val hourly_df = spark.read.parquet(path)
 hourly_df.select(
     customerId, 
@@ -160,7 +162,16 @@ hourly_df.select(
 
 You can select the customer column using `customerId` and customer names using `customerName`.
 
-```scala mdoc
+```scala mdoc:invisible
+import conviva.surgeon.GeoInfo._
+def customerName(path: String = PathDB.geoUtilPath): Column = {
+val gMap = getGeoData("customer", path)
+val gLit: Column = typedLit(gMap) 
+gLit(customerId).alias(s"customerName")
+}
+```
+
+```scala doc
 hourly_df.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
@@ -250,47 +261,42 @@ Surgeon makes constructing the paths to the data easier.
 The production paths on Databricks are shown below. 
 
 ```scala mdoc:invisible
-PathDB = new SurgeonPathDB()
+import conviva.surgeon.PbSS._
 ```
 
 ```scala mdoc
 // monthly
-Path.pbss("2023-02")
-Path.pbss("2023-{2-5}")
+pbss("2023-02")
+pbss("2023-{2-5}")
 
 // daily
-Path.pbss("2023-02-07")
-Path.pbss("2023-02-{7,9,14}")
+pbss("2023-02-07")
+pbss("2023-02-{7,9,14}")
 
 // hourly
-Path.pbss("2023-02-07T09")
-Path.pbss("2023-02-07T{8,9}")
+pbss("2023-02-07T09")
+pbss("2023-02-07T{8,9}")
 ```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
-```scala mdoc:invisible 
-PathDB.root = PathDB.testPath
-PathDB.geoUtilPath = PathDB.testPath
-PathDB.pbssHourly = "pbss"
-```
-
 ```scala mdoc
 // demonstrate using paths to Surgeon test data
-Path.pbss("2023-02-07T02").c3name("c3.TopServe")
+PathDB = conviva.surgeon.Test.Profile()
+pbss("2023-02-07T02").c3name("c3.TopServe")
 ``` 
 
 // To select by more than one customer name 
 ```scala mdoc:invisible
 // demonstrate using paths to Surgeon test data
-Path.pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
+pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
 ```
 
 Only want to select any three customers for a given path, then do:
 
 ```scala mdoc:invisible
 // demonstrate using paths to Surgeon test data
-Path.pbss("2023-02-07T02").c3take(2)
+pbss("2023-02-07T02").c3take(2)
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.

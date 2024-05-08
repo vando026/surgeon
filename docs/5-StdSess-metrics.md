@@ -3,9 +3,6 @@ import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-PathDB = TestProfile()
 ```
 
 ## StdSess (Druid) metrics
@@ -13,13 +10,17 @@ PathDB = TestProfile()
 Surgeon makes several `StdSess` metrics available; these metrics are usually
 shown in Druid, such as `VSF`, `VSFT`, `VPF`, `EBVS`, and so on. 
 
+```scala mdoc:invisible 
+import conviva.surgeon.PbSS._
+import conviva.surgeon.Paths._
+PathDB = TestProfile()
+
+```
 
 ```scala mdoc
 import conviva.surgeon.PbSS._
-import conviva.surgeon.Paths._
-
 // First point to the customer data in this test env
-val path = Path.pbss("2023-02-07T02").c3id(1960180360)
+val path = pbss("2023-02-07T02").c3id(1960180360)
 // Read in the test data
 val dat0 = spark.read.parquet(path).cache
 // Select only one client session Id

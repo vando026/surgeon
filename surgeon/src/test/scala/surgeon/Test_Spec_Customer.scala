@@ -14,14 +14,14 @@ class CustomerSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB.geoUtilPath = PathDB.testPath 
 
   test("ServiceConfig data is expected") {
     assertEquals(getGeoData("customer")(1960180360), "c3.TopServe")
   }
 
   test("Customer list is expected") {
-    val t1 = getGeoData("customer").filter(x => x._2 == "c3.TopServe").map(_._1).toList
+    val t1 = GetGeoData(TestPbSS.geoUtilPath).data("customer")
+      .filter(x => x._2 == "c3.TopServe").map(_._1).toList
     assertEquals(t1, List(1960180360))
   }
 

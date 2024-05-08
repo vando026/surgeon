@@ -7,7 +7,6 @@ object Sanitize {
 
   import org.apache.spark.sql.{Column}
   import org.apache.spark.sql.{functions => F}
-  import conviva.surgeon.GeoInfo._
 
   /** Convert to Unix epoch time to a different timescale.
    *  @param field The name of the field. 
@@ -167,13 +166,6 @@ object Sanitize {
     /** Return true if element in array contains value. */
     def has(value: Any): Column = {
       F.array_contains(col, value).alias(s"${name}HasVal")
-    }
-  }
-
-  class GeoCol(col: Column, field: String, labels: Map[Int, String]) extends Column(col.expr) {
-    def label(): Column  = {
-      val gLit: Column = F.typedLit(labels) 
-      gLit(col).alias(s"${field}Label")
     }
   }
 

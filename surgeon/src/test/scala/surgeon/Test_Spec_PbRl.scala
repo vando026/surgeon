@@ -14,7 +14,8 @@ class PbRl_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB = TestProfile()
+  def pbrl(date: String) = SurgeonPath(TestPbRl()).make(date)
+
   val path = pbrl("2023-05-01T09").c3name("c3.DuoFC")
   val dat = spark.read.parquet(path).cache
   val d701 = dat.where(sessionId === 701891892)

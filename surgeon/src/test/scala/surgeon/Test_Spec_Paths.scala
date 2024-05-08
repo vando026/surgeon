@@ -14,11 +14,10 @@ class PathSuite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  import conviva.surgeon.PbSS._
-  PathDB = TestProfile()
+  def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 
   test("pbssMonth is expected") {
-    val mroot  = s"${PathDB.root}/${PathDB.pbssMonthly}"
+    val mroot  = s"${ProdPbSS().root}/${ProdPbSS().monthly}"
     val expect1 = s"${mroot}/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00"
     val expect2 = s"${mroot}/y=2022/m=12/dt=c2022_12_01_08_00_to_2023_01_01_08_00/cust={1960180360}"
     val expect3 = s"${mroot}/y=2023/m={02,03,04}/dt=c2023_{02,03,04}_01_08_00_to_2023_{03,04,05}_01_08_00"
@@ -35,7 +34,7 @@ class PathSuite extends munit.FunSuite {
   }
 
   test("pbssDay is expected") {
-    val droot = s"${PathDB.root}/${PathDB.pbssDaily}"
+    val droot = s"${ProdPbSS().root}/${ProdPbSS().daily}"
     val expect1 = s"${droot}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00"
     val expect2 = s"${droot}/y=2023/m=02/dt=d2023_02_22_08_00_to_2023_02_23_08_00/cust={1960180360}"
     val expect3 = s"${droot}/y=2023/m=02/dt=d2023_02_{22,23}_08_00_to_2023_02_{23,24}_08_00"
@@ -62,7 +61,7 @@ class PathSuite extends munit.FunSuite {
   }
 
 
-  val hroot = s"${PathDB.root}/${PathDB.pbssHourly}"
+  val hroot = s"${ProdPbSS().root}/${ProdPbSS().hourly}"
   test("PbSS.Hourly is expected") {
     import conviva.surgeon.PbSS._
     val expect1 = s"${hroot}/y=2023/m=02/d=04/dt=2023_02_04_23"
@@ -102,16 +101,16 @@ class PathSuite extends munit.FunSuite {
   }
 
   test("Take should work as expected") {
-    val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
+    val expect1 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
     val t1 = pbss("2023-02-07T02").c3take(3)
     assertEquals(t1, expect1)
     val t2 = pbss("2023-02-07T02").c3take(1)
-    assertEquals(t2, PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
+    assertEquals(t2, ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
   }
 
   test("c3 methods should work as expected") {
-    val expect1 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
-    val expect2 = PathDB.testPath + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
+    val expect1 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+    val expect2 = ProdPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960184661}"
     val t1 = pbss("2023-02-07T02").c3name("c3.TopServe")
     assertEquals(t1, expect1)
     val t2 = pbss("2023-02-07T02").c3name("c3.TopServe", "c3.FappleTV")
@@ -126,14 +125,6 @@ class PathSuite extends munit.FunSuite {
     // assertEquals(t6, expect1)
   }
 
-  import conviva.surgeon.PbRl._
-  PathDB = TestProfile()
-
-  test("pbrlHour is expected") {
-    val expect1 = s"${PathDB.root}/${PathDB.pbrlHourly}/y=2024/m=02/d=01/dt=2024_02_01_00/cust={1960180442}"
-    val t1 = pbrl("2024-02-01T00").c3id(1960180442)
-    assertEquals(t1, expect1)
-  }
 
 }
 

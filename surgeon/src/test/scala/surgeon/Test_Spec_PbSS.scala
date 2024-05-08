@@ -15,7 +15,7 @@ class PbSS_Suite extends munit.FunSuite {
       .master("local[*]")
       .getOrCreate()
 
-  PathDB = TestProfile()
+  def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 
   val path = pbss("2023-02-07T02").c3name("c3.TopServe")
   val dat = spark.read.parquet(path).cache
@@ -39,6 +39,7 @@ class PbSS_Suite extends munit.FunSuite {
   }
 
   test("CustomerName should be expected") {
+    def customerName() = CustomerName(ProdPbSS()).make(customerId)
     val cdat = d8905.select(customerName).first.getString(0)
     assertEquals(cdat, "c3.TopServe")
   }
@@ -204,15 +205,6 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(d8905.select(geoInfo("country").label).first.getString(0), "Norway")
   }
 
-  test("customerName should work") {
-    def customerName(): Column = {
-      val gMap = getGeoData("customer")
-      val gLit: Column = typedLit(gMap) 
-      gLit(customerId).alias(s"customerName")
-    }
-    val t1 = d8905.select(customerName).first.getString(0)
-    assertEquals(t1, "c3.TopServe")
-  }
 
  // for documentation
 

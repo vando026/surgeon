@@ -12,7 +12,8 @@ object Customer {
 
   /** Read the `/FileStore/Geo_Utils/c3ServiceConfig*.cvs` from Databricks, which
    *  contains customer names and ids. */
-  def c3IdMap(): Map[Int, String] = getGeoData("customer")
+  def c3IdMap(path: String = ProdPbSS().geoUtilPath ): Map[Int, String] = 
+    GetGeoData(path).data("customer")
 
   /** Get the ID of the customer name. 
    *  @param ids The ids of the customer.
@@ -24,7 +25,7 @@ object Customer {
    *  }}}
    */
   def c3IdToName(ids: Int*): Seq[String] = { 
-    ids.map(i => getGeoData("customer").getOrElse(i, "Id_missing"))
+    ids.map(i => GetGeoData(ProdPbSS().geoUtilPath).data("customer").getOrElse(i, "Id_missing"))
   }
 
   /** Get the ID of the customer name. 
@@ -36,7 +37,8 @@ object Customer {
    *  }}}
   */
   def c3NameToId(names: String*): Seq[Int] = {
-    names.map(i => getGeoData("customer").filter(_._2 == i)).map(_.keys).flatten
+    names.map(i => GetGeoData(ProdPbSS().geoUtilPath).data("customer")
+      .filter(_._2 == i)).map(_.keys).flatten
   }
 
   /** Get the customer IDs associated with a file path on Databricks. 
