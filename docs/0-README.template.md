@@ -248,7 +248,7 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 The production paths on Databricks are shown below. 
 
-```scala:invisible:reset
+```scala mdoc:reset:invisible
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
@@ -273,7 +273,7 @@ pbss("2023-02-07T09")
 pbss("2023-02-07T{8,9}")
 ```
 
-```scala:invisible:reset
+```scala mdoc:reset:invisible
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
