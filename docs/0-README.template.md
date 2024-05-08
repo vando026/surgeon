@@ -37,18 +37,16 @@ sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 
 to this:
 
-```scala mdoc  
+```scala mdoc:invisible
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
 import conviva.surgeon.GeoInfo._
 import conviva.surgeon.Paths._
 import conviva.surgeon.PbSS._
-```
-
-```scala mdoc
 def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 def customerName() = CustomerName(TestPbSS().geoUtilPath).make(customerId)
+def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
 ```
 
 ```scala mdoc
@@ -162,7 +160,7 @@ hourly_df.select(
 
 You can select the customer column using `customerId` and customer names using `customerName`.
 
-```scala doc
+```scala mdoc
 hourly_df.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
@@ -179,7 +177,7 @@ these columns using the short name, which come with a `stamp` method to format
 values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
 seconds since Unix epoch, and a `toMs` method. 
 
-```scala 
+```scala mdoc
 hourly_df.select(
   lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
@@ -192,7 +190,7 @@ hourly_df.select(
 ### PbSS Core Library metrics
 Surgeon makes it easy to select columns that are constructed from the PbSS Core Library, which cannot be found in the PbSS data:
 
-```scala 
+```scala mdoc
 hourly_df.select(
   isAttempt,
   hasJoined,
@@ -221,7 +219,7 @@ on Databricks, which took long and produced much verbose output.
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
 columns like so:
 
-```scala 
+```scala mdoc
 hourly_df.select(
   geoInfo("city"),        // Int: the city codes
   geoInfo("country"),     // Int: the country codes
@@ -234,7 +232,7 @@ providing a `label` method to map the codes to names:
 
 
 
-```scala 
+```scala mdoc
 hourly_df.select(
   geoInfo("city"),            // Int: the city codes
   geoInfo("city").label,      // String: the city names
@@ -250,7 +248,7 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 The production paths on Databricks are shown below. 
 
-```scala:reset:invisible 
+```scala:invisible:reset
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
@@ -275,7 +273,7 @@ pbss("2023-02-07T09")
 pbss("2023-02-07T{8,9}")
 ```
 
-```scala:reset:invisible 
+```scala:invisible:reset
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
