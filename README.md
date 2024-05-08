@@ -333,61 +333,41 @@ hourly_df.select(
 Surgeon makes constructing the paths to the data easier. 
 The production paths on Databricks are shown below. 
 
-```scala:invisible:reset
-import org.apache.spark.sql.{SparkSession, Column}
-import org.apache.spark.sql.functions._
-val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
-def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
-```
 
 ```scala
 // monthly
 pbss("2023-02")
-// res10: Builder = ./surgeon/src/test/data//y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
+// res11: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 pbss("2023-{2-5}")
-// res11: Builder = ./surgeon/src/test/data//y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
+// res12: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
 pbss("2023-02-07")
-// res12: Builder = ./surgeon/src/test/data//y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
+// res13: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
 pbss("2023-02-{7,9,14}")
-// res13: Builder = ./surgeon/src/test/data//y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
+// res14: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
 
 // hourly
 pbss("2023-02-07T09")
-// res14: Builder = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_09
+// res15: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
 pbss("2023-02-07T{8,9}")
-// res15: Builder = ./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
+// res16: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
 ```
 
-```scala:invisible:reset
-import org.apache.spark.sql.{SparkSession, Column}
-import org.apache.spark.sql.functions._
-val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
-def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
-```
 
 Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe")
-// res16: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+// res18: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 ``` 
 
 // To select by more than one customer name 
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
-// res17: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
+// res19: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
 ```
 
 Only want to select any three customers for a given path, then do:
@@ -395,7 +375,7 @@ Only want to select any three customers for a given path, then do:
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3take(2)
-// res18: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
+// res20: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
@@ -411,13 +391,13 @@ from Ids, and get Ids from names.
 ```scala
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3.idToName(1960180360)
-// res19: Seq[String] = ArrayBuffer("c3.TopServe")
+// res21: Seq[String] = ArrayBuffer("c3.TopServe")
 c3.idToName(1960184661, 1960003321)
-// res20: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
+// res22: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
 c3.nameToId("c3.FappleTV")
-// res21: Seq[Int] = ArrayBuffer(1960184661)
+// res23: Seq[Int] = ArrayBuffer(1960184661)
 c3.nameToId("c3.FappleTV", "c3.SATY")
-// res22: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
+// res24: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
