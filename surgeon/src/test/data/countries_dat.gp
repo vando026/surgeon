@@ -1,3 +1,3 @@
 0|Unknown
-165|Norway
-229|united states
+229|Norway
+165|united states

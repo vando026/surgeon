@@ -9,6 +9,7 @@ class PbSS_Suite extends munit.FunSuite {
   import conviva.surgeon.GeoInfo._
   import conviva.surgeon.PbSSCoreLib._
   import conviva.surgeon.Paths._
+  import conviva.surgeon.Customer._
 
   val spark = SparkSession
       .builder()
@@ -21,6 +22,12 @@ class PbSS_Suite extends munit.FunSuite {
   val dat = spark.read.parquet(path).cache
   val d8905 = dat.where(sessionId === 89057425)
     .withColumn("sessionAdId", lit(200500))
+
+  test("Customer methods should work") {
+    val c3 = C3(TestPbSS())
+    val t1 = c3.nameToId("c3.TopServe")
+    assertEquals(t1(0), 1960180360)
+  }
 
   /** Helper function to test time fields. */ 
   def testTimeIsMs(dat: DataFrame, field: TimeMsCol, 
@@ -203,7 +210,7 @@ class PbSS_Suite extends munit.FunSuite {
     assertEquals(d8905.select(geoInfo("city")).first.getInt(0), 289024)
     assertEquals(d8905.select(geoInfo("city").label).first.getString(0), "NewYark")
     assertEquals(d8905.select(geoInfo("country")).first.getShort(0).toInt, 165)
-    assertEquals(d8905.select(geoInfo("country").label).first.getString(0), "Norway")
+    assertEquals(d8905.select(geoInfo("country").label).first.getString(0), "united states")
   }
 
 

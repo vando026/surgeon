@@ -25,6 +25,9 @@ object PbRl {
   import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
 
+  /** Instantiate a class for C3 methods.**/
+  val c3 = C3(ProdPbRl())
+
   def pbrl(date: String) = SurgeonPath(ProdPbRl()).make(date)
   
   val pbsdm = "payload.heartbeat.pbSdmEvents"

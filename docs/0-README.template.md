@@ -6,37 +6,6 @@
 
 A Scala library with that makes it easy to read and query parquet Session Summary (PbSS) and RawLog (PbRl) data. For example, Surgeon reduces this mess (taken from a sample notebook on Databricks):
 
-```scala 
-val hourly_df = sqlContext.read.parquet("/mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/
-  st=0/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
-hourly_df.createOrReplaceTempView("hourly_df")
-
-val sessionSummary_simplified = sqlContext.sql(s"""
-select key.sessId.customerId customerId
-      , key.sessId.clientId clientId
-      , key.sessId.clientSessionId sessionId
-      , printf("%x:%x:%x:%x:%x",
-           key.sessId.clientId[0].element, key.sessId.clientId[1].element,
-           key.sessId.clientId[2].element, key.sessId.clientId[3].element,
-           key.sessId.clientSessionId) sid5
-      , from_unixtime(val.sessSummary.intvStartTimeSec, "yyyy-MM-dd_HH") date_hr
-      , from_unixtime(val.sessSummary.lifeFirstRecvTimeMs/1000, "yyyy-MM-dd HH:mm:ss") startTimeUnix
-      , val.invariant.c3Tags["c3.viewer.id"] viewerId
-      , val.invariant.c3Tags["c3.video.isAd"] videoIsAd
-      , val.sessSummary.lifeFirstRecvTimeMs startTime 
-      , hasEnded(val.sessSummary) ended
-      , justJoined(val.sessSummary) justJoined
-      , lifePlayingTimeMs(val.sessSummary) lifePlayingTimeMs
-      , val.sessSummary.endedStatus endedStatus
-      , val.sessSummary.shouldProcess
-      , val.sessSummary.intvStartTimeSec as intvStartTimeSec
-from hourly_df
-""")
-sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
-```
-
-to this:
-
 ```scala mdoc:invisible
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
@@ -50,6 +19,34 @@ def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
 ```
 
 ```scala mdoc
+val hourly_sql = spark.read.parquet("./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
+hourly_sql.createOrReplaceTempView("hourly_sql")
+
+val sessionSummary_simplified = spark.sql(s"""
+select key.sessId.customerId customerId
+      , key.sessId.clientId clientId
+      , key.sessId.clientSessionId sessionId
+      , printf("%x:%x:%x:%x:%x",
+           key.sessId.clientId[0].element, key.sessId.clientId[1].element,
+           key.sessId.clientId[2].element, key.sessId.clientId[3].element,
+           key.sessId.clientSessionId) sid5
+      , from_unixtime(val.sessSummary.intvStartTimeSec, "yyyy-MM-dd_HH") date_hr
+      , from_unixtime(val.sessSummary.lifeFirstRecvTimeMs/1000, "yyyy-MM-dd HH:mm:ss") startTimeUnix
+      , val.invariant.c3Tags["c3.viewer.id"] viewerId
+      , val.invariant.c3Tags["c3.video.isAd"] videoIsAd
+      , val.sessSummary.lifeFirstRecvTimeMs startTime 
+      , val.sessSummary.endedStatus endedStatus
+      , val.sessSummary.shouldProcess
+      , val.sessSummary.intvStartTimeSec as intvStartTimeSec
+from hourly_sql
+""")
+sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
+```
+
+to this:
+
+
+```scala mdoc
 val path = pbss("2023-02-07T02").c3id(1960180360)
 val hourly_df = spark.read.parquet(path)
 hourly_df.select(
@@ -61,9 +58,6 @@ hourly_df.select(
     sumTags("c3.viewer.id"),
     sumTags("c3.video.isAd"),
     lifeFirstRecvTime, 
-    hasEnded, 
-    justJoined, 
-    lifePlayingTimeMs,
     lifeFirstRecvTime, 
     endedStatus, 
     shouldProcess, 
@@ -224,7 +218,7 @@ hourly_df.select(
   geoInfo("city"),        // Int: the city codes
   geoInfo("country"),     // Int: the country codes
   geoInfo("continent")    // Int: the continent codes
-).show(3, false)
+).orderBy("city").show(3, false)
 ```
 
 It is hard to decipher what these codes mean, so Surgeon makes it easy by
@@ -240,7 +234,7 @@ hourly_df.select(
   geoInfo("country").label,   // String: the country names
   geoInfo("continent"),       // Int: the continent codes
   geoInfo("continent").label  // String: the continent names
-).show(false)
+).orderBy("city").show(3, false)
 ```
 
 ### Path construction

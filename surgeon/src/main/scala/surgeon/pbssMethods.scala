@@ -30,6 +30,10 @@ object PbSS {
   import org.apache.spark.sql.{functions => F}
   import com.conviva.vmaStdMetrics.sess.StdSess
 
+  /** Instantiate a class for C3 methods.**/
+  val c3 = C3(ProdPbSS())
+
+  /** Instantiate a method for Path methods. **/
   def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 
   /** Method to extract fields from the `lifeSwitchInfos` container. */
