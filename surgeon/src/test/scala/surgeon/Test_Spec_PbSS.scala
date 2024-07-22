@@ -7,7 +7,6 @@ class PbSS_Suite extends munit.FunSuite {
   import conviva.surgeon.PbSS._
   import conviva.surgeon.Sanitize._
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.PbSSCoreLib._
   import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
 

@@ -235,42 +235,6 @@ hourly_df.select(
 //
 ```
 
-### PbSS Core Library metrics
-Surgeon makes it easy to select columns that are constructed from the PbSS Core Library, which cannot be found in the PbSS data:
-
-```scala
-hourly_df.select(
-  isAttempt,
-  hasJoined,
-  isVSF, 
-  isVSFT,
-  isVPF, 
-  isVPFT,
-  isEBVS,
-  lifeAvgBitrateKbps,
-  firstHbTimeMs,
-  isSessDoneNotJoined,
-  isSessJustJoined,
-  isJoinTimeAccurate,
-  justJoinedAndLifeJoinTimeMsIsAccurate,
-  intvAvgBitrateKbps,
-  intvBufferingTimeMs, 
-  intvPlayingTimeMs
-).show(3, false)
-// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
-// |isAttempt|hasJoined|isVSF|isVSFT|isVPF|isVPFT|isEBVS|lifeAvgBitrateKbps|firstHbTimeMs    |isSessDoneNotJoined|isSessJustJoined|isJoinTimeAccurate|justJoinedAndLifeJoinTimeMsIsAccurate|intvAvgBitrateKbps|intvBufferingTimeMs|intvPlayingTimeMs|
-// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
-// |true     |false    |false|false |false|false |true  |0.0               |1.675766260779E12|true               |false           |false             |false                                |0.0               |0.0                |0.0              |
-// |true     |true     |false|false |false|false |false |6073.0            |1.675764621566E12|false              |true            |true              |true                                 |6073.0            |247.0              |607992.0         |
-// |false    |true     |false|false |false|false |false |6328.0            |1.675763609283E12|false              |false           |true              |false                                |6339.0            |0.0                |20137.0          |
-// +---------+---------+-----+------+-----+------+------+------------------+-----------------+-------------------+----------------+------------------+-------------------------------------+------------------+-------------------+-----------------+
-// only showing top 3 rows
-//
-```
-
-Previously, to achieve this functionality, one had to run a chain of Notebooks
-on Databricks, which took long and produced much verbose output. 
-
 #### GeoInfo class 
 
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
@@ -327,21 +291,21 @@ The production paths on Databricks are shown below.
 ```scala
 // monthly
 pbss("2023-02")
-// res13: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
+// res12: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 pbss("2023-{2-5}")
-// res14: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
+// res13: Builder = /mnt/conviva-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
 pbss("2023-02-07")
-// res15: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
+// res14: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
 pbss("2023-02-{7,9,14}")
-// res16: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
+// res15: Builder = /mnt/conviva-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
 
 // hourly
 pbss("2023-02-07T09")
-// res17: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
+// res16: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
 pbss("2023-02-07T{8,9}")
-// res18: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
+// res17: Builder = /mnt/conviva-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
 ```
 
 
@@ -350,14 +314,14 @@ Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe")
-// res20: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+// res19: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 ``` 
 
 // To select by more than one customer name 
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
-// res21: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
+// res20: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
 ```
 
 Only want to select any three customers for a given path, then do:
@@ -365,7 +329,7 @@ Only want to select any three customers for a given path, then do:
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3take(2)
-// res22: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
+// res21: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
 ```
 
 See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
@@ -381,13 +345,13 @@ from Ids, and get Ids from names.
 ```scala
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3.idToName(1960180360)
-// res23: Seq[String] = ArrayBuffer("c3.TopServe")
+// res22: Seq[String] = ArrayBuffer("c3.TopServe")
 c3.idToName(1960184661, 1960003321)
-// res24: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
+// res23: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
 c3.nameToId("c3.FappleTV")
-// res25: Seq[Int] = ArrayBuffer(1960184661)
+// res24: Seq[Int] = ArrayBuffer(1960184661)
 c3.nameToId("c3.FappleTV", "c3.SATY")
-// res26: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
+// res25: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.

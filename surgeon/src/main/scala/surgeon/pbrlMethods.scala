@@ -213,25 +213,4 @@ object PbRl {
   def ipv4() = new IP4(col("payload.heartbeat.publicip.element"), "ipv4")
   def publicIp24Msb() = new IP4(col("payload.heartbeat.publicIp24Msb"), "ip24Msb")
 }
-/*
-  def EventTimeStamp(data: DataFrame): DataFrame {
-
-    val dat1 = dat
-      .select(sessionId, sessionCreationTime, timeStamp.ms)
-      .groupBy("sessionId").agg(
-        min(col("sessionCreationTimeMs")).alias("createTime"),
-        min(col("timeStampMs")).alias("timeStamp")
-      )
-      .withColumn("offset", (col("createTime") - col("timeStamp")))
-      .select("sessionId", "offset") 
-
-    val dat2 = dat.join(dat1, List("sessionId"), "left")
-      .withColumn("gatewayTimeMs", col("timeStampMs") + col("offset"))
-      .withColumn("gatewayTimeStamp", from_unixtime(col("gatewayTimeMs") / 1000))
-
-    def eventTimeStamp = new TimeMsCol("gatewayTimeStamp" , "eventTimeStamp")
-    dat2.withColumn("test", eventTimeStamp)
-  }
-display(playerData)
-*/
 

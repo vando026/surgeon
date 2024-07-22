@@ -24,11 +24,9 @@ object PbSS {
   import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
   import org.apache.spark.sql.{Column, Row}
   import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.PbSSCoreLib._
   import conviva.surgeon.Paths._
   import conviva.surgeon.Customer._
   import org.apache.spark.sql.{functions => F}
-  import com.conviva.vmaStdMetrics.sess.StdSess
 
   /** Instantiate a class for C3 methods.**/
   val c3 = C3(ProdPbSS())
@@ -481,80 +479,10 @@ object PbSS {
       
   }
 
+  /** Extract the IPV6 field. **/
   def ipv6() = new IP6(invTags("publicipv6.element"), "ipv6")
-
   
-  def  isSessDoneNotJoined(): Column = {
-    when(hasJoined === false && hasEnded === true, true).otherwise(false)
-      .alias("isSessDoneNotJoined")
-  }
 
-  def isSessJustJoined(): Column = {
-    when(hasJoined === true && justJoined === true, true).otherwise(false)
-      .alias("isSessJustJoined")
-  }
-
-  /** Identify if session isAttempt. */
-  def isAttempt(): Column = {
-    when(isSessJustJoined === true || isSessDoneNotJoined === true, true).otherwise(false)
-      .alias("isAttempt")
-  }
-
-  /** Identify valid joined sessions. */
-  def justJoinedAndLifeJoinTimeMsIsAccurate(): Column = {
-    when(justJoined === true && isJoinTimeAccurate === true, true).otherwise(false)
-      .alias("justJoinedAndLifeJoinTimeMsIsAccurate")
-  }
-
-  // More metrics from StdSess
-  // val UDFJoinTime = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).joinTimeMs().toDouble )
-  val UDFHasJoined = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).hasJoined() )
-  val hasJoined = UDFHasJoined(col("val.sessSummary")).alias("hasJoined")
-  val UDFJoinAccurate = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isJoinTimeAccurate())
-  val isJoinTimeAccurate = UDFJoinAccurate(col("val.sessSummary")).alias("isJoinTimeAccurate")
-
-  val UDFVSF = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVideoStartFailure() )
-  val isVSF = UDFVSF(col("val.sessSummary"), col("key.sessId")).alias("isVSF")
-  val UDFEBVS = F.udf((ss: Row, id: Row) => buildStdSsWithId(ss, id).isExitsBeforeVideoStart() )
-  val isEBVS = UDFEBVS(col("val.sessSummary"), col("key.sessId")).alias("isEBVS")
-  val UDFVSFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eTechVSF))
-  val isVSFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVSFT")
-
-  val UDFVPF = F.udf[Boolean, Row]((ss: Row) => buildStdSs(ss).isVideoMidstreamFailure())
-  val isVPF = UDFVPF(col("val.sessSummary")).alias("isVPF")
-  val UDFVPFT = F.udf[Boolean, Row, Row]((ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eTechVPF))
-  val isVPFT = UDFVSFT(col("val.sessSummary"), col("key.sessId")).alias("isVPFT")
-
-  val UDFLifeBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).lifeAvgBitrateKbp(0L).toDouble )
-  val lifeAvgBitrateKbps = UDFLifeBitrate(col("val.sessSummary")).alias("lifeAvgBitrateKbps")
-
-  val UDFFirstHbTimeMs = F.udf[Double, Row]((ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs().toDouble )
-  val firstHbTimeMs  = UDFFirstHbTimeMs(col("val.sessSummary")).alias("firstHbTimeMs")
-
-  // interval based metric
-  val UDFIntvBitrate = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).intvBitrateKbps().toDouble )
-  val intvAvgBitrateKbps = UDFIntvBitrate(col("val.sessSummary")).alias("intvAvgBitrateKbps")
-  val UDFIntvBuffering = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).bufferingTimeMs().toDouble )
-  val intvBufferingTimeMs = UDFIntvBuffering(col("val.sessSummary")).alias("intvBufferingTimeMs")
-  val UDFIntvPlaying = F.udf[Double, Row]((ss: Row) => buildStdSs(ss).playingTimeMs().toDouble )
-  val intvPlayingTimeMs = UDFIntvPlaying(col("val.sessSummary")).alias("intvPlayingTimeMs")
-
-  val UDFLongIP = F.udf[String, Row]((inv: Row) => getLongIPAddress(inv))
-  val ipv4 = UDFLongIP(col("val.sessSummary"))
-
-  val UDFLastCDN = F.udf[String, Row]((ss: Row) => buildSessSummary(ss).cdn().name() )
-  val lastCDN = UDFLastCDN(col("val.sessSummary")).alias("lastCDN")
-
-  /*
-  val UDFStreamURL = sqlContext.udf.register("getStreamUrl", (ss: Row) => getStreamUrl(ss)  )
-  val UDFLifeFirstRecvTimeSec = sqlContext.udf.register("liftFirstHbTimeSec", (ss: Row) => buildSessSummary(ss).lifeFirstRecvTimeMs() / 1000 )
-  val UDFNumBufferInterrupst = sqlContext.udf.register("getNumInterrupts", (ss: Row) => buildSessSummary(ss).lifeNumBufferingEvents() )
-  val UDFPercComplete = sqlContext.udf.register( "percentCompleted", (inv: Row, ss:Row) => buildFullStdSs(inv, ss).pctContentWatched().toDouble )
-  val UDFGetAsset = sqlContext.udf.register( "getAsset", (inv: Row) => buildStdSsInv(inv).objectId() ) 
-
-  sqlContext.udf.register( "vsf_b", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVsfOfGivenType(StdSess.VSFSessionFailureType.eBusinessVSF))
-  sqlContext.udf.register( "vpf_b", (ss: Row, id: Row) => buildStdSsWithId(ss, id).isVpfOfGivenType(StdSess.VPFSessionFailureType.eBusinessVPF))
-*/
 
 }
 

@@ -181,33 +181,6 @@ hourly_df.select(
 ).show(3, false)
 ```
 
-### PbSS Core Library metrics
-Surgeon makes it easy to select columns that are constructed from the PbSS Core Library, which cannot be found in the PbSS data:
-
-```scala mdoc
-hourly_df.select(
-  isAttempt,
-  hasJoined,
-  isVSF, 
-  isVSFT,
-  isVPF, 
-  isVPFT,
-  isEBVS,
-  lifeAvgBitrateKbps,
-  firstHbTimeMs,
-  isSessDoneNotJoined,
-  isSessJustJoined,
-  isJoinTimeAccurate,
-  justJoinedAndLifeJoinTimeMsIsAccurate,
-  intvAvgBitrateKbps,
-  intvBufferingTimeMs, 
-  intvPlayingTimeMs
-).show(3, false)
-```
-
-Previously, to achieve this functionality, one had to run a chain of Notebooks
-on Databricks, which took long and produced much verbose output. 
-
 #### GeoInfo class 
 
 Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInfo`
