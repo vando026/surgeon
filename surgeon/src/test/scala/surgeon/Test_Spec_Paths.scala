@@ -101,11 +101,12 @@ class PathSuite extends munit.FunSuite {
   }
 
   test("Take should work as expected") {
-    def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
+    val c3 = C3(TestPbSS())
+    def pbss1(date: String) = SurgeonPath(TestPbSS()).make(date)
     val expect1 = TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360,1960181845}"
-    val t1 = pbss("2023-02-07T02").c3take(3)
+    val t1 = pbss1("2023-02-07T02").c3take(3)
     assertEquals(t1, expect1)
-    val t2 = pbss("2023-02-07T02").c3take(1)
+    val t2 = pbss1("2023-02-07T02").c3take(1)
     assertEquals(t2, TestPbSS().root + "/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004}")
   }
 

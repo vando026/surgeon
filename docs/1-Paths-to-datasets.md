@@ -1,10 +1,12 @@
-```scala mdoc
+```scala mdoc:invisible
 // setup code
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 val spark = SparkSession.builder
   .master("local[*]")
   .getOrCreate
+import conviva.surgeon.PbSS._ 
+def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 ```
 
 ## Introduction and import
@@ -13,16 +15,7 @@ Surgeon provides classes for constructing Databricks paths to the parquet Rawlog
 Session Summary (PbSS) datasets. In the next section, I demonstrate path construction to data using the default path settings for  the `/mnt` (production)  directory of Databricks.
 
 
-## DataPath class
-
-On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. These methods return a `SurgeonPath` object which has several methods described below. 
-
-For PbSS paths, first import the `PbSS` library.
-
-```scala mdoc
-import conviva.surgeon.PbSS._ 
-def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
-```
+On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. 
 
 ### Monthly 
 For monthly PbSS production data use `pbss`, which takes a string of format `yyyy-MM`, for example "2024-02". You can also specify a list or range of months like so: "2023-{2,4,5}" or "2024-{3-8}" (do not include spaces).
@@ -67,10 +60,9 @@ pbrl("2023-12-10T09")
 ## Customer methods
 
 Surgeon provides a way to select data for a month, day, or hour for one or more
-customers. This is done using the `cust` method. For this demonstration, we use
-fake customerIds from surgeon's test data folder, which we have to point to.
+customers. For this demonstration, we use fake customerIds from surgeon's test data folder (see the next section on how to change to the test folder path).
 
-```scala mdoc:reset
+```scala mdoc:invisible:reset
 import org.apache.spark.sql.{SparkSession}
 import conviva.surgeon.Paths._
 import conviva.surgeon.GeoInfo._
@@ -95,54 +87,36 @@ To construct the path for one customer using the customer Id.
 pbss("2023-02-07T02").c3id(1960184999)
 ```
 Or more than one. 
-```scala 
+```scala mdoc
 pbss("2023-02-07T02").c3id(1960184999, 1960180360)
 ```
 Take the first n customer Ids
-```scala 
+```scala mdoc
 pbss("2023-02-07T02").c3take(3)
 ```
 To select by customer name:
-```scala 
+```scala mdoc
 pbss("2023-02-07T02").c3name("c3.TopServe")
 ```
 Or more than one. 
-```scala 
+```scala mdoc
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
 ``` 
 
 ## File paths
 
-The methods above use the mutable `PathDB` object to modify path components to various production datasets.
+Surgeon sets the file paths to the production PbSS and PbRl datasets. Behind
+the hood, it does this:
 
 ```scala 
-// root path
-PathDB.root
-
-// production 1 hour
-PathDB.hourly    
-
-// production 1 day   
-PathDB.daily     
-
-// production 1 month
-PathDB.pbssMonthly   
-// rawlog production
-PathDB.pbrlHourly    
-
-// surgeon test path
-PathDB.testPath      
+def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 ```
 
-The `pbssHourly` and `pbrlHourly`  paths default to `st_0` and `lt_1`, so you can set the `st`
-flag using the relevant value:
+by calling the `ProdPbSS` object. 
 
-```scala  
-PathDB.st = 2
-PathDB.lt = 17
+To change to the test environment paths, you can do:
+
+```scala 
+def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 ```
-
-You can get the default paths to Surgeon test files using the shorthand:
-
-
 > Compiled using version @VERSION@. 

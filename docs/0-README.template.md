@@ -258,7 +258,8 @@ Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 pbss("2023-02-07T02").c3name("c3.TopServe")
 ``` 
 
-// To select by more than one customer name 
+To select by more than one customer name 
+
 ```scala mdoc
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
