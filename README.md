@@ -317,7 +317,8 @@ pbss("2023-02-07T02").c3name("c3.TopServe")
 // res19: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 ``` 
 
-// To select by more than one customer name 
+To select by more than one customer name 
+
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
