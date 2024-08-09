@@ -64,18 +64,10 @@ df.select(
   )
 ``` 
 
-### Installation 
 
-1. Download the latest JAR from the 
-[target](https://github.com/vando026/org-surgeon/tree/main/surgeon/target/scala-2.12)
-folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
-2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_1_*.jar`. 
-3. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
- 
 ### Features
 
-Below is a brief vignette of Surgeon's many features. Please see the 
-[Wiki home page](https://github.com/vando026/org-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
+Below is a brief vignette of Surgeon's many features. 
 
 ### Quick column selection
 
@@ -112,10 +104,12 @@ df.select(
 
 These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
 `distinct`, to name a few. See the 
-[PbSS wiki](https://github.com/vando026/org-surgeon/wiki/2-PbSS-selecting-columns)
+[PbSS wiki](https://github.com/vando026/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns)
 and 
-[PbRl wiki](https://github.com/vando026/org-surgeon/wiki/3-PbRl-selecting-columns)
+[PbRl wiki](https://github.com/vando026/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns)
 for more details about this functionality.
+
+pp
 
 You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
 
