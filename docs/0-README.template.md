@@ -104,9 +104,9 @@ df.select(
 
 These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
 `distinct`, to name a few. See the 
-[PbSS wiki](https://github.com/vando026/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns)
+[PbSS wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
 and 
-[PbRl wiki](https://github.com/vando026/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns)
+[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
 for more details about this functionality.
 
 pp
