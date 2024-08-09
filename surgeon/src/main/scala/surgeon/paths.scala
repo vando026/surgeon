@@ -1,4 +1,4 @@
-package conviva.surgeon
+package org.surgeon
 
 object Paths {
 
@@ -6,8 +6,8 @@ object Paths {
   import java.time.format.DateTimeFormatter
   import java.time.temporal.ChronoUnit
   import org.apache.spark.sql.DataFrame
-  import conviva.surgeon.Customer._
-  import conviva.surgeon.GeoInfo._
+  import org.surgeon.Customer._
+  import org.surgeon.GeoInfo._
 
   // /** Class for setting components of path names to files. **/
   // class SurgeonPathDB {
@@ -16,13 +16,13 @@ object Paths {
   //   /** Root path to `databricks-user-share`. */
   //   var dbUserShare = "/mnt/databricks-user-share"
   //   /** Path to the daily session summary parquet files. */
-  //   var pbssDaily = "conviva-prod-archive-pbss-daily/pbss/daily"
+  //   var pbssDaily = "org-prod-archive-pbss-daily/pbss/daily"
   //   /** Path to the hourly session summary parquet files. */
-  //   var pbssHourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st=$st"
+  //   var pbssHourly = s"org-prod-archive-pbss-hourly/pbss/hourly/st=$st"
   //   /** Path to the monthly session summary parquet files. */
-  //   var pbssMonthly = "conviva-prod-archive-pbss-monthly/pbss/monthly"
+  //   var pbssMonthly = "org-prod-archive-pbss-monthly/pbss/monthly"
   //   /** Path to the parquet heartbeat (raw log) files. */
-  //   var pbrlHourly = s"conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
+  //   var pbrlHourly = s"org-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
   //   /** Path to the minute session summary parquet files. */
   //   var pbssMinute = "databricks-user-share/avandormael/tlb1min"
   //   /** Path to Geo_Utils folder on Databricks. */
@@ -38,10 +38,10 @@ object Paths {
     /** Root path to `databricks-user-share`. */
     val dbUserShare = "/mnt/databricks-user-share"
     /** Path to the monthly session summary parquet files. */
-    val monthly = "conviva-prod-archive-pbss-monthly/pbss/monthly"
+    val monthly = "org-prod-archive-pbss-monthly/pbss/monthly"
     /** Path to the daily session summary parquet files. */
-    val daily = "conviva-prod-archive-pbss-daily/pbss/daily"
-    val hourly = s"conviva-prod-archive-pbss-hourly/pbss/hourly/st=$st"
+    val daily = "org-prod-archive-pbss-daily/pbss/daily"
+    val hourly = s"org-prod-archive-pbss-hourly/pbss/hourly/st=$st"
     /** Path to the minute session summary parquet files. */
     val minute = "databricks-user-share/avandormael/tlb1min"
     /** Path to Geo_Utils folder on Databricks. */
@@ -157,7 +157,7 @@ object Paths {
   case class ProdPbSS() extends PathDB
 
   case class ProdPbRl() extends PathDB {
-    override val hourly = s"conviva-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
+    override val hourly = s"org-prod-archive-pbrl/3d/rawlogs/pbrl/lt_$lt"
     override val daily = ""
     override val monthly = ""
   }

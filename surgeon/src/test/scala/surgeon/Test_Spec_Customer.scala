@@ -1,13 +1,13 @@
-package conviva.surgeon
+package org.surgeon
 
 class CustomerSuite extends munit.FunSuite { 
 
-  import conviva.surgeon.Sanitize._
-  import conviva.surgeon.Paths._
-  import conviva.surgeon.Customer._
+  import org.surgeon.Sanitize._
+  import org.surgeon.Paths._
+  import org.surgeon.Customer._
   import org.apache.spark.sql.functions.{col}
   import org.apache.spark.sql.{SparkSession, Row}
-  import conviva.surgeon.GeoInfo._
+  import org.surgeon.GeoInfo._
 
   val spark = SparkSession
       .builder()

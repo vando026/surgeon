@@ -1,7 +1,7 @@
-package conviva.surgeon
+package org.surgeon
 
-import conviva.surgeon.Paths._
-import conviva.surgeon.GeoInfo._
+import org.surgeon.Paths._
+import org.surgeon.GeoInfo._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{when, col, regexp_replace}
 import org.apache.hadoop.fs._

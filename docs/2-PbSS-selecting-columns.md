@@ -2,9 +2,9 @@
 // setup code
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import conviva.surgeon.Paths._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Customer._
+import org.surgeon.Paths._
+import org.surgeon.GeoInfo._
+import org.surgeon.Customer._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
 ```
 
@@ -15,7 +15,7 @@ first time. Data from Surgeon's test data (on Github) is used for this
 demonstration. 
 
 ```scala mdoc
-import conviva.surgeon.PbSS._ 
+import org.surgeon.PbSS._ 
 ```
 
 ```scala mdoc:invisible 

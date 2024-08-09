@@ -4,9 +4,9 @@ import org.apache.spark.sql.{SparkSession}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
+import org.surgeon.Customer._
+import org.surgeon.GeoInfo._
+import org.surgeon.Paths._
 ```
 
 ## Parquet RawLog (PbRl)
@@ -16,7 +16,7 @@ first time. To demonstrate,  first import surgeon's `PbRl`  object,
 set the file path, and read the data. 
 
 ```scala mdoc 
-import conviva.surgeon.PbRl._
+import org.surgeon.PbRl._
 ```
 
 ```scala mdoc:invisible 

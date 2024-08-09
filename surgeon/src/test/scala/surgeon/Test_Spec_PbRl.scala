@@ -1,13 +1,13 @@
-package conviva.surgeon
+package org.surgeon
 
 class PbRl_Suite extends munit.FunSuite {
 
   import org.apache.spark.sql.{SparkSession, DataFrame, Column}
   import org.apache.spark.sql.functions._
-  import conviva.surgeon.PbRl._
-  import conviva.surgeon.Sanitize._
-  import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths._
+  import org.surgeon.PbRl._
+  import org.surgeon.Sanitize._
+  import org.surgeon.GeoInfo._
+  import org.surgeon.Paths._
 
   val spark = SparkSession
       .builder()

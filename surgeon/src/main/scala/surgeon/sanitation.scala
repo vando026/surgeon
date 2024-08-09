@@ -1,4 +1,4 @@
-package conviva.surgeon
+package org.surgeon
 
 /** An object with traits and case classes to create objects named
  *  after fields that have their own methods.

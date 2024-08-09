@@ -1,6 +1,6 @@
 ThisBuild / scalaVersion := "2.12.17"
 ThisBuild / version := "0.1.7"
-ThisBuild / organization := "conviva"
+ThisBuild / organization := "org"
 name := "surgeon"
 
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
@@ -22,7 +22,7 @@ testFrameworks += TestFramework("munit.TestFramework")
 // Global / semanticdbEnabled := true
 
 lazy val docs = project
-  .in(file("conviva-surgeon.wiki"))
+  .in(file("org-surgeon.wiki"))
   .settings(
     mdocVariables := Map("VERSION" -> version.value)
     )

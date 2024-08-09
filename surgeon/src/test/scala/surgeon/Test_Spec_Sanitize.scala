@@ -1,8 +1,8 @@
-package conviva.surgeon
+package org.surgeon
 
 
 class SanitizeSuite extends munit.FunSuite { 
-  import conviva.surgeon.Sanitize._
+  import org.surgeon.Sanitize._
 
   test("Unsigned to BigInt") {
     val t1 = toUnsigned(-1)

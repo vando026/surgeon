@@ -1,4 +1,4 @@
-package conviva.surgeon
+package org.surgeon
 
 /**
  * Perform operations on the PbSS hourly, daily and monthly data. The main
@@ -18,12 +18,12 @@ package conviva.surgeon
 
 object PbRl {
 
-  import conviva.surgeon.Sanitize._
+  import org.surgeon.Sanitize._
   import org.apache.spark.sql.functions.{lower, col, when, typedLit, array_join, array_remove, split}
   import org.apache.spark.sql.{Column}
-  import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths._
-  import conviva.surgeon.Customer._
+  import org.surgeon.GeoInfo._
+  import org.surgeon.Paths._
+  import org.surgeon.Customer._
 
   /** Instantiate a class for C3 methods.**/
   val c3 = C3(ProdPbRl())

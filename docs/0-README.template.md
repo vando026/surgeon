@@ -2,54 +2,53 @@
 <img src="./media/surgeon-283.png" alt="" width="200" >
 </p>
 
-<h1 align="center"> conviva-surgeon</h1>
+<h1 align="center"> surgeon</h1>
 
-A Scala library with that makes it easy to read and query parquet Session Summary (PbSS) and RawLog (PbRl) data. For example, Surgeon reduces this mess (taken from a sample notebook on Databricks):
+A Scala library for Apache-Spark to  query video heartbeat data. For example, Surgeon reduces this verbose SQL query
 
 ```scala mdoc:invisible
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
+import org.surgeon.GeoInfo._
+import org.surgeon.Paths._
+import org.surgeon.PbSS._
 def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 def customerName() = CustomerName(TestPbSS().geoUtilPath).make(customerId)
 def geoInfo(field: String) = GeoBuilder(TestPbSS().geoUtilPath).make(field)
 ```
 
 ```scala mdoc
-val hourly_sql = spark.read.parquet("./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}")
-hourly_sql.createOrReplaceTempView("hourly_sql")
-
-val sessionSummary_simplified = spark.sql(s"""
-select key.sessId.customerId customerId
-      , key.sessId.clientId clientId
-      , key.sessId.clientSessionId sessionId
-      , printf("%x:%x:%x:%x:%x",
-           key.sessId.clientId[0].element, key.sessId.clientId[1].element,
-           key.sessId.clientId[2].element, key.sessId.clientId[3].element,
-           key.sessId.clientSessionId) sid5
-      , from_unixtime(val.sessSummary.intvStartTimeSec, "yyyy-MM-dd_HH") date_hr
-      , from_unixtime(val.sessSummary.lifeFirstRecvTimeMs/1000, "yyyy-MM-dd HH:mm:ss") startTimeUnix
-      , val.invariant.c3Tags["c3.viewer.id"] viewerId
-      , val.invariant.c3Tags["c3.video.isAd"] videoIsAd
-      , val.sessSummary.lifeFirstRecvTimeMs startTime 
-      , val.sessSummary.endedStatus endedStatus
-      , val.sessSummary.shouldProcess
-      , val.sessSummary.intvStartTimeSec as intvStartTimeSec
-from hourly_sql
+val path = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+val sql = spark.read.parquet(path)
+sql.createOrReplaceTempView("sql")
+val sqlQuery = spark.sql(s"""
+    select key.sessId.customerId customerId
+          , key.sessId.clientId clientId
+          , key.sessId.clientSessionId sessionId
+          , printf("%x:%x:%x:%x:%x",
+               key.sessId.clientId[0].element, key.sessId.clientId[1].element,
+               key.sessId.clientId[2].element, key.sessId.clientId[3].element,
+               key.sessId.clientSessionId) sid5
+          , from_unixtime(val.sessSummary.intvStartTimeSec, "yyyy-MM-dd_HH") date_hr
+          , from_unixtime(val.sessSummary.lifeFirstRecvTimeMs/1000, "yyyy-MM-dd HH:mm:ss") startTimeUnix
+          , val.invariant.c3Tags["c3.viewer.id"] viewerId
+          , val.invariant.c3Tags["c3.video.isAd"] videoIsAd
+          , val.sessSummary.lifeFirstRecvTimeMs startTime 
+          , val.sessSummary.endedStatus endedStatus
+          , val.sessSummary.shouldProcess
+          , val.sessSummary.intvStartTimeSec as intvStartTimeSec
+from sql
 """)
-sessionSummary_simplified.createOrReplaceTempView("sessionSummary_simplified")
 ```
 
-to this:
+to this query using the Scal API:
 
 
 ```scala mdoc
-val path = pbss("2023-02-07T02").c3id(1960180360)
-val hourly_df = spark.read.parquet(path)
-hourly_df.select(
+val path1 = pbss("2023-02-07T02").c3id(1960180360)
+val df = spark.read.parquet(path1)
+df.select(
     customerId, 
     sessionId, 
     sid5.concatToHex, 
@@ -62,13 +61,13 @@ hourly_df.select(
     endedStatus, 
     shouldProcess, 
     intvStartTime
-  ).show(3, false)
+  )
 ``` 
 
 ### Installation 
 
 1. Download the latest JAR from the 
-[target](https://github.com/Conviva-Internal/conviva-surgeon/tree/main/surgeon/target/scala-2.12)
+[target](https://github.com/vando026/org-surgeon/tree/main/surgeon/target/scala-2.12)
 folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your local JAR folder or to Databricks. 
 2. Find it on Databricks at `/FileStore/avandormael/surgeon/surgeon_2_12_0_1_*.jar`. 
 3. You can either compile the JAR yourself by cloning this repo and running build.sbt. 
@@ -76,14 +75,14 @@ folder of this repo (`surgeon_2_12_0_1_*.jar`) and upload it directly to your lo
 ### Features
 
 Below is a brief vignette of Surgeon's many features. Please see the 
-[Wiki home page](https://github.com/Conviva-Internal/conviva-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
+[Wiki home page](https://github.com/vando026/org-surgeon/wiki/0-Installation) for installation instructions and more detailed demos. 
 
 ### Quick column selection
 
 Surgeon makes it easy to select columns that are frequently used in analysis:
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   customerId, 
   clientId,
   sessionId,
@@ -100,7 +99,7 @@ hourly_df.select(
 It is also easy to query from structs, maps or arrays in PbSS and PbRl:
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   sessSum("playerState"), 
   d3SessSum("lifePausedTimeMs"),
   joinSwitch("playingTimeMs"),
@@ -113,15 +112,15 @@ hourly_df.select(
 
 These `Column` classes come with their own methods. See for example `geoInfo` below; the `lifeSwitch`, `joinSwitch`, and `intvSwitch` are array columns which have several methods such as `first`, `last`, and
 `distinct`, to name a few. See the 
-[PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns)
+[PbSS wiki](https://github.com/vando026/org-surgeon/wiki/2-PbSS-selecting-columns)
 and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns)
+[PbRl wiki](https://github.com/vando026/org-surgeon/wiki/3-PbRl-selecting-columns)
 for more details about this functionality.
 
 You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   sessionId,
   col("val.sessSummary.intvFirstBufferLengthMs"),
   sessionState
@@ -142,7 +141,7 @@ to do with Surgeon. The same applies for `sid6`, which appends `sessionCreationT
 
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   sid5.concat,   
   sid5.concatToHex, 
   sid5.concatToUnsigned,
@@ -155,14 +154,14 @@ hourly_df.select(
 You can select the customer column using `customerId` and customer names using `customerName`.
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   customerId,  // Int: The customer Id
   customerName // String: Pulls the customer names from GeoUtils/c3ServiceConfig*.csv
 ).show(1, false)
 ```
 
-See the [PbSS wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/2-PbSS-selecting-columns) and 
-[PbRl wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+See the [PbSS wiki](https://github.com/vando026/org-surgeon/wiki/2-PbSS-selecting-columns) and 
+[PbRl wiki](https://github.com/vando026/org-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
 
 #### Querying time columns
 
@@ -172,7 +171,7 @@ values as HH:mm:ss, a `toSec` method to convert values from milliseconds to
 seconds since Unix epoch, and a `toMs` method. 
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   lifeFirstRecvTime,                 // its original form, milliseconds since unix epoch
   lifeFirstRecvTime.toSec,           // converted to seconds since unix epoch
   lifeFirstRecvTime.stamp,           // as a timestamp (HH:mm:ss)
@@ -187,7 +186,7 @@ Surgeon makes it easy to work with the `geoInfo` struct.  You can select `geoInf
 columns like so:
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   geoInfo("city"),        // Int: the city codes
   geoInfo("country"),     // Int: the country codes
   geoInfo("continent")    // Int: the continent codes
@@ -200,7 +199,7 @@ providing a `label` method to map the codes to names:
 
 
 ```scala mdoc
-hourly_df.select(
+df.select(
   geoInfo("city"),            // Int: the city codes
   geoInfo("city").label,      // String: the city names
   geoInfo("country"),         // Int: the country codes
@@ -219,10 +218,10 @@ The production paths on Databricks are shown below.
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
+import org.surgeon.Customer._
+import org.surgeon.GeoInfo._
+import org.surgeon.Paths._
+import org.surgeon.PbSS._
 def pbss(date: String) = SurgeonPath(ProdPbSS()).make(date)
 ```
 
@@ -244,10 +243,10 @@ pbss("2023-02-07T{8,9}")
 import org.apache.spark.sql.{SparkSession, Column}
 import org.apache.spark.sql.functions._
 val spark = SparkSession.builder.master("local[*]").getOrCreate
-import conviva.surgeon.Customer._
-import conviva.surgeon.GeoInfo._
-import conviva.surgeon.Paths._
-import conviva.surgeon.PbSS._
+import org.surgeon.Customer._
+import org.surgeon.GeoInfo._
+import org.surgeon.Paths._
+import org.surgeon.PbSS._
 def pbss(date: String) = SurgeonPath(TestPbSS()).make(date)
 ```
 
@@ -272,7 +271,7 @@ Only want to select any three customers for a given path, then do:
 pbss("2023-02-07T02").c3take(2)
 ```
 
-See the [Paths wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
+See the [Paths wiki](https://github.com/vando026/org-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
 
 
 ### Customer methods
@@ -282,7 +281,7 @@ can use these methods to read in a file with customer Ids and names, get names
 from Ids, and get Ids from names. 
 
 ```scala mdoc:invisible
-import conviva.surgeon.Customer._
+import org.surgeon.Customer._
 val c3 = C3(TestPbSS())
 ```
 
@@ -294,7 +293,7 @@ c3.nameToId("c3.FappleTV")
 c3.nameToId("c3.FappleTV", "c3.SATY")
 ```
 
-See the [Customers wiki](https://github.com/Conviva-Internal/conviva-surgeon/wiki/4-Customer-methods) for more details about this functionality.
+See the [Customers wiki](https://github.com/vando026/org-surgeon/wiki/4-Customer-methods) for more details about this functionality.
 
 
 

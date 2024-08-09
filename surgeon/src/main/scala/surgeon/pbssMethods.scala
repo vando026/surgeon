@@ -1,4 +1,4 @@
-package conviva.surgeon
+package org.surgeon
 
   
 /**
@@ -20,12 +20,12 @@ package conviva.surgeon
 
 object PbSS {
 
-  import conviva.surgeon.Sanitize._
+  import org.surgeon.Sanitize._
   import org.apache.spark.sql.functions.{lower, col, when, lit, typedLit}
   import org.apache.spark.sql.{Column, Row}
-  import conviva.surgeon.GeoInfo._
-  import conviva.surgeon.Paths._
-  import conviva.surgeon.Customer._
+  import org.surgeon.GeoInfo._
+  import org.surgeon.Paths._
+  import org.surgeon.Customer._
   import org.apache.spark.sql.{functions => F}
 
   /** Instantiate a class for C3 methods.**/
