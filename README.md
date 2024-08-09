@@ -34,7 +34,7 @@ from sql
 // sqlQuery: org.apache.spark.sql.package.DataFrame = [customerId: int, clientId: array<struct<element:int>> ... 10 more fields]
 ```
 
-to this query using the Scal API:
+to this query using the Scala API:
 
 
 ```scala
@@ -119,10 +119,8 @@ These `Column` classes come with their own methods. See for example `geoInfo` be
 `distinct`, to name a few. See the 
 [PbSS wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
 and 
-[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
+[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
 for more details about this functionality.
-
-pp
 
 You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
 
@@ -192,8 +190,13 @@ df.select(
 //
 ```
 
-See the [PbSS wiki](https://github.com/vando026/org-surgeon/wiki/2-PbSS-selecting-columns) and 
-[PbRl wiki](https://github.com/vando026/org-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+See the 
+[PbSS wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
+and 
+[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
+for more details about this functionality.
+
+
 
 #### Querying time columns
 
@@ -319,7 +322,7 @@ pbss("2023-02-07T02").c3take(2)
 // res20: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
 ```
 
-See the [Paths wiki](https://github.com/vando026/org-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
+See the [Paths wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/1-Paths-to-datasets.md) for more details about this functionality.
 
 
 ### Customer methods
@@ -341,7 +344,7 @@ c3.nameToId("c3.FappleTV", "c3.SATY")
 // res24: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
 ```
 
-See the [Customers wiki](https://github.com/vando026/org-surgeon/wiki/4-Customer-methods) for more details about this functionality.
+See the [Customers wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/4-Customer-methods.md) for more details about this functionality.
 
 
 

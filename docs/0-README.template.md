@@ -42,7 +42,7 @@ from sql
 """)
 ```
 
-to this query using the Scal API:
+to this query using the Scala API:
 
 
 ```scala mdoc
@@ -106,10 +106,8 @@ These `Column` classes come with their own methods. See for example `geoInfo` be
 `distinct`, to name a few. See the 
 [PbSS wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
 and 
-[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
+[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
 for more details about this functionality.
-
-pp
 
 You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
 
@@ -154,8 +152,13 @@ df.select(
 ).show(1, false)
 ```
 
-See the [PbSS wiki](https://github.com/vando026/org-surgeon/wiki/2-PbSS-selecting-columns) and 
-[PbRl wiki](https://github.com/vando026/org-surgeon/wiki/3-PbRl-selecting-columns) for more details about this functionality.
+See the 
+[PbSS wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/2-PbSS-selecting-columns.md)
+and 
+[PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
+for more details about this functionality.
+
+
 
 #### Querying time columns
 
@@ -265,7 +268,7 @@ Only want to select any three customers for a given path, then do:
 pbss("2023-02-07T02").c3take(2)
 ```
 
-See the [Paths wiki](https://github.com/vando026/org-surgeon/wiki/1-Paths-to-datasets) for more details about this functionality.
+See the [Paths wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/1-Paths-to-datasets.md) for more details about this functionality.
 
 
 ### Customer methods
@@ -287,7 +290,7 @@ c3.nameToId("c3.FappleTV")
 c3.nameToId("c3.FappleTV", "c3.SATY")
 ```
 
-See the [Customers wiki](https://github.com/vando026/org-surgeon/wiki/4-Customer-methods) for more details about this functionality.
+See the [Customers wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/4-Customer-methods.md) for more details about this functionality.
 
 
 
