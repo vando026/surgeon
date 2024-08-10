@@ -37,8 +37,7 @@ c3.nameToId("TV2", "BASC")
 
 ### Customer Ids and names on Databricks path
 
-Another useful method is to get all the customer ids or names from a path on
-Databricks. You can do so using the `customerIds` method, which takes a path
+Another useful method is to get all the customer ids or names from a path. You can do so using the `customerIds` method, which takes a path
 argument.  For example, you want to know all the customer ids for a given hour
 for PbSS data. 
 

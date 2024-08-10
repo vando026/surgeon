@@ -1,9 +1,8 @@
 
 ## Parquet RawLog (PbRl)
 
-Surgeon tries to simply the selection of columns when reading a PbSS or PbRl dataset for the
-first time. To demonstrate,  first import surgeon's `PbRl`  object, 
-set the file path, and read the data. 
+Surgeon tries to simply the selection of columns when reading a PbRl dataset for the
+first time. 
 
 ```scala 
 import org.surgeon.PbRl._

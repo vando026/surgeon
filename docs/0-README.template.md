@@ -4,7 +4,7 @@
 
 <h1 align="center"> surgeon</h1>
 
-A Scala library for Apache-Spark to  query video heartbeat data. For example, Surgeon reduces this verbose SQL query
+A Scala library for Apache-Spark to query video streaming data. For example, Surgeon reduces this verbose SQL query
 
 ```scala mdoc:invisible
 import org.apache.spark.sql.{SparkSession, Column}
@@ -67,11 +67,12 @@ df.select(
 
 ### Features
 
-Below is a brief vignette of Surgeon's many features. 
+Below is a brief vignette of Surgeon's features to work with parquet raw log
+(PbRl) and parquet session summary (PbSS) data. 
 
 ### Quick column selection
 
-Surgeon makes it easy to select columns that are frequently used in analysis:
+Surgeon makes it easy to select frequently used columns:
 
 ```scala mdoc
 df.select(
@@ -88,7 +89,8 @@ df.select(
 ).show(3) 
 ``` 
 
-It is also easy to query from structs, maps or arrays in PbSS and PbRl:
+It is also easy to query from structs, maps or arrays in raw event or session
+data:
 
 ```scala mdoc
 df.select(
@@ -109,15 +111,6 @@ and
 [PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
 for more details about this functionality.
 
-You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
-
-```scala mdoc
-df.select(
-  sessionId,
-  col("val.sessSummary.intvFirstBufferLengthMs"),
-  sessionState
-).show(3, false)
-```
 
 ### ID selction, formatting and conversion
 
@@ -209,7 +202,6 @@ df.select(
 ### Path construction
 
 Surgeon makes constructing the paths to the data easier. 
-The production paths on Databricks are shown below. 
 
 ```scala mdoc:reset:invisible
 import org.apache.spark.sql.{SparkSession, Column}

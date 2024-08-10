@@ -28,3 +28,7 @@ lazy val docs = project
     )
   .dependsOn(surgeon)
   .enablePlugins(MdocPlugin)
+
+
+
+// coursier launch org.scalameta:mdoc_2.12:2.3.7 -- --in org-surgeon.wiki/target/mdoc/0-README.template.md --out README.md

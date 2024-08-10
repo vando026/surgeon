@@ -2,10 +2,10 @@
 ## Introduction and import
 
 Surgeon provides classes for constructing Databricks paths to the parquet Rawlog (PbRl) and
-Session Summary (PbSS) datasets. In the next section, I demonstrate path construction to data using the default path settings for  the `/mnt` (production)  directory of Databricks.
+Session Summary (PbSS) datasets. In the next section, I demonstrate path construction to data using the default path settings for  production paths. 
 
 
-On Databricks, the PbSS and PbRL data is in hourly, daily, or monthly intervals. 
+Assume the PbSS and PbRL data is in hourly, daily, or monthly intervals. 
 
 ### Monthly 
 For monthly PbSS production data use `pbss`, which takes a string of format `yyyy-MM`, for example "2024-02". You can also specify a list or range of months like so: "2023-{2,4,5}" or "2024-{3-8}" (do not include spaces).

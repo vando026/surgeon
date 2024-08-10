@@ -4,7 +4,7 @@
 
 <h1 align="center"> surgeon</h1>
 
-A Scala library for Apache-Spark to  query video heartbeat data. For example, Surgeon reduces this verbose SQL query
+A Scala library for Apache-Spark to query video streaming data. For example, Surgeon reduces this verbose SQL query
 
 
 ```scala
@@ -62,11 +62,12 @@ df.select(
 
 ### Features
 
-Below is a brief vignette of Surgeon's many features. 
+Below is a brief vignette of Surgeon's features to work with parquet raw log
+(PbRl) and parquet session summary (PbSS) data. 
 
 ### Quick column selection
 
-Surgeon makes it easy to select columns that are frequently used in analysis:
+Surgeon makes it easy to select frequently used columns:
 
 ```scala
 df.select(
@@ -92,7 +93,8 @@ df.select(
 //
 ``` 
 
-It is also easy to query from structs, maps or arrays in PbSS and PbRl:
+It is also easy to query from structs, maps or arrays in raw event or session
+data:
 
 ```scala
 df.select(
@@ -122,24 +124,6 @@ and
 [PbRl wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/3-PbRl-selecting-columns.md)
 for more details about this functionality.
 
-You can also use/mixin standard Scala API code with Surgeon syntax to select a column:
-
-```scala
-df.select(
-  sessionId,
-  col("val.sessSummary.intvFirstBufferLengthMs"),
-  sessionState
-).show(3, false)
-// +----------+-----------------------+------------+
-// |sessionId |intvFirstBufferLengthMs|sessionState|
-// +----------+-----------------------+------------+
-// |1567276763|-1                     |1           |
-// |1300229737|0                      |1           |
-// |1780527017|50865                  |1           |
-// +----------+-----------------------+------------+
-// only showing top 3 rows
-//
-```
 
 ### ID selction, formatting and conversion
 
@@ -274,27 +258,26 @@ df.select(
 ### Path construction
 
 Surgeon makes constructing the paths to the data easier. 
-The production paths on Databricks are shown below. 
 
 
 ```scala
 // monthly
 pbss("2023-02")
-// res11: Builder = /mnt/org-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
+// res10: Builder = /mnt/org-prod-archive-pbss-monthly/pbss/monthly/y=2023/m=02/dt=c2023_02_01_08_00_to_2023_03_01_08_00
 pbss("2023-{2-5}")
-// res12: Builder = /mnt/org-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
+// res11: Builder = /mnt/org-prod-archive-pbss-monthly/pbss/monthly/y=2023/m={02,03,04,05}/dt=c2023_{02,03,04,05}_01_08_00_to_2023_{03,04,05,06}_01_08_00
 
 // daily
 pbss("2023-02-07")
-// res13: Builder = /mnt/org-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
+// res12: Builder = /mnt/org-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_07_08_00_to_2023_02_08_08_00
 pbss("2023-02-{7,9,14}")
-// res14: Builder = /mnt/org-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
+// res13: Builder = /mnt/org-prod-archive-pbss-daily/pbss/daily/y=2023/m=02/dt=d2023_02_{07,09,14}_08_00_to_2023_02_{08,10,15}_08_00
 
 // hourly
 pbss("2023-02-07T09")
-// res15: Builder = /mnt/org-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
+// res14: Builder = /mnt/org-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_09
 pbss("2023-02-07T{8,9}")
-// res16: Builder = /mnt/org-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
+// res15: Builder = /mnt/org-prod-archive-pbss-hourly/pbss/hourly/st=0/y=2023/m=02/d=07/dt=2023_02_07_{08,09}
 ```
 
 
@@ -303,7 +286,7 @@ Can't remember the 9-10 digit Id of the customer? Then use the name, like this:
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe")
-// res18: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
+// res17: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360}"
 ``` 
 
 To select by more than one customer name 
@@ -311,7 +294,7 @@ To select by more than one customer name
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3name("c3.TopServe", "c3.PlayFoot")
-// res19: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
+// res18: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960180360,1960002004}"
 ```
 
 Only want to select any three customers for a given path, then do:
@@ -319,7 +302,7 @@ Only want to select any three customers for a given path, then do:
 ```scala
 // demonstrate using paths to Surgeon test data
 pbss("2023-02-07T02").c3take(2)
-// res20: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
+// res19: String = "./surgeon/src/test/data/pbss/y=2023/m=02/d=07/dt=2023_02_07_02/cust={1960002004,1960180360}"
 ```
 
 See the [Paths wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/1-Paths-to-datasets.md) for more details about this functionality.
@@ -335,13 +318,13 @@ from Ids, and get Ids from names.
 ```scala
 // Pulls the customer names from GeoUtils/c3ServiceConfig_30Jan2024.csv
 c3.idToName(1960180360)
-// res21: Seq[String] = ArrayBuffer("c3.TopServe")
+// res20: Seq[String] = ArrayBuffer("c3.TopServe")
 c3.idToName(1960184661, 1960003321)
-// res22: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
+// res21: Seq[String] = ArrayBuffer("c3.FappleTV", "c3.SATY")
 c3.nameToId("c3.FappleTV")
-// res23: Seq[Int] = ArrayBuffer(1960184661)
+// res22: Seq[Int] = ArrayBuffer(1960184661)
 c3.nameToId("c3.FappleTV", "c3.SATY")
-// res24: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
+// res23: Seq[Int] = ArrayBuffer(1960184661, 1960003321)
 ```
 
 See the [Customers wiki](https://github.com/vando026/surgeon/blob/main/org-surgeon.wiki/target/mdoc/4-Customer-methods.md) for more details about this functionality.
