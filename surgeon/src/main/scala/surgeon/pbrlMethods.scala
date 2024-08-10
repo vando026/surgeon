@@ -7,8 +7,8 @@ package org.surgeon
  * which converts intvStartTimeSec to milliseconds). The Objects return type
  * Column, so you can invoke Column.methods on the result (e.g.,
  * dat.select(shouldProcess.asis.alias("myNewName")).
- * @define clientId The clientID assigned to the client by Conviva
- * @define sessionId The sessionId assigned to the session by Conviva
+ * @define clientId The clientID assigned to the client.
+ * @define sessionId The sessionId assigned to the session.
  * @define timestamp to seconds, milliseconds, timestamp or asis methods
  * @define signed as a signed, unsigned, or hexadecimal string
  * @example {{{
